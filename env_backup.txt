@@ -1,0 +1,10 @@
+# BACKUP OF CURRENT CREDENTIALS
+# This file contains the current Supabase credentials that are hardcoded in the codebase
+# Created: Backup before creating new .env file
+#
+# IMPORTANT: These are the credentials currently used in the application
+# If you create a new .env file, make sure to include these values or update them
+
+VITE_SUPABASE_URL=https://lmrrdcaavwwletcjcpqv.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxtcnJkY2Fhdnd3bGV0Y2pjcHF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU1MDQ0ODgsImV4cCI6MjA3MTA4MDQ4OH0.AU59Qfr6K9i880Gcn5y-3pjCf8PXsDIq4OI0-lPQVuQ
+

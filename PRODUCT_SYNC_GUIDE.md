@@ -157,3 +157,8 @@ If you want **real-time updates** without rebuilding:
 - Console logs show what's happening
 - Site always works even if Supabase fails
 
+
+
+
+
+

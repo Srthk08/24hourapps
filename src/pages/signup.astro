@@ -73,12 +73,12 @@ import Layout from '../layouts/Layout.astro';
                 type="email"
                 required
                 autocomplete="off"
-                pattern="[a-zA-Z0-9][a-zA-Z0-9._-]*@gmail\.com"
-                title="Please enter a valid Gmail address (username@gmail.com)"
+                pattern="^[a-zA-Z0-9][a-zA-Z0-9._-]{2,}@gmail\.com$"
+                title="Please enter a valid Gmail address (e.g., username@gmail.com). Username must be at least 3 characters and start with a letter or number."
                 class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                 placeholder="username@gmail.com"
               />
-              <p class="mt-1 text-xs text-gray-500">Only Gmail addresses are accepted (e.g., username@gmail.com)</p>
+              <p class="mt-1 text-xs text-gray-500">Only Gmail addresses are accepted. Username must be at least 3 characters (e.g., test@gmail.com)</p>
             </div>
           </div>
 
@@ -807,6 +807,31 @@ import Layout from '../layouts/Layout.astro';
     // Validate email format more strictly - username part must be valid
     // Gmail username can contain: letters, numbers, dots, underscores, hyphens
     // Must start with a letter or number
+    // Check minimum length (Supabase requires at least 3 characters)
+    const emailLocalPart = emailLower.split('@')[0];
+    if (emailLocalPart.length < 3) {
+      console.log('VALIDATION FAILED: Email username too short');
+      if (errorText) {
+        errorText.textContent = 'Email username must be at least 3 characters long (e.g., test@gmail.com).';
+      }
+      errorMessage?.classList.remove('hidden');
+      
+      // Highlight the email field
+      const emailInput = document.getElementById('email') as HTMLInputElement;
+      if (emailInput) {
+        emailInput.classList.add('border-red-500');
+        emailInput.focus();
+      }
+      
+      // Re-enable submit button
+      const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+      if (submitButton) {
+        submitButton.disabled = false;
+      }
+      console.log('=== FORM SUBMISSION BLOCKED: Email too short ===');
+      return;
+    }
+    
     const emailRegex = /^[a-zA-Z0-9][a-zA-Z0-9._-]*@gmail\.com$/;
     const regexTestResult = emailRegex.test(emailLower);
     console.log('Testing email regex:', regexTestResult);
@@ -936,21 +961,83 @@ import Layout from '../layouts/Layout.astro';
       
       console.log('Final validation passed, proceeding to Supabase signup');
       
+      // Normalize email - remove any hidden characters, trim, and ensure proper format
+      const normalizedEmail = validatedEmail
+        .trim()
+        .toLowerCase()
+        .replace(/[\u200B-\u200D\uFEFF]/g, '') // Remove zero-width characters
+        .replace(/\s+/g, '') // Remove any whitespace
+        .replace(/[^\w.@-]/g, ''); // Remove any invalid characters
+      
+      console.log('Normalized email for Supabase:', normalizedEmail);
+      console.log('Email length:', normalizedEmail.length);
+      console.log('Email local part:', normalizedEmail.split('@')[0]);
+      console.log('Email local part length:', normalizedEmail.split('@')[0].length);
+      
+      // Final check - ensure email is still valid after normalization
+      if (!normalizedEmail.includes('@') || !normalizedEmail.endsWith('@gmail.com')) {
+        console.error('Email normalization failed:', normalizedEmail);
+        if (errorText) {
+          errorText.textContent = 'Email format error. Please check your email address.';
+        }
+        errorMessage?.classList.remove('hidden');
+        const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = 'Create Account';
+        }
+        return;
+      }
+      
       // Sign up with Supabase directly
       const { data, error } = await supabase.auth.signUp({
-        email: validatedEmail,
+        email: normalizedEmail,
         password,
         options: {
           data: {
             full_name: fullName,
             phone: phone ? `${countryCode}${phone.replace(/\D/g, '')}` : '',
             company_name: companyName,
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       });
 
       if (error) {
         console.error('Supabase signup error:', error);
+        console.error('Error details:', {
+          message: error.message,
+          status: error.status,
+          email: normalizedEmail,
+          emailLength: normalizedEmail.length,
+          localPart: normalizedEmail.split('@')[0],
+          localPartLength: normalizedEmail.split('@')[0].length
+        });
+        
+        // Provide more helpful error messages
+        let userFriendlyError = 'Account creation failed. ';
+        if (error.message.includes('invalid') || error.message.includes('Invalid')) {
+          userFriendlyError += 'The email address format is not accepted. Please try a different email address or contact support.';
+        } else if (error.message.includes('already registered') || error.message.includes('already exists')) {
+          userFriendlyError += 'This email is already registered. Please sign in instead.';
+        } else if (error.message.includes('password')) {
+          userFriendlyError += 'Password does not meet requirements.';
+        } else {
+          userFriendlyError += error.message || 'Please try again or contact support.';
+        }
+        
+        if (errorText) {
+          errorText.textContent = userFriendlyError;
+        }
+        errorMessage?.classList.remove('hidden');
+        
+        // Re-enable submit button
+        const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = 'Create Account';
+        }
+        
         throw error;
       }
 
