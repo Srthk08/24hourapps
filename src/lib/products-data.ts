@@ -83,22 +83,6 @@ const mockProducts: Product[] = [
     sort_order: 4,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
-  },
-  {
-    id: '5',
-    name: 'Order Menu System',
-    slug: 'order-menu-system',
-    description: 'Complete order management system with digital menu integration, real-time order tracking, and payment processing. Perfect for restaurants looking to streamline their ordering process.',
-    short_description: 'Complete order management system with digital menu integration',
-    category: 'web',
-    base_price: 999,
-    featured_image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop&crop=center',
-    gallery: [],
-    features: ['Order Management', 'Digital Menu Integration', 'Real-time Tracking', 'Payment Processing', 'Analytics Dashboard'],
-    is_active: true,
-    sort_order: 5,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
   }
 ];
 
@@ -111,10 +95,13 @@ export const getProducts = async (): Promise<Product[]> => {
     // Try to fetch from Supabase first
     const supabaseProducts = await getSupabaseProducts();
     
+    // Filter out Order Menu System if it exists
+    const filteredProducts = supabaseProducts ? supabaseProducts.filter(p => p.slug !== 'order-menu-system') : [];
+    
     // If we got products from Supabase, use them
-    if (supabaseProducts && supabaseProducts.length > 0) {
-      console.log(`✅ Loaded ${supabaseProducts.length} products from Supabase`);
-      return supabaseProducts;
+    if (filteredProducts && filteredProducts.length > 0) {
+      console.log(`✅ Loaded ${filteredProducts.length} products from Supabase`);
+      return filteredProducts;
     }
     
     // If Supabase returned empty array, fallback to mock data
@@ -172,25 +159,6 @@ export const getProductPlans = async (productId: string) => {
       return supabasePlans;
     }
     
-    // Fallback to default plans if Supabase has none
-    // For Order Menu System (id '5'), return a single common plan priced at 999
-    if (productId === '5') {
-      return [
-        {
-          id: 'oms-999',
-          product_id: productId,
-          name: 'Common Plan',
-          description: 'Standard Order Menu System plan',
-          price: 999,
-          features: ['All essential OMS features'],
-          delivery_days: 1,
-          is_popular: true,
-          sort_order: 1,
-          created_at: new Date().toISOString()
-        }
-      ];
-    }
-
     // Default plans for other products
     return [
       {
@@ -234,24 +202,6 @@ export const getProductPlans = async (productId: string) => {
     // If Supabase fails, use default plans
     console.error('Error fetching product plans from Supabase, using fallback:', error);
     
-    // For Order Menu System (id '5'), return a single common plan priced at 999
-    if (productId === '5') {
-      return [
-        {
-          id: 'oms-999',
-          product_id: productId,
-          name: 'Common Plan',
-          description: 'Standard Order Menu System plan',
-          price: 999,
-          features: ['All essential OMS features'],
-          delivery_days: 1,
-          is_popular: true,
-          sort_order: 1,
-          created_at: new Date().toISOString()
-        }
-      ];
-    }
-
     // Default plans for other products
     return [
       {

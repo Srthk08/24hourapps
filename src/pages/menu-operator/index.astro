@@ -244,6 +244,56 @@ import MenuOperatorAdminLayout from '../../layouts/MenuOperatorAdminLayout.astro
     return null;
   }
 
+  // Real-time subscriptions storage
+  let realtimeSubscriptions = [];
+
+  // Setup real-time subscriptions for dynamic updates
+  async function setupRealtimeSubscriptions() {
+    try {
+      const supabaseClient = await waitForSupabase();
+      if (!supabaseClient) {
+        console.warn('⚠️ Supabase not ready for real-time subscriptions');
+        return;
+      }
+
+      // Cleanup existing subscriptions
+      if (realtimeSubscriptions.length > 0) {
+        realtimeSubscriptions.forEach(sub => {
+          if (sub && sub.unsubscribe) {
+            sub.unsubscribe();
+          }
+        });
+        realtimeSubscriptions = [];
+      }
+
+      // Subscribe to order_customizations table changes
+      const { subscribeToTable } = await import('../../lib/realtime');
+      
+      const customizationSub = subscribeToTable('order_customizations', (payload) => {
+        console.log('🔄 Real-time update received for order_customizations:', payload.eventType);
+        // Reload data when changes occur
+        loadRealData();
+      });
+
+      realtimeSubscriptions.push(customizationSub);
+
+      console.log('✅ Real-time subscriptions setup complete');
+    } catch (error) {
+      console.error('❌ Error setting up real-time subscriptions:', error);
+    }
+  }
+
+  // Cleanup subscriptions on page unload
+  window.addEventListener('beforeunload', () => {
+    if (realtimeSubscriptions.length > 0) {
+      realtimeSubscriptions.forEach(sub => {
+        if (sub && sub.unsubscribe) {
+          sub.unsubscribe();
+        }
+      });
+    }
+  });
+
   // Initialize dashboard
   document.addEventListener('DOMContentLoaded', async () => {
     console.log('📄 DOM Content Loaded - Starting Menu Operator Dashboard initialization');
@@ -261,6 +311,9 @@ import MenuOperatorAdminLayout from '../../layouts/MenuOperatorAdminLayout.astro
     
     // Load real data immediately
     await loadRealData();
+    
+    // Setup real-time subscriptions for dynamic updates
+    await setupRealtimeSubscriptions();
   });
   
   // Additional fallback for window load

@@ -4388,6 +4388,67 @@ Status: Submitted
     }
   };
 
+  // Real-time subscriptions storage
+  let dashboardRealtimeSubscriptions = [];
+
+  // Setup real-time subscriptions for dashboard
+  async function setupDashboardRealtime() {
+    try {
+      // Wait for Supabase to be available
+      let supabaseClient = null;
+      if (window.supabase && window.supabase.auth) {
+        supabaseClient = window.supabase;
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (window.supabase && window.supabase.auth) {
+          supabaseClient = window.supabase;
+        }
+      }
+
+      if (!supabaseClient) {
+        console.warn('⚠️ Supabase not available for real-time subscriptions');
+        return;
+      }
+
+      // Cleanup existing subscriptions
+      if (dashboardRealtimeSubscriptions.length > 0) {
+        dashboardRealtimeSubscriptions.forEach(sub => {
+          if (sub && sub.unsubscribe) {
+            sub.unsubscribe();
+          }
+        });
+        dashboardRealtimeSubscriptions = [];
+      }
+
+      // Import real-time utility
+      const { subscribeToTable } = await import('../lib/realtime');
+      
+      // Subscribe to order_customizations table changes
+      const orderCustomSub = subscribeToTable('order_customizations', (payload) => {
+        console.log('🔄 Real-time update received for order_customizations:', payload.eventType);
+        // Reload recent activity when changes occur
+        loadRecentActivity();
+      });
+
+      dashboardRealtimeSubscriptions.push(orderCustomSub);
+
+      console.log('✅ Real-time subscriptions setup complete for dashboard');
+    } catch (error) {
+      console.error('❌ Error setting up real-time subscriptions for dashboard:', error);
+    }
+  }
+
+  // Cleanup subscriptions on page unload
+  window.addEventListener('beforeunload', () => {
+    if (dashboardRealtimeSubscriptions.length > 0) {
+      dashboardRealtimeSubscriptions.forEach(sub => {
+        if (sub && sub.unsubscribe) {
+          sub.unsubscribe();
+        }
+      });
+    }
+  });
+
   // Update user info when page loads
   document.addEventListener('DOMContentLoaded', () => {
     console.log('Dashboard DOM loaded - initializing with global auth manager');
@@ -4428,6 +4489,9 @@ Status: Submitted
         console.log(' Hiding browse products section - product selected');
       }
     }
+    
+    // Setup real-time subscriptions for dynamic updates
+    setupDashboardRealtime();
     
     
     // Remove page load transition to prevent bluish screen

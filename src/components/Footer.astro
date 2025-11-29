@@ -148,14 +148,9 @@
           
           const productSlug = this.getAttribute('data-product-slug');
           
-          // Check if this is the Order Menu System - allow redirect
-          const isOrderMenuSystem = productSlug === 'order-menu-system';
-          
-          if (isOrderMenuSystem) {
-            // Order Menu System - redirect to product page
-            window.location.href = `/products/${productSlug}`;
-            return;
-          }
+          // Redirect to product page
+          window.location.href = `/products/${productSlug}`;
+          return;
           
           // All other products - show under development dialog
           if (window.showProductDialog) {
@@ -245,7 +240,6 @@
         <h3 class="text-lg font-semibold mb-4 text-white" style="color: #ffffff !important;">Services</h3>
         <ul class="space-y-2">
           <li><a href="#" class="text-white hover:text-gray-300 transition-colors footer-product-link" data-product-slug="restaurant-menu-system" style="color: #ffffff !important;">Restaurant Menu</a></li>
-          <li><a href="#" class="text-white hover:text-gray-300 transition-colors footer-product-link" data-product-slug="order-menu-system" style="color: #ffffff !important;">Order Menu System</a></li>
           <li><a href="#" class="text-white hover:text-gray-300 transition-colors footer-product-link" data-product-slug="android-tv-app" style="color: #ffffff !important;">Android TV Apps</a></li>
           <li><a href="#" class="text-white hover:text-gray-300 transition-colors footer-product-link" data-product-slug="streaming-mobile-app" style="color: #ffffff !important;">Streaming Apps</a></li>
           <li><a href="#" class="text-white hover:text-gray-300 transition-colors footer-product-link" data-product-slug="restaurant-website" style="color: #ffffff !important;">Restaurant Websites</a></li>

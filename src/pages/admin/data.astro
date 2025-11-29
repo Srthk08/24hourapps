@@ -386,6 +386,80 @@ import { supabase } from '../../lib/supabase';
   
   console.log('Admin data dashboard loaded successfully');
   
+  // Real-time subscriptions storage
+  let realtimeSubscriptions = [];
+
+  // Setup real-time subscriptions for dynamic updates
+  async function setupRealtimeSubscriptions() {
+    try {
+      await waitForSupabase();
+      if (!supabase) {
+        console.warn('⚠️ Supabase not ready for real-time subscriptions');
+        return;
+      }
+
+      // Cleanup existing subscriptions
+      if (realtimeSubscriptions.length > 0) {
+        realtimeSubscriptions.forEach(sub => {
+          if (sub && sub.unsubscribe) {
+            sub.unsubscribe();
+          }
+        });
+        realtimeSubscriptions = [];
+      }
+
+      // Import real-time utility
+      const { subscribeToTable } = await import('../../lib/realtime');
+      
+      // Subscribe to profiles table changes
+      const profilesSub = subscribeToTable('profiles', (payload) => {
+        console.log('🔄 Real-time update received for profiles:', payload.eventType);
+        loadUsersData();
+        updateSummaryCards();
+      });
+      realtimeSubscriptions.push(profilesSub);
+
+      // Subscribe to support_tickets table changes
+      const ticketsSub = subscribeToTable('support_tickets', (payload) => {
+        console.log('🔄 Real-time update received for support_tickets:', payload.eventType);
+        loadTicketsData();
+        updateSummaryCards();
+      });
+      realtimeSubscriptions.push(ticketsSub);
+
+      // Subscribe to customization_forms table changes
+      const formsSub = subscribeToTable('customization_forms', (payload) => {
+        console.log('🔄 Real-time update received for customization_forms:', payload.eventType);
+        loadCartData();
+        updateSummaryCards();
+      });
+      realtimeSubscriptions.push(formsSub);
+
+      // Subscribe to order_customizations table changes
+      const orderCustomSub = subscribeToTable('order_customizations', (payload) => {
+        console.log('🔄 Real-time update received for order_customizations:', payload.eventType);
+        loadCartData();
+        updateSummaryCards();
+      });
+      realtimeSubscriptions.push(orderCustomSub);
+
+      console.log('✅ Real-time subscriptions setup complete for admin data');
+    } catch (error) {
+      console.error('❌ Error setting up real-time subscriptions:', error);
+    }
+  }
+
+  // Cleanup subscriptions on page unload
+  window.addEventListener('beforeunload', () => {
+    if (realtimeSubscriptions.length > 0) {
+      realtimeSubscriptions.forEach(sub => {
+        if (sub && sub.unsubscribe) {
+          sub.unsubscribe();
+        }
+      });
+    }
+  });
+  
   // Load all user data when page loads
   document.addEventListener('DOMContentLoaded', async () => {
     console.log('🔄 Loading admin data dashboard...');
@@ -406,6 +480,9 @@ import { supabase } from '../../lib/supabase';
       ]);
       
       console.log('✅ All admin data loaded successfully');
+      
+      // Setup real-time subscriptions for dynamic updates
+      await setupRealtimeSubscriptions();
     } catch (error) {
       console.error('❌ Error loading admin data:', error);
     }

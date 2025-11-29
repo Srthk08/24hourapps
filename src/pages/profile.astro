@@ -887,6 +887,84 @@ import AuthGuard from '../components/AuthGuard.astro';
   });
 
   // CRITICAL: Populate user data immediately when script loads
+  // Real-time subscriptions storage
+  let profileRealtimeSubscriptions = [];
+
+  // Setup real-time subscriptions for profile updates
+  async function setupProfileRealtime() {
+    try {
+      // Get current user ID
+      const authManager = window.globalAuthManager || window.simpleAuthManager;
+      const currentUser = authManager?.getCurrentUser();
+      
+      if (!currentUser || !currentUser.id) {
+        console.warn('⚠️ No user logged in for real-time subscriptions');
+        return;
+      }
+
+      // Wait for Supabase to be available
+      let supabaseClient = null;
+      if (window.supabase && window.supabase.auth) {
+        supabaseClient = window.supabase;
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (window.supabase && window.supabase.auth) {
+          supabaseClient = window.supabase;
+        }
+      }
+
+      if (!supabaseClient) {
+        console.warn('⚠️ Supabase not available for real-time subscriptions');
+        return;
+      }
+
+      // Cleanup existing subscriptions
+      if (profileRealtimeSubscriptions.length > 0) {
+        profileRealtimeSubscriptions.forEach(sub => {
+          if (sub && sub.unsubscribe) {
+            sub.unsubscribe();
+          }
+        });
+        profileRealtimeSubscriptions = [];
+      }
+
+      // Import real-time utility
+      const { subscribeToTable } = await import('../../lib/realtime');
+      
+      // Subscribe to profiles table changes for current user
+      const profileSub = subscribeToTable('profiles', (payload) => {
+        console.log('🔄 Real-time update received for profile:', payload.eventType);
+        // Only reload if it's the current user's profile
+        if (payload.new && payload.new.id === currentUser.id) {
+          console.log('🔄 Profile updated in Supabase, reloading profile data...');
+          // Reload profile data
+          populateUserData();
+        } else if (payload.old && payload.old.id === currentUser.id) {
+          // Profile was deleted or updated
+          console.log('🔄 Profile changed in Supabase, reloading profile data...');
+          populateUserData();
+        }
+      }, { id: currentUser.id });
+
+      profileRealtimeSubscriptions.push(profileSub);
+
+      console.log('✅ Real-time subscriptions setup complete for profile');
+    } catch (error) {
+      console.error('❌ Error setting up real-time subscriptions for profile:', error);
+    }
+  }
+
+  // Cleanup subscriptions on page unload
+  window.addEventListener('beforeunload', () => {
+    if (profileRealtimeSubscriptions.length > 0) {
+      profileRealtimeSubscriptions.forEach(sub => {
+        if (sub && sub.unsubscribe) {
+          sub.unsubscribe();
+        }
+      });
+    }
+  });
+
   console.log('Script loaded, populating user data immediately');
   populateUserData();
 
@@ -895,6 +973,8 @@ import AuthGuard from '../components/AuthGuard.astro';
     console.log('DOMContentLoaded event fired');
     populateUserData();
     setupPhoneValidation();
+    // Setup real-time subscriptions after page loads
+    setupProfileRealtime();
   });
 
   // Also populate when the script loads (in case DOMContentLoaded already fired)
@@ -902,9 +982,11 @@ import AuthGuard from '../components/AuthGuard.astro';
     document.addEventListener('DOMContentLoaded', () => {
       console.log('DOMContentLoaded event listener added');
       populateUserData();
+      setupProfileRealtime();
     });
   } else {
     console.log('Document already loaded, populating immediately');
     populateUserData();
+    setupProfileRealtime();
   }
 </script>

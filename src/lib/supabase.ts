@@ -603,6 +603,7 @@ export const getProducts = async () => {
       .from('products')
       .select('*')
       .eq('is_active', true)
+      .neq('slug', 'order-menu-system') // Exclude Order Menu System
       .order('sort_order');
 
     if (error) {

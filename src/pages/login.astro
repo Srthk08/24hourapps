@@ -26,18 +26,27 @@ import Layout from '../layouts/Layout.astro';
         <form id="login-form" class="space-y-6">
           <!-- Error Message -->
           <div id="error-message" class="hidden p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div class="flex">
-              <svg class="w-5 h-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-              </svg>
-              <span id="error-text" class="text-red-800">An error occurred during sign in.</span>
+            <div class="flex flex-col">
+              <div class="flex">
+                <svg class="w-5 h-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                </svg>
+                <span id="error-text" class="text-red-800 flex-1">An error occurred during sign in.</span>
+              </div>
+              <!-- Resend Confirmation Button (shown only for email confirmation errors) -->
+              <button id="resend-confirmation-btn" class="hidden mt-3 text-sm text-primary-600 hover:text-primary-700 underline font-medium">
+                Resend Confirmation Email
+              </button>
             </div>
           </div>
 
           <!-- Success Message -->
           <div id="success-message" class="hidden p-4 bg-green-50 border border-green-200 rounded-lg">
-            <div class="flex">
-              <span id="success-text" class="text-green-800">Login successful! Redirecting...</span>
+            <div class="flex items-center">
+              <svg class="w-5 h-5 text-green-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+              </svg>
+              <span id="success-text" class="text-green-800 font-medium">Login successful! Redirecting...</span>
             </div>
           </div>
 
@@ -224,8 +233,69 @@ import Layout from '../layouts/Layout.astro';
   const successMessage = document.getElementById('success-message');
   const successText = document.getElementById('success-text');
   const googleSigninBtn = document.getElementById('google-signin-btn');
+  const resendConfirmationBtn = document.getElementById('resend-confirmation-btn');
   // Track whether user explicitly started Google OAuth from this page
   let oauthGoogleStarted = false;
+  
+  // Handle resend confirmation email
+  resendConfirmationBtn?.addEventListener('click', async () => {
+    const emailInput = document.getElementById('email') as HTMLInputElement;
+    const email = emailInput?.value?.trim();
+    
+    if (!email) {
+      if (errorText) {
+        errorText.textContent = 'Please enter your email address first.';
+      }
+      errorMessage?.classList.remove('hidden');
+      return;
+    }
+    
+    // Disable button and show loading state
+    if (resendConfirmationBtn) {
+      resendConfirmationBtn.disabled = true;
+      resendConfirmationBtn.textContent = 'Sending...';
+    }
+    
+    try {
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+      
+      if (resendError) {
+        console.error('Resend confirmation error:', resendError);
+        if (errorText) {
+          errorText.textContent = `Failed to resend confirmation email: ${resendError.message}`;
+        }
+      } else {
+        // Show success message
+        if (errorText) {
+          errorText.textContent = `✅ Confirmation email sent! Please check your inbox (and spam folder) for ${email}.`;
+        }
+        if (errorMessage) {
+          errorMessage.classList.remove('bg-red-50', 'border-red-200');
+          errorMessage.classList.add('bg-green-50', 'border-green-200');
+        }
+        if (resendConfirmationBtn) {
+          resendConfirmationBtn.classList.add('hidden');
+        }
+      }
+    } catch (err: any) {
+      console.error('Resend confirmation error:', err);
+      if (errorText) {
+        errorText.textContent = `Failed to resend confirmation email: ${err.message || 'Unknown error'}`;
+      }
+    } finally {
+      // Re-enable button
+      if (resendConfirmationBtn) {
+        resendConfirmationBtn.disabled = false;
+        resendConfirmationBtn.textContent = 'Resend Confirmation Email';
+      }
+    }
+  });
 
   // Show status message
   function showStatus(message, type = 'info') {
@@ -431,9 +501,10 @@ import Layout from '../layouts/Layout.astro';
             errorMessage.classList.add('hidden');
           }
           
-          // Set success message text
+          // Set success message text with welcome message
+          const userName = data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || 'User';
           if (successText) {
-            successText.textContent = 'Login successful! Redirecting...';
+            successText.textContent = `Welcome back, ${userName}! Redirecting to your dashboard...`;
           }
           
           // Show success message ONLY (error is already hidden above)
@@ -487,12 +558,6 @@ import Layout from '../layouts/Layout.astro';
           const urlParams = new URLSearchParams(window.location.search);
           let redirectParam = urlParams.get('redirect');
           
-          // If redirect is to OMS product page, redirect to dashboard instead
-          if (redirectParam && redirectParam.includes('/products/order-menu-system')) {
-            console.log('🔄 OMS product page redirect detected - changing to dashboard');
-            redirectParam = '/dashboard';
-          }
-          
           const defaultRedirectUrl = redirectParam || '/dashboard';
           
           console.log('🔍 Redirect parameter found:', redirectParam);
@@ -500,11 +565,7 @@ import Layout from '../layouts/Layout.astro';
           
           // Set a fallback redirect in case profile fetch takes too long
           const fallbackRedirect = setTimeout(() => {
-            // Ensure OMS redirects go to dashboard even in fallback
             let fallbackUrl = defaultRedirectUrl;
-            if (fallbackUrl && fallbackUrl.includes('/products/order-menu-system')) {
-              fallbackUrl = '/dashboard';
-            }
             console.log('⚠️ Fallback redirect triggered - going to:', fallbackUrl);
             window.location.href = fallbackUrl;
           }, 3000);
@@ -525,13 +586,9 @@ import Layout from '../layouts/Layout.astro';
               console.log('🔍 Role value from database:', JSON.stringify(profileData.role));
               
               // Role-based redirect - ADMIN ROLE TAKES PRIORITY OVER STATUS
-              // But preserve redirect parameter for product selection (except OMS)
+              // But preserve redirect parameter for product selection
               if (profileData.role === 'admin' || profileData.role === 'developer' || profileData.role === 'support') {
-                // Check if redirect is to OMS product page - always go to dashboard
-                if (redirectParam && redirectParam.includes('/products/order-menu-system')) {
-                  redirectUrl = '/dashboard';
-                  console.log(`🎉 ADMIN USER - OMS detected, redirecting to dashboard: ${redirectUrl}`);
-                } else if (!redirectParam || redirectParam === '/dashboard') {
+                if (!redirectParam || redirectParam === '/dashboard') {
                   redirectUrl = '/admin';
                   console.log(`🎉 ADMIN USER DETECTED: ${profileData.full_name} (${profileData.role})`);
                   console.log(`🚀 Redirecting to admin panel: ${redirectUrl}`);
@@ -541,11 +598,7 @@ import Layout from '../layouts/Layout.astro';
                   console.log(`🎉 ADMIN USER - preserving redirect: ${redirectUrl}`);
                 }
               } else if (profileData.role && profileData.role.toLowerCase().trim() === 'menu_operator') {
-                // Check if redirect is to OMS product page - always go to dashboard
-                if (redirectParam && redirectParam.includes('/products/order-menu-system')) {
-                  redirectUrl = '/dashboard';
-                  console.log(`🍽️ MENU OPERATOR - OMS detected, redirecting to dashboard: ${redirectUrl}`);
-                } else if (!redirectParam || redirectParam === '/dashboard') {
+                if (!redirectParam || redirectParam === '/dashboard') {
                   redirectUrl = '/menu-operator';
                   console.log(`🍽️ MENU OPERATOR DETECTED: ${profileData.full_name} (${profileData.role})`);
                   console.log(`🚀 Redirecting to menu operator dashboard: ${redirectUrl}`);
@@ -556,15 +609,11 @@ import Layout from '../layouts/Layout.astro';
                 }
               } else {
                 // For non-admin users, check status (if status field exists)
-                // But preserve redirect parameter if it contains product info (except OMS which goes to dashboard)
-                if (redirectParam && redirectParam.includes('product=') && !redirectParam.includes('order-menu-system')) {
-                  // Preserve product selection redirect (but not OMS)
+                // But preserve redirect parameter if it contains product info
+                if (redirectParam && redirectParam.includes('product=')) {
+                  // Preserve product selection redirect
                   redirectUrl = redirectParam;
                   console.log(`✅ Customer user - preserving product selection: ${redirectUrl}`);
-                } else if (redirectParam && redirectParam.includes('/products/order-menu-system')) {
-                  // OMS product page - always redirect to dashboard
-                  redirectUrl = '/dashboard';
-                  console.log(`✅ Customer user - OMS detected, redirecting to dashboard: ${redirectUrl}`);
                 } else if (profileData.status && profileData.status === 'pending_verification') {
                   redirectUrl = '/dashboard?message=Please check your email to verify your account.&type=warning';
                   console.log(`⚠️ Customer user with pending verification: ${profileData.full_name}`);
@@ -687,6 +736,7 @@ import Layout from '../layouts/Layout.astro';
       
       // Determine error message text
       let errorMessageText = 'An error occurred during sign in.';
+      let showResendButton = false;
       
       if (error && error.message) {
         // Handle specific Supabase error messages
@@ -696,9 +746,13 @@ import Layout from '../layouts/Layout.astro';
             errorMsg.includes('invalid_credentials') ||
             errorMsg.includes('email rate limit exceeded') ||
             errorMsg.includes('invalid')) {
-          errorMessageText = 'Invalid email or password.';
-        } else if (errorMsg.includes('email not confirmed')) {
-          errorMessageText = 'Please check your email and confirm your account before signing in.';
+          errorMessageText = 'Invalid email or password. Please check your credentials and try again.';
+        } else if (errorMsg.includes('email not confirmed') || 
+                   errorMsg.includes('email_not_confirmed') ||
+                   errorMsg.includes('confirm your account')) {
+          // Credentials are correct, but email needs confirmation
+          errorMessageText = 'Your credentials are correct! Please check your email inbox (and spam folder) for the confirmation link. Click the link in the email to activate your account, then try signing in again.';
+          showResendButton = true;
         } else if (errorMsg.includes('too many requests')) {
           errorMessageText = 'Too many login attempts. Please try again later.';
         } else {
@@ -711,8 +765,20 @@ import Layout from '../layouts/Layout.astro';
         errorText.textContent = errorMessageText;
       }
       
-      // Show error message ONLY (success is already hidden above)
+      // Show/hide resend confirmation button based on error type
+      const resendBtn = document.getElementById('resend-confirmation-btn');
+      if (resendBtn) {
+        if (showResendButton) {
+          resendBtn.classList.remove('hidden');
+        } else {
+          resendBtn.classList.add('hidden');
+        }
+      }
+      
+      // Reset error message styling (in case it was changed to green for resend success)
       if (errorMessage) {
+        errorMessage.classList.remove('bg-green-50', 'border-green-200');
+        errorMessage.classList.add('bg-red-50', 'border-red-200');
         errorMessage.classList.remove('hidden');
       }
       
