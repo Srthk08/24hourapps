@@ -20,8 +20,13 @@ UPDATE public.product_plans
 SET 
     name = 'Standard',
     price = 9900.00,
-    description = 'Custom Android TV app with basic features',
-    features = ARRAY['Custom Design', 'Content Management', 'Remote Control Support'],
+    description = 'Lifetime access with basic customization features',
+    features = ARRAY[
+        'Unlimited Customers',
+        'Name, Logo, Background/Wallpaper or Theme Image Customization',
+        'Free Panel to Change DNS or Portal Address anytime',
+        'Single Portals/DNS'
+    ],
     delivery_days = 14,
     is_popular = false,
     sort_order = 1
@@ -33,8 +38,13 @@ UPDATE public.product_plans
 SET 
     name = 'Pro',
     price = 29900.00,
-    description = 'Advanced features with analytics',
-    features = ARRAY['All Standard Features', 'Advanced Analytics', 'Multi-user Support', 'Custom Integrations'],
+    description = 'Lifetime access OR £29 Per Month - Everything in Standard plus advanced features',
+    features = ARRAY[
+        'Everything in Standard',
+        'Unlimited DNS/Portals',
+        'Intro Video',
+        'Get All Future Updates in £19 Only'
+    ],
     delivery_days = 14,
     is_popular = true,
     sort_order = 2
@@ -46,8 +56,11 @@ UPDATE public.product_plans
 SET 
     name = 'Pro Gold',
     price = 44900.00,
-    description = 'Complete solution with dedicated support',
-    features = ARRAY['All Pro Features', 'Dedicated Support', 'Custom Development', 'White-label Option'],
+    description = 'Lifetime access - Everything in Pro plus zero-cost future updates',
+    features = ARRAY[
+        'Everything in Pro',
+        'All Future updates at ZERO cost'
+    ],
     delivery_days = 21,
     is_popular = false,
     sort_order = 3
@@ -73,6 +86,7 @@ SELECT
         ELSE '₹' || pp.price::text
     END as display_price,
     pp.description,
+    pp.features,
     pp.delivery_days,
     pp.is_popular,
     pp.sort_order

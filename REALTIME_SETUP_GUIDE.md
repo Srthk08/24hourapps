@@ -81,3 +81,6 @@ The code includes a **polling fallback** that checks for updates every 10 second
 - Prices are always fetched fresh on page load
 - All changes are logged to browser console for debugging
 
+
+
+

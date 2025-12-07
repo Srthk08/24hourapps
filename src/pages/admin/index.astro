@@ -2,1794 +2,554 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 ---
 
-<AdminLayout title="Admin Dashboard - DevExpress">
-  <div class="max-w-7xl mx-auto">
-    <div class="bg-white rounded-lg shadow p-6">
-      <div class="flex items-center justify-between mb-6">
+<AdminLayout title="Rebranded Apps Panel">
+  <div class="min-h-screen bg-gray-50">
+    <!-- Page Header with Title -->
+    <div class="bg-white border-b border-gray-200 shadow-sm">
+      <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6">
         <div>
-          <h2 class="text-2xl font-bold text-gray-900 mb-2">Admin Dashboard - Complete User Data</h2>
-          <p class="text-gray-600">View all user activities, registrations, contact forms, support tickets, and product customizations.</p>
+          <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Rebranded Apps Panel</h1>
+          <p class="mt-1 text-xs sm:text-sm text-gray-500">Manage and monitor all app builds and requests</p>
         </div>
-        <div>
-          <a href="/admin/data" class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 transition-colors">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-            </svg>
-            View All Data
+      </div>
+    </div>
+
+    <!-- Top Navigation Tabs -->
+    <div class="bg-white border-b border-gray-200 shadow-sm">
+      <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0 py-3 sm:py-0 sm:h-16">
+          <!-- Left: Build Requests Tab (Active) -->
+          <div class="flex items-center space-x-1 overflow-x-auto">
+            <button id="build-requests-tab" class="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-blue-600 border-b-2 border-blue-600 transition-all duration-200 hover:bg-blue-50 rounded-t-lg whitespace-nowrap">
+              <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+              <span class="hidden xs:inline">Build Requests</span>
+              <span class="xs:hidden">Build</span>
+            </button>
+            
+            <button id="search-tab" class="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-t-lg transition-all duration-200 whitespace-nowrap">
+              <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+              <span>Search</span>
+            </button>
+          </div>
+
+          <!-- Center: Search Bar (shown when Search tab is active) -->
+          <div id="search-bar-container" class="hidden flex-1 max-w-md mx-0 sm:mx-4 w-full sm:w-auto">
+            <div class="relative">
+              <input 
+                type="text" 
+                id="search-input" 
+                placeholder="Search apps..." 
+                class="w-full pl-10 sm:pl-11 pr-4 py-2 sm:py-2.5 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-xs sm:text-sm"
+              />
+              <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Buttons: Tickets, Users, Contacts -->
+    <div class="bg-white border-b border-gray-200 shadow-sm">
+      <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-5">
+        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-3 sm:gap-4">
+          <a href="/admin/tickets" class="group flex items-center space-x-2 sm:space-x-3 px-5 sm:px-6 py-2.5 sm:py-3 bg-white border-2 border-blue-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 shadow-sm hover:shadow-md">
+            <div class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+              <svg class="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+              </svg>
+            </div>
+            <span class="text-sm sm:text-base font-semibold text-gray-700 group-hover:text-blue-700">Tickets</span>
+          </a>
+          
+          <a href="/admin/users" class="group flex items-center space-x-2 sm:space-x-3 px-5 sm:px-6 py-2.5 sm:py-3 bg-white border-2 border-indigo-200 rounded-xl hover:border-indigo-400 hover:bg-indigo-50 transition-all duration-200 shadow-sm hover:shadow-md">
+            <div class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
+              <svg class="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+              </svg>
+            </div>
+            <span class="text-sm sm:text-base font-semibold text-gray-700 group-hover:text-indigo-700">Users</span>
+          </a>
+          
+          <a href="/admin/contacts" class="group flex items-center space-x-2 sm:space-x-3 px-5 sm:px-6 py-2.5 sm:py-3 bg-white border-2 border-green-200 rounded-xl hover:border-green-400 hover:bg-green-50 transition-all duration-200 shadow-sm hover:shadow-md">
+            <div class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+              <svg class="w-5 h-5 sm:w-6 sm:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+              </svg>
+            </div>
+            <span class="text-sm sm:text-base font-semibold text-gray-700 group-hover:text-green-700">Contacts</span>
           </a>
         </div>
       </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Users Card -->
-        <div class="bg-blue-50 rounded-lg p-6 border border-blue-200">
-          <div class="flex items-center">
-            <div class="p-2 bg-blue-100 rounded-lg">
-              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-                </svg>
-            </div>
-            <div class="ml-4">
-              <p class="text-sm font-medium text-blue-600">Total Users</p>
-              <p class="text-2xl font-bold text-blue-900" id="total-users">0</p>
-            </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
+      <!-- Apps List -->
+      <div id="apps-list" class="space-y-3">
+        <!-- Apps will be loaded here -->
+        <div class="text-center py-16">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+            <svg class="w-8 h-8 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
           </div>
-        </div>
-
-        <!-- Contact Forms Card -->
-        <div class="bg-green-50 rounded-lg p-6 border border-green-200">
-          <div class="flex items-center">
-            <div class="p-2 bg-green-100 rounded-lg">
-              <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-              </svg>
-            </div>
-            <div class="ml-4">
-              <p class="text-sm font-medium text-green-600">Contact Forms</p>
-              <p class="text-2xl font-bold text-green-900" id="total-contacts">0</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Revenue Card -->
-        <div class="bg-purple-50 rounded-lg p-6 border border-purple-200">
-          <div class="flex items-center">
-            <div class="p-2 bg-purple-100 rounded-lg">
-              <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                </svg>
-            </div>
-                        <div class="ml-4">
-              <p class="text-sm font-medium text-purple-600">Total Revenue</p>
-              <p class="text-2xl font-bold text-purple-900" id="total-revenue">₹0</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Support Card -->
-        <div class="bg-orange-50 rounded-lg p-6 border border-orange-200">
-          <div class="flex items-center">
-            <div class="p-2 bg-orange-100 rounded-lg">
-              <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-            </div>
-            <div class="ml-4">
-              <p class="text-sm font-medium text-orange-600">Support Tickets</p>
-              <p class="text-2xl font-bold text-orange-900" id="total-tickets">0</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Customizations Card -->
-        <div class="bg-teal-50 rounded-lg p-6 border border-teal-200">
-          <div class="flex items-center">
-            <div class="p-2 bg-teal-100 rounded-lg">
-              <svg class="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-              </svg>
-            </div>
-            <div class="ml-4">
-              <p class="text-sm font-medium text-teal-600">Customizations</p>
-              <p class="text-2xl font-bold text-teal-900" id="total-customizations">0</p>
-            </div>
-          </div>
-        </div>
-        </div>
-
-      <!-- Detailed Data Sections -->
-      <div class="mt-8 space-y-8">
-        
-        <!-- Registered Users Section -->
-        <div class="bg-white rounded-lg shadow p-6">
-          <h3 class="text-xl font-bold text-gray-900 mb-4">Registered Users</h3>
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registered</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Login</th>
-                </tr>
-              </thead>
-              <tbody id="users-table-body" class="bg-white divide-y divide-gray-200">
-                <tr>
-                  <td colspan="6" class="px-6 py-4 text-center text-gray-500">Loading users...</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Contact Form Submissions Section -->
-        <div class="bg-white rounded-lg shadow p-6">
-          <h3 class="text-xl font-bold text-gray-900 mb-4">Contact Form Submissions</h3>
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project Type</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="contact-table-body" class="bg-white divide-y divide-gray-200">
-                <tr>
-                  <td colspan="6" class="px-6 py-4 text-center text-gray-500">Loading contact submissions...</td>
-                </tr>
-              </tbody>
-            </table>
-        </div>
-      </div>
-
-        <!-- Support Tickets Section -->
-        <div class="bg-white rounded-lg shadow p-6">
-          <h3 class="text-xl font-bold text-gray-900 mb-4">Support Tickets</h3>
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket ID</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-                </tr>
-              </thead>
-              <tbody id="tickets-table-body" class="bg-white divide-y divide-gray-200">
-                <tr>
-                  <td colspan="6" class="px-6 py-4 text-center text-gray-500">Loading support tickets...</td>
-                </tr>
-              </tbody>
-            </table>
-        </div>
-      </div>
-
-        <!-- Customizations Section -->
-        <div class="bg-white rounded-lg shadow p-6">
-          <h3 class="text-xl font-bold text-gray-900 mb-4">Product Customizations</h3>
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact Email</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Type</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project Name</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="customizations-table-body" class="bg-white divide-y divide-gray-200">
-                <tr>
-                  <td colspan="7" class="px-6 py-4 text-center text-blue-500">JavaScript is working! Loading customizations...</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-      </div>
-
-
-      <div class="mt-8 p-4 bg-gray-50 rounded-lg">
-        <h4 class="text-sm font-medium text-gray-900 mb-2">Authentication Status</h4>
-        <p class="text-sm text-gray-600">✅ User is authenticated and viewing admin dashboard</p>
-        <p class="text-sm text-gray-600">✅ No page reloads or authentication loops</p>
-        <p class="text-sm text-gray-600">✅ Session is maintained properly</p>
+          <p class="text-gray-500 font-medium">Loading apps...</p>
         </div>
       </div>
     </div>
+
+
+    <!-- App Details Modal -->
+    <div id="app-details-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50 backdrop-blur-sm">
+      <div class="flex items-center justify-center min-h-screen p-2 sm:p-4">
+        <div class="bg-white rounded-xl sm:rounded-2xl shadow-2xl max-w-3xl w-full p-4 sm:p-6 lg:p-8 transform transition-all max-h-[95vh] overflow-y-auto">
+          <!-- Modal Header -->
+          <div class="mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-gray-200">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex-1 min-w-0">
+                <h2 id="modal-app-name" class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2 sm:mb-3 break-words"></h2>
+                <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+                  <div class="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-blue-50 rounded-lg">
+                    <span id="modal-app-version" class="text-blue-700 font-semibold"></span>
+                  </div>
+                  <div class="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-gray-50 rounded-lg min-w-0">
+                    <svg class="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                    <span id="modal-app-email" class="text-gray-700 font-medium truncate"></span>
+                    <button onclick="copyToClipboard(document.getElementById('modal-app-email').textContent)" class="ml-1 sm:ml-2 p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors flex-shrink-0" title="Copy email">
+                      <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <button onclick="closeAppDetailsModal()" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="mb-4 sm:mb-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+              <button onclick="handleRebuild()" class="px-3 sm:px-4 py-2 sm:py-3 bg-blue-600 text-white rounded-lg sm:rounded-xl hover:bg-blue-700 transition-all duration-200 font-semibold text-xs sm:text-sm shadow-md hover:shadow-lg">
+                RE-BUILD
+              </button>
+              <button onclick="handleUpdateLatest()" class="px-3 sm:px-4 py-2 sm:py-3 bg-blue-600 text-white rounded-lg sm:rounded-xl hover:bg-blue-700 transition-all duration-200 font-semibold text-xs sm:text-sm shadow-md hover:shadow-lg">
+                UPDATE TO LATEST
+              </button>
+              <button onclick="handleUpdateRebranding()" class="px-3 sm:px-4 py-2 sm:py-3 bg-blue-600 text-white rounded-lg sm:rounded-xl hover:bg-blue-700 transition-all duration-200 font-semibold text-xs sm:text-sm shadow-md hover:shadow-lg">
+                UPDATE REBRANDING
+              </button>
+              <button onclick="handleRebuildDemo()" class="px-3 sm:px-4 py-2 sm:py-3 bg-blue-600 text-white rounded-lg sm:rounded-xl hover:bg-blue-700 transition-all duration-200 font-semibold text-xs sm:text-sm shadow-md hover:shadow-lg">
+                RE-BUILD DEMO
+              </button>
+            </div>
+          </div>
+
+          <!-- Notes Input -->
+          <div class="mb-6">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Notes & Information</label>
+            <textarea 
+              id="modal-notes-input" 
+              placeholder="Add notes or information here..." 
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
+              rows="4"
+            ></textarea>
+          </div>
+
+          <!-- Add Info Link -->
+          <div class="mb-6">
+            <a href="#" id="add-info-link" class="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Add Info
+            </a>
+          </div>
+
+          <!-- IDs Section -->
+          <div class="bg-gray-50 rounded-xl p-5 mb-6">
+            <div class="space-y-4">
+              <div class="flex items-center justify-between py-2 border-b border-gray-200 last:border-0">
+                <span class="text-sm font-semibold text-gray-600">UID:</span>
+                <div class="flex items-center space-x-2">
+                  <span id="modal-app-uid" class="text-gray-900 font-mono text-sm bg-white px-3 py-1.5 rounded-lg border border-gray-300"></span>
+                  <button onclick="copyToClipboard(document.getElementById('modal-app-uid').textContent)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" title="Copy UID">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div class="flex items-center justify-between py-2">
+                <span class="text-sm font-semibold text-gray-600">APP ID:</span>
+                <div class="flex items-center space-x-2">
+                  <span id="modal-app-id" class="text-gray-900 font-mono text-sm bg-white px-3 py-1.5 rounded-lg border border-gray-300"></span>
+                  <button onclick="copyToClipboard(document.getElementById('modal-app-id').textContent)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" title="Copy APP ID">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+            <button onclick="closeAppDetailsModal()" class="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all duration-200 font-semibold text-sm">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://tguopyxmlfxcalhfitob.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRndW9weXhtbGZ4Y2FsaGZpdG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMTk3NDQsImV4cCI6MjA3OTc5NTc0NH0.GUtJWVu8i6NWoleXI_Fd-ePM4vOFQtulyk1kqZgPgRM';
+    
+    let supabase = null;
+    let currentFilter = 'all';
+    let currentApps = [];
+    let currentAppDetails = null;
+    
+    function waitForSupabase() {
+      return new Promise((resolve) => {
+        if (window.supabase && window.supabase.auth && typeof window.supabase.auth.getUser === 'function') {
+          supabase = window.supabase;
+          resolve(supabase);
+        } 
+        else if (window.supabase && typeof window.supabase.createClient === 'function') {
+          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          resolve(supabase);
+        } 
+        else {
+          setTimeout(() => waitForSupabase().then(resolve), 100);
+        }
+      });
+    }
+    
+    async function loadApps(filter = 'all') {
+      try {
+        if (!supabase) {
+          await waitForSupabase();
+        }
+        
+        const appsList = document.getElementById('apps-list');
+        appsList.innerHTML = `
+          <div class="text-center py-16">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+              <svg class="w-8 h-8 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+              </svg>
+            </div>
+            <p class="text-gray-500 font-medium">Loading apps...</p>
+          </div>
+        `;
+        
+        // Load from customization_forms and android_tv_app_forms tables
+        let query = supabase
+          .from('customization_forms')
+          .select('*, profiles(full_name, email)')
+          .order('created_at', { ascending: false });
+        
+        const { data: customizations, error: customError } = await query;
+        
+        if (customError) {
+          console.error('Error loading customizations:', customError);
+        }
+        
+        // Also load from android_tv_app_forms
+        let androidQuery = supabase
+          .from('android_tv_app_forms')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        const { data: androidApps, error: androidError } = await androidQuery;
+        
+        if (androidError) {
+          console.error('Error loading Android TV apps:', androidError);
+        }
+        
+        // Combine and format apps
+        let allApps = [];
+        
+        if (customizations) {
+          customizations.forEach(custom => {
+            allApps.push({
+              id: custom.id,
+              name: custom.app_name || custom.project_name || custom.product_name || 'N/A',
+              email: custom.customer_email || custom.contact_email || 'N/A',
+              version: custom.status === 'completed' ? '7.0.1467.50' : null,
+              status: custom.status,
+              type: 'customization',
+              created_at: custom.created_at,
+              uid: custom.user_id || 'N/A',
+              app_id: custom.id.substring(0, 20)
+            });
+          });
+        }
+        
+        if (androidApps) {
+          androidApps.forEach(app => {
+            allApps.push({
+              id: app.id,
+              name: app.name || 'N/A',
+              email: app.email || 'N/A',
+              version: app.status === 'completed' ? '7.0.504.29' : null,
+              status: app.status,
+              type: 'android_tv',
+              created_at: app.created_at,
+              uid: app.id.substring(0, 20),
+              app_id: app.id.substring(0, 20)
+            });
+          });
+        }
+        
+        // Apply filter
+        if (filter === 'real-requested') {
+          allApps = allApps.filter(app => app.status === 'pending' && app.type === 'customization');
+        } else if (filter === 'real-building') {
+          allApps = allApps.filter(app => app.status === 'in_progress' && app.type === 'customization');
+        } else if (filter === 'demo-failed') {
+          allApps = allApps.filter(app => app.status === 'rejected' || app.status === 'cancelled');
+        } else if (filter === 'demo-building') {
+          allApps = allApps.filter(app => app.status === 'in_progress' && app.type === 'android_tv');
+        } else if (filter === 'demo-builded') {
+          allApps = allApps.filter(app => app.status === 'completed');
+        }
+        
+        currentApps = allApps;
+        renderApps(allApps);
+        
+      } catch (error) {
+        console.error('Error loading apps:', error);
+        document.getElementById('apps-list').innerHTML = '<div class="text-center py-12 text-red-500"><p>Error loading apps. Please try again.</p></div>';
+      }
+    }
+    
+    function renderApps(apps) {
+      const appsList = document.getElementById('apps-list');
+      
+      if (apps.length === 0) {
+        appsList.innerHTML = `
+          <div class="text-center py-20">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-4">
+              <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">No apps found</h3>
+            <p class="text-gray-500 text-sm">Try adjusting your filters or search criteria</p>
+          </div>
+        `;
+        return;
+      }
+      
+      appsList.innerHTML = apps.map(app => {
+        const statusBadge = app.status === 'completed' ? 
+          `<span class="px-3 py-1 text-xs font-semibold text-white bg-green-600 rounded-full shadow-sm">real_app_builded</span>` :
+          `<span class="px-3 py-1 text-xs font-semibold text-white bg-gray-700 rounded-full shadow-sm">N/A</span>`;
+        
+        const emptyBadge = `<span class="px-3 py-1 text-xs font-semibold text-white bg-gray-700 rounded-full shadow-sm">empty</span>`;
+        
+        const versionBadge = app.version ? 
+          `<span class="px-3 py-1 text-xs font-semibold text-white bg-gray-700 rounded-full shadow-sm">${app.version}</span>` : 
+          '';
+        
+        const statusColors = {
+          'pending': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+          'in_progress': 'bg-blue-100 text-blue-800 border-blue-200',
+          'completed': 'bg-green-100 text-green-800 border-green-200',
+          'cancelled': 'bg-red-100 text-red-800 border-red-200',
+          'rejected': 'bg-red-100 text-red-800 border-red-200'
+        };
+        
+        const statusColor = statusColors[app.status] || 'bg-gray-100 text-gray-800 border-gray-200';
+        
+        return `
+          <div class="bg-white border-2 border-gray-200 rounded-lg sm:rounded-xl p-4 sm:p-5 hover:border-blue-300 hover:shadow-lg transition-all duration-200 cursor-pointer group" onclick="openAppDetails('${app.id}')">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-3">
+                  <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                    </svg>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-1 truncate group-hover:text-blue-600 transition-colors">${app.name}</h3>
+                    <p class="text-xs sm:text-sm text-gray-500 truncate">${app.email}</p>
+                  </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                  ${statusBadge}
+                  ${app.version ? versionBadge : emptyBadge}
+                  ${app.status === 'cancelled' ? '<span class="px-2 sm:px-3 py-1 text-xs font-semibold text-white bg-red-600 rounded-full shadow-sm whitespace-nowrap">CANCELLED</span>' : ''}
+                  <span class="px-2 sm:px-3 py-1 text-xs font-medium rounded-full border ${statusColor} whitespace-nowrap">${app.status || 'N/A'}</span>
+                </div>
+                <div class="flex items-center text-xs text-gray-400">
+                  <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span class="truncate">${app.created_at ? new Date(app.created_at).toLocaleDateString() : 'N/A'}</span>
+                </div>
+              </div>
+              <div class="flex-shrink-0">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    function openAppDetails(appId) {
+      const app = currentApps.find(a => a.id === appId);
+      if (!app) return;
+      
+      currentAppDetails = app;
+      
+      document.getElementById('modal-app-name').textContent = app.name;
+      document.getElementById('modal-app-email').textContent = app.email;
+      document.getElementById('modal-app-version').textContent = app.version ? `V: ${app.version}` : 'V: N/A';
+      document.getElementById('modal-app-uid').textContent = app.uid;
+      document.getElementById('modal-app-id').textContent = app.app_id;
+      document.getElementById('modal-notes-input').value = '';
+      
+      document.getElementById('app-details-modal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closeAppDetailsModal() {
+      document.getElementById('app-details-modal').classList.add('hidden');
+      document.body.style.overflow = '';
+      currentAppDetails = null;
+    }
+    
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        // Show toast notification
+        showToast('Copied to clipboard!', 'success');
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+        showToast('Failed to copy', 'error');
+      });
+    }
+    
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-medium text-sm transform transition-all duration-300 ${
+        type === 'success' ? 'bg-green-500' : 'bg-red-500'
+      }`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-20px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 2000);
+    }
+    
+    function handleRebuild() {
+      if (!currentAppDetails) return;
+      alert('RE-BUILD action triggered for: ' + currentAppDetails.name);
+      // Add your rebuild logic here
+    }
+    
+    function handleUpdateLatest() {
+      if (!currentAppDetails) return;
+      alert('UPDATE TO LATEST action triggered for: ' + currentAppDetails.name);
+      // Add your update logic here
+    }
+    
+    function handleUpdateRebranding() {
+      if (!currentAppDetails) return;
+      alert('UPDATE REBRANDING action triggered for: ' + currentAppDetails.name);
+      // Add your rebranding logic here
+    }
+    
+    function handleRebuildDemo() {
+      if (!currentAppDetails) return;
+      alert('RE-BUILD DEMO action triggered for: ' + currentAppDetails.name);
+      // Add your demo rebuild logic here
+    }
+    
+    // Tab switching
+    document.getElementById('build-requests-tab').addEventListener('click', () => {
+      document.getElementById('build-requests-tab').classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+      document.getElementById('build-requests-tab').classList.remove('text-gray-600');
+      document.getElementById('search-tab').classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+      document.getElementById('search-tab').classList.add('text-gray-600');
+      document.getElementById('search-bar-container').classList.add('hidden');
+      loadApps(currentFilter);
+    });
+    
+    document.getElementById('search-tab').addEventListener('click', () => {
+      document.getElementById('search-tab').classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+      document.getElementById('search-tab').classList.remove('text-gray-600');
+      document.getElementById('build-requests-tab').classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+      document.getElementById('build-requests-tab').classList.add('text-gray-600');
+      document.getElementById('search-bar-container').classList.remove('hidden');
+    });
+    
+    
+    // Search functionality
+    document.getElementById('search-input').addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      if (searchTerm === '') {
+        renderApps(currentApps);
+        return;
+      }
+      
+      const filtered = currentApps.filter(app => 
+        app.name.toLowerCase().includes(searchTerm) ||
+        app.email.toLowerCase().includes(searchTerm)
+      );
+      
+      renderApps(filtered);
+    });
+    
+    // Make functions globally available
+    window.openAppDetails = openAppDetails;
+    window.closeAppDetailsModal = closeAppDetailsModal;
+    window.copyToClipboard = copyToClipboard;
+    window.handleRebuild = handleRebuild;
+    window.handleUpdateLatest = handleUpdateLatest;
+    window.handleUpdateRebranding = handleUpdateRebranding;
+    window.handleRebuildDemo = handleRebuildDemo;
+    window.showToast = showToast;
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', async () => {
+      await waitForSupabase();
+      await loadApps();
+    });
+    
+    // Close modal on backdrop click
+    document.getElementById('app-details-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'app-details-modal') {
+        closeAppDetailsModal();
+      }
+    });
+  </script>
 </AdminLayout>
 
-
-<script>
-  // Supabase configuration
-  const SUPABASE_URL = 'https://tguopyxmlfxcalhfitob.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRndW9weXhtbGZ4Y2FsaGZpdG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMTk3NDQsImV4cCI6MjA3OTc5NTc0NH0.GUtJWVu8i6NWoleXI_Fd-ePM4vOFQtulyk1kqZgPgRM';
-
-  // Format date function to fix month display issue
-  function formatDate(dateString) {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return 'Invalid Date';
-      }
-      
-      // Format as MM/DD/YYYY to ensure consistent display
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const year = date.getFullYear();
-      
-      return `${month}/${day}/${year}`;
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return 'Invalid Date';
-    }
-  }
-  
-  let supabase = null;
-  
-  // Wait for Supabase to load
-  function waitForSupabase() {
-    return new Promise((resolve) => {
-      // Check if window.supabase is already a client instance (has auth property)
-      if (window.supabase && window.supabase.auth && typeof window.supabase.auth.getUser === 'function') {
-        supabase = window.supabase;
-        resolve(supabase);
-      } 
-      // Check if window.supabase is the library (has createClient method)
-      else if (window.supabase && typeof window.supabase.createClient === 'function') {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        resolve(supabase);
-      } 
-      // Wait for Supabase library to load
-      else {
-        setTimeout(() => waitForSupabase().then(resolve), 100);
-      }
-    });
-  }
-  
-  console.log('Admin dashboard loaded successfully');
-  
-  // Initialize admin panel
-  window.addEventListener('load', () => {
-    console.log('✅ Admin panel loaded successfully');
-    const customizationsTable = document.getElementById('customizations-table-body');
-    if (customizationsTable) {
-      customizationsTable.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">Loading customizations...</td></tr>';
-    }
-  });
-  
-  // Load all user data when page loads
-  document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🔄 Loading admin dashboard data...');
-    console.log('✅ Admin dashboard JavaScript is running!');
-    
-    // Wait for Supabase to be available
-    if (!supabase) {
-      console.log('⏳ Waiting for Supabase client...');
-      await waitForSupabase();
-    }
-    
-    console.log('🔍 Supabase client:', supabase);
-    console.log('🔍 Customizations table body element:', document.getElementById('customizations-table-body'));
-    
-    // Test if we can find the table elements
-    const usersTable = document.getElementById('users-table-body');
-    const contactTable = document.getElementById('contact-table-body');
-    
-    if (usersTable) {
-      usersTable.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">Loading users...</td></tr>';
-    }
-    
-    if (contactTable) {
-      contactTable.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">Loading contacts...</td></tr>';
-    }
-    
-    try {
-      // Test Supabase connection first
-      console.log('🔍 Testing Supabase connection...');
-      
-      // Test profiles table
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('count', { count: 'exact', head: true });
-      
-      console.log('Profiles table test:', { data: profilesData, error: profilesError });
-      
-      // Test contact_submissions table
-      const { data: contactData, error: contactError } = await supabase
-        .from('contact_submissions')
-        .select('count', { count: 'exact', head: true });
-      
-      console.log('Contact submissions table test:', { data: contactData, error: contactError });
-      
-      if (profilesError) {
-        console.error('❌ Profiles table error:', profilesError);
-        alert('Profiles table error: ' + profilesError.message);
-      }
-      
-      if (contactError) {
-        console.error('❌ Contact submissions table error:', contactError);
-        
-        // Show specific error message in the table
-        const contactTable = document.getElementById('contact-table-body');
-        if (contactTable) {
-          if (contactError.message.includes('Could not find the table')) {
-            contactTable.innerHTML = `
-              <tr>
-                <td colspan="6" class="px-6 py-4 text-center text-red-500">
-                  <div class="space-y-2">
-                    <p class="font-semibold">Table 'contact_submissions' not found!</p>
-                    <p class="text-sm">The database table needs to be created.</p>
-                    <p class="text-sm">Please run the database migration or contact the administrator.</p>
-                  </div>
-                </td>
-              </tr>
-            `;
-          } else {
-            contactTable.innerHTML = `
-              <tr>
-                <td colspan="6" class="px-6 py-4 text-center text-red-500">
-                  Error: ${contactError.message}
-                </td>
-              </tr>
-            `;
-          }
-        }
-      }
-      
-      console.log('✅ Supabase connection tests completed');
-      
-      // Load users data
-      console.log('🔄 Loading users data...');
-      await loadUsersData();
-      
-      // Load contact form submissions
-      console.log('🔄 Loading contact data...');
-      await loadContactData();
-      
-      // Load support tickets
-      console.log('🔄 Loading tickets data...');
-      await loadTicketsData();
-      
-      // Load customizations
-      console.log('🔄 Loading customizations data...');
-      await loadCustomizationsData();
-      
-      // Update summary cards
-      console.log('🔄 Updating summary cards...');
-      await updateSummaryCards();
-      
-      console.log('✅ All admin data loaded successfully');
-    } catch (error) {
-      console.error('❌ Error loading admin data:', error);
-      alert('Error loading admin data: ' + error.message);
-    }
-  });
-
-  async function loadUsersData() {
-    try {
-      console.log('🔄 Loading users data from profiles table...');
-      const { data: users, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('❌ Error loading users:', error);
-        console.error('Error details:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
-        
-        // Show error in UI
-        const tbody = document.getElementById('users-table-body');
-        if (tbody) {
-          tbody.innerHTML = `
-            <tr>
-              <td colspan="6" class="px-6 py-4 text-center text-red-500">
-                Error loading users: ${error.message}
-              </td>
-            </tr>
-          `;
-        }
-        return;
-      }
-
-      console.log('✅ Users loaded successfully:', users?.length || 0, 'users found');
-
-      const tbody = document.getElementById('users-table-body');
-      if (!tbody) return;
-
-      if (users && users.length > 0) {
-        tbody.innerHTML = users.map(user => `
-          <tr>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="flex items-center">
-                <div class="flex-shrink-0 h-10 w-10">
-                  <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <span class="text-sm font-medium text-blue-600">${user.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'}</span>
-                  </div>
-                </div>
-                <div class="ml-4">
-                  <div class="text-sm font-medium text-gray-900">${user.full_name || 'No Name'}</div>
-                </div>
-              </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${user.email}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${user.phone || '-'}</td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.role === 'admin' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
-                ${user.role || 'customer'}
-              </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatDate(user.created_at)}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${user.last_login ? formatDate(user.last_login) : '-'}</td>
-          </tr>
-        `).join('');
-      } else {
-        tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No users found</td></tr>';
-      }
-    } catch (error) {
-      console.error('Error loading users data:', error);
-    }
-  }
-
-  async function loadContactData() {
-    try {
-      console.log('🔄 Loading contact form data from contact_submissions table...');
-      const { data: contacts, error } = await supabase
-        .from('contact_submissions')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('❌ Error loading contact data:', error);
-        console.error('Error details:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
-        
-        // Show error in UI
-        const tbody = document.getElementById('contact-table-body');
-        if (tbody) {
-          tbody.innerHTML = `
-            <tr>
-              <td colspan="6" class="px-6 py-4 text-center text-red-500">
-                Error loading contact data: ${error.message}
-              </td>
-            </tr>
-          `;
-        }
-        return;
-      }
-
-      console.log('✅ Contact data loaded successfully:', contacts?.length || 0, 'contacts found');
-      if (contacts && contacts.length > 0) {
-        console.log('📞 Sample contact phone data:', contacts[0]?.phone, 'Type:', typeof contacts[0]?.phone);
-        console.log('📞 Full sample contact:', contacts[0]);
-      }
-
-      const tbody = document.getElementById('contact-table-body');
-      if (!tbody) return;
-
-      if (contacts && contacts.length > 0) {
-        // Helper function to check if a value is a non-empty string after trimming
-        const getPhoneValue = (value) => {
-          if (!value) return null;
-          if (typeof value !== 'string') return null;
-          const trimmed = value.trim();
-          return trimmed.length > 0 ? trimmed : null;
-        };
-        
-        tbody.innerHTML = contacts.map(contact => {
-          // Debug phone field (check for empty strings too)
-          const phoneValue = getPhoneValue(contact.phone) || 
-                             getPhoneValue(contact.phone_number) || 
-                             getPhoneValue(contact.contact_phone) || 
-                             getPhoneValue(contact.mobile) || 
-                             getPhoneValue(contact.telephone) || 
-                             null;
-          console.log('📞 Rendering contact phone:', contact.id, 'Phone:', phoneValue, 'Raw contact.phone:', contact.phone);
-          
-          return `
-          <tr>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${contact.first_name} ${contact.last_name}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${contact.email}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${phoneValue || '-'}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${contact.company_name || '-'}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${contact.project_type || '-'}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatDate(contact.created_at)}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-              <button onclick="viewContactDetails('${contact.id}')" class="text-blue-600 hover:text-blue-900">View Details</button>
-            </td>
-          </tr>
-          `;
-        }).join('');
-      } else {
-        tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No contact submissions found</td></tr>';
-      }
-    } catch (error) {
-      console.error('Error loading contact data:', error);
-    }
-  }
-
-  async function loadTicketsData() {
-    try {
-      console.log('🔄 Loading support tickets data...');
-      
-      // Ensure Supabase is available
-      if (!supabase) {
-        await waitForSupabase();
-      }
-      
-      // Double-check and try to get from window if still not available
-      if (!supabase && window.supabase) {
-        if (window.supabase.auth && typeof window.supabase.auth.getUser === 'function') {
-          supabase = window.supabase;
-        } else if (typeof window.supabase.createClient === 'function') {
-          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        }
-      }
-      
-      if (!supabase) {
-        console.error('❌ Supabase client not available for loading tickets');
-        const tbody = document.getElementById('tickets-table-body');
-        if (tbody) {
-          tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-red-500">Error: Database connection failed</td></tr>';
-        }
-        return;
-      }
-      
-      const { data: tickets, error } = await supabase
-        .from('support_tickets')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error loading tickets data:', error);
-        const tbody = document.getElementById('tickets-table-body');
-        if (tbody) {
-          tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-red-500">Error: ${error.message}</td></tr>`;
-        }
-        return;
-      }
-
-      const tbody = document.getElementById('tickets-table-body');
-      if (!tbody) return;
-
-      if (tickets && tickets.length > 0) {
-        tbody.innerHTML = tickets.map(ticket => `
-          <tr>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#${ticket.id}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${ticket.subject}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${ticket.category}</td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${ticket.priority === 'high' ? 'bg-red-100 text-red-800' : ticket.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}">
-                ${ticket.priority}
-              </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${ticket.status === 'open' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}">
-                ${ticket.status}
-              </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatDate(ticket.created_at)}</td>
-          </tr>
-        `).join('');
-      } else {
-        tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No support tickets found</td></tr>';
-      }
-    } catch (error) {
-      console.error('Error loading tickets data:', error);
-    }
-  }
-
-  async function loadCustomizationsData() {
-    try {
-      console.log('🔄 Loading customizations data...');
-      console.log('🔍 Supabase client available:', !!supabase);
-      console.log('🔍 Function called at:', new Date().toISOString());
-      
-      if (!supabase) {
-        console.error('❌ Supabase client not available');
-        const tbody = document.getElementById('customizations-table-body');
-        if (tbody) {
-          tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-red-500">Supabase client not available</td></tr>';
-        }
-        return;
-      }
-
-      // Fetch both customization_forms and order_customizations data
-      console.log('🔍 Fetching customization_forms data...');
-      const { data: regularCustomizations, error: regularError } = await supabase
-        .from('customization_forms')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      console.log('🔍 Fetching order_customizations data...');
-      const { data: omsCustomizations, error: omsError } = await supabase
-        .from('order_customizations')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      // Combine both datasets
-      let allCustomizations = [];
-      
-      if (regularCustomizations && !regularError) {
-        console.log('✅ Regular customizations loaded:', regularCustomizations.length);
-        allCustomizations = [...allCustomizations, ...regularCustomizations];
-      } else if (regularError) {
-        console.error('❌ Error loading regular customizations:', regularError);
-      }
-
-      if (omsCustomizations && !omsError) {
-        console.log('✅ OMS customizations loaded:', omsCustomizations.length);
-        console.log('🔍 Raw OMS data from database:', omsCustomizations);
-        // Transform OMS data to match the expected format
-        const transformedOmsData = omsCustomizations.map(oms => ({
-          id: oms.id,
-          contact_email: oms.email || 'Not provided',
-          product_type: 'order-menu-system',
-          product_name: 'Order Menu System',
-          project_name: oms.project_name || 'Not provided',
-          restaurant_name: oms.restaurant_name || 'Not provided',
-          owner_name: oms.owner_name || 'Not provided',
-          restaurant_address: oms.address_line_1,
-          contact_person: oms.contact_person || 'Not provided',
-          phone: oms.phone_number || 'Not provided',
-          additional_requirements: oms.additional_requirements || 'Not provided',
-          primary_color: null,
-          secondary_color: null,
-          accent_color: null,
-          text_color: null,
-          product_price: oms.total_amount,
-          created_at: oms.created_at,
-            updated_at: oms.updated_at,
-            // OMS specific fields
-            menu_categories: typeof oms.menu_categories === 'string' ? JSON.parse(oms.menu_categories) : (oms.menu_categories || []),
-            menu_items: typeof oms.menu_items === 'string' ? JSON.parse(oms.menu_items) : (oms.menu_items || []),
-            logo_url: oms.restaurant_logo_url,
-          logo_filename: oms.logo_filename,
-          logo_size: oms.logo_size
-        }));
-        allCustomizations = [...allCustomizations, ...transformedOmsData];
-      } else if (omsError) {
-        console.error('❌ Error loading OMS customizations:', omsError);
-      }
-
-      // Sort combined data by creation date
-      allCustomizations.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-      console.log('🔍 Combined customizations data:', allCustomizations.length, 'total items');
-
-      const tbody = document.getElementById('customizations-table-body');
-      if (!tbody) {
-        console.error('❌ Customizations table body not found');
-        return;
-      }
-
-      console.log('🔍 Customizations data received:', allCustomizations);
-
-      if (allCustomizations && allCustomizations.length > 0) {
-        console.log(`✅ Found ${allCustomizations.length} customizations`);
-        // Debug: Log first customization to see what data we have
-        console.log('First customization data:', allCustomizations[0]);
-        
-        tbody.innerHTML = allCustomizations.map(customization => {
-          console.log('Processing customization:', customization.id, customization.contact_email, customization.product_name);
-          return `
-            <tr>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${customization.contact_email || '-'}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${customization.product_type || '-'}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${customization.product_name || '-'}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${customization.project_name || '-'}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${(customization.product_price || 0).toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Date(customization.created_at).toLocaleDateString()}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <button onclick="viewCustomizationDetails('${customization.id}')" class="text-blue-600 hover:text-blue-900 cursor-pointer">View Details</button>
-              </td>
-            </tr>
-          `;
-        }).join('');
-      } else {
-        console.log('ℹ️ No customizations found');
-        tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No customizations found</td></tr>';
-      }
-    } catch (error) {
-      console.error('❌ Error loading customizations data:', error);
-      const tbody = document.getElementById('customizations-table-body');
-      if (tbody) {
-        tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-red-500">Error: ${error.message}</td></tr>`;
-      }
-    }
-  }
-
-  // View image in modal
-  window.viewImageInModal = function(imageUrl) {
-    openImageModal(imageUrl);
-  };
-  
-
-  async function updateSummaryCards() {
-    try {
-      // Get counts for summary cards
-      const [usersResult, contactsResult, ticketsResult, customizationsResult] = await Promise.all([
-        supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('contact_submissions').select('*', { count: 'exact', head: true }),
-        supabase.from('support_tickets').select('*', { count: 'exact', head: true }),
-        supabase.from('customization_forms').select('*', { count: 'exact', head: true })
-      ]);
-
-      // Update summary cards
-      const totalUsers = usersResult.count || 0;
-      const totalContacts = contactsResult.count || 0;
-      const totalTickets = ticketsResult.count || 0;
-      const totalCustomizations = customizationsResult.count || 0;
-
-      // Update the summary card numbers
-      const userCard = document.getElementById('total-users');
-      const contactCard = document.getElementById('total-contacts');
-      const ticketCard = document.getElementById('total-tickets');
-      const revenueCard = document.getElementById('total-revenue');
-      const customizationsCard = document.getElementById('total-customizations');
-
-      if (userCard) userCard.textContent = totalUsers.toString();
-      if (contactCard) contactCard.textContent = totalContacts.toString();
-      if (ticketCard) ticketCard.textContent = totalTickets.toString();
-      if (customizationsCard) customizationsCard.textContent = totalCustomizations.toString();
-      if (revenueCard) {
-        // Revenue is 0 until real payments are processed
-        revenueCard.textContent = '₹0';
-      }
-
-      console.log('✅ Summary cards updated');
-    } catch (error) {
-      console.error('Error updating summary cards:', error);
-    }
-  }
-
-  // View contact details function
-  window.viewContactDetails = async function(contactId) {
-    console.log('Viewing contact details for:', contactId);
-    
-    try {
-      const { data: contact, error } = await supabase
-        .from('contact_submissions')
-        .select('*')
-        .eq('id', contactId)
-        .single();
-
-      if (error) {
-        console.error('Error loading contact details:', error);
-        return;
-      }
-
-      // Debug: Log all contact fields to see what's available
-      console.log('📞 Full contact object:', contact);
-      console.log('📞 contact.phone:', contact.phone, 'Type:', typeof contact.phone, 'Length:', contact.phone?.length);
-      console.log('📞 contact.phone_number:', contact.phone_number, 'Type:', typeof contact.phone_number);
-      console.log('📞 All contact keys:', Object.keys(contact));
-      
-      // Helper function to check if a value is a non-empty string after trimming
-      const getPhoneValue = (value) => {
-        if (!value) return null;
-        if (typeof value !== 'string') return null;
-        const trimmed = value.trim();
-        return trimmed.length > 0 ? trimmed : null;
-      };
-      
-      // Try to find phone in any possible field (check for empty strings too)
-      const phoneValue = getPhoneValue(contact.phone) || 
-                         getPhoneValue(contact.phone_number) || 
-                         getPhoneValue(contact.contact_phone) || 
-                         getPhoneValue(contact.mobile) || 
-                         getPhoneValue(contact.telephone) || 
-                         null;
-      console.log('📞 Resolved phone value:', phoneValue);
-
-      const modal = document.getElementById('details-modal');
-      const modalTitle = document.getElementById('modal-title');
-      const modalContent = document.getElementById('modal-content');
-
-      modalTitle.textContent = 'Contact Form Details';
-      modalContent.innerHTML = `
-        <div class="space-y-4">
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <h4 class="text-lg font-semibold text-gray-900 mb-3">Contact Information</h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p class="text-sm text-gray-600"><strong>First Name:</strong> ${contact.first_name || 'Not provided'}</p>
-                <p class="text-sm text-gray-600"><strong>Last Name:</strong> ${contact.last_name || 'Not provided'}</p>
-                <p class="text-sm text-gray-600"><strong>Email:</strong> ${contact.email || 'Not provided'}</p>
-                <p class="text-sm text-gray-600"><strong>Phone:</strong> ${phoneValue || 'Not provided'}</p>
-              </div>
-              <div>
-                <p class="text-sm text-gray-600"><strong>Company:</strong> ${contact.company_name || 'Not provided'}</p>
-                <p class="text-sm text-gray-600"><strong>Project Type:</strong> ${contact.project_type || 'Not specified'}</p>
-                <p class="text-sm text-gray-600"><strong>Submitted:</strong> ${formatDate(contact.created_at)}</p>
-              </div>
-            </div>
-          </div>
-          
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <h5 class="font-medium text-gray-900 mb-2">Project Details</h5>
-            <p class="text-sm text-gray-600 break-words overflow-wrap-anywhere whitespace-pre-wrap max-w-full overflow-hidden word-break-break-word" style="word-break: break-word; overflow-wrap: break-word; max-width: 100%;">${contact.project_details || contact.message || 'No additional details provided'}</p>
-          </div>
-        </div>
-      `;
-
-      // Lock body scroll
-      document.body.style.overflow = 'hidden';
-      modal.classList.remove('hidden');
-    } catch (error) {
-      console.error('Error viewing contact details:', error);
-    }
-  };
-
-  // Global variable to store all contacts for search functionality
-  let allContacts = [];
-  
-  // Global variable to store all customizations for search functionality
-  let allCustomizations = [];
-
-  // Show all contact form details function
-  window.showContactFormDetails = async function() {
-    console.log('Loading all contact form details...');
-    
-    try {
-      const { data: contacts, error } = await supabase
-        .from('contact_submissions')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error loading contact details:', error);
-        return;
-      }
-
-      // Store contacts globally for search functionality
-      allContacts = contacts || [];
-
-      const modal = document.getElementById('contact-details-modal');
-      const modalTitle = document.getElementById('contact-modal-title');
-      const modalContent = document.getElementById('contact-modal-content');
-
-      modalTitle.textContent = `All Contact Form Details (${allContacts.length} submissions)`;
-      
-      // Create search interface and contact list
-      modalContent.innerHTML = `
-        <div class="mb-6">
-          <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-              </svg>
-            </div>
-            <input 
-              type="text" 
-              id="contact-search-input" 
-              placeholder="Search by email address..." 
-              class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              onkeyup="filterContacts()"
-            />
-          </div>
-          <p class="mt-2 text-sm text-gray-500">Type an email address to quickly find a specific contact submission</p>
-        </div>
-        <div id="contacts-list" class="space-y-6 max-h-96 overflow-y-auto">
-          ${renderContacts(allContacts)}
-        </div>
-      `;
-
-      // Lock body scroll
-      document.body.style.overflow = 'hidden';
-      modal.classList.remove('hidden');
-    } catch (error) {
-      console.error('Error loading contact details:', error);
-    }
-  };
-
-  // Function to render contacts
-  function renderContacts(contacts) {
-    if (contacts && contacts.length > 0) {
-      return contacts.map((contact, index) => `
-        <div class="bg-gray-50 p-4 rounded-lg border contact-item" data-email="${(contact.email || '').toLowerCase()}">
-          <div class="flex justify-between items-start mb-3">
-            <h4 class="text-lg font-semibold text-gray-900">#${index + 1} - ${contact.first_name} ${contact.last_name}</h4>
-            <span class="text-sm text-gray-500">${formatDate(contact.created_at)}</span>
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <p class="text-sm text-gray-600"><strong>Email:</strong> <span class="font-mono text-indigo-600">${contact.email || 'Not provided'}</span></p>
-              <p class="text-sm text-gray-600"><strong>Phone:</strong> ${contact.phone || contact.phone_number || 'Not provided'}</p>
-              <p class="text-sm text-gray-600"><strong>Company:</strong> ${contact.company_name || 'Not provided'}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-600"><strong>Project Type:</strong> ${contact.project_type || 'Not specified'}</p>
-              <p class="text-sm text-gray-600"><strong>Submitted:</strong> ${new Date(contact.created_at).toLocaleString()}</p>
-            </div>
-          </div>
-          
-          <div class="bg-white p-3 rounded border">
-            <h5 class="font-medium text-gray-900 mb-2">Project Details:</h5>
-            <p class="text-sm text-gray-600 whitespace-pre-wrap break-words overflow-wrap-anywhere max-w-full overflow-hidden word-break-break-word" style="word-break: break-word; overflow-wrap: break-word; max-width: 100%;">${contact.project_details || contact.message || 'No additional details provided'}</p>
-          </div>
-        </div>
-      `).join('');
-    } else {
-      return `
-        <div class="text-center py-8">
-          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-          </svg>
-          <h3 class="mt-2 text-sm font-medium text-gray-900">No contact submissions found</h3>
-          <p class="mt-1 text-sm text-gray-500">No contact form submissions match your search criteria.</p>
-        </div>
-      `;
-    }
-  }
-
-  // Function to filter contacts based on search input
-  window.filterContacts = function() {
-    const searchInput = document.getElementById('contact-search-input');
-    const contactsList = document.getElementById('contact-modal-title');
-    const searchTerm = searchInput.value.toLowerCase().trim();
-    
-    if (!searchTerm) {
-      // Show all contacts if search is empty
-      document.getElementById('contacts-list').innerHTML = renderContacts(allContacts);
-      contactsList.textContent = `All Contact Form Details (${allContacts.length} submissions)`;
-      return;
-    }
-
-    // Filter contacts by email
-    const filteredContacts = allContacts.filter(contact => 
-      (contact.email || '').toLowerCase().includes(searchTerm)
-    );
-
-    // Update the display
-    document.getElementById('contacts-list').innerHTML = renderContacts(filteredContacts);
-    contactsList.textContent = `Contact Form Details (${filteredContacts.length} of ${allContacts.length} submissions)`;
-  };
-
-  // Show all customizations function
-  window.showCustomizations = async function() {
-    console.log('Loading all customizations...');
-    
-    try {
-      // Fetch both customization_forms and order_customizations data
-      const { data: regularCustomizations, error: regularError } = await supabase
-        .from('customization_forms')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      const { data: omsCustomizations, error: omsError } = await supabase
-        .from('order_customizations')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      // Combine both datasets
-      let allCustomizations = [];
-      
-      if (regularCustomizations && !regularError) {
-        allCustomizations = [...allCustomizations, ...regularCustomizations];
-      } else if (regularError) {
-        console.error('Error loading regular customizations:', regularError);
-      }
-
-      if (omsCustomizations && !omsError) {
-        // Transform OMS data to match the expected format
-        const transformedOmsData = omsCustomizations.map(oms => ({
-          id: oms.id,
-          contact_email: oms.email || 'Not provided',
-          product_type: 'order-menu-system',
-          product_name: 'Order Menu System',
-          project_name: oms.project_name || 'Not provided',
-          restaurant_name: oms.restaurant_name || 'Not provided',
-          owner_name: oms.owner_name || 'Not provided',
-          restaurant_address: oms.address_line_1,
-          contact_person: oms.contact_person || 'Not provided',
-          phone: oms.phone_number || 'Not provided',
-          additional_requirements: oms.additional_requirements || 'Not provided',
-          primary_color: null,
-          secondary_color: null,
-          accent_color: null,
-          text_color: null,
-          product_price: oms.total_amount,
-          created_at: oms.created_at,
-            updated_at: oms.updated_at,
-            // OMS specific fields
-            menu_categories: typeof oms.menu_categories === 'string' ? JSON.parse(oms.menu_categories) : (oms.menu_categories || []),
-            menu_items: typeof oms.menu_items === 'string' ? JSON.parse(oms.menu_items) : (oms.menu_items || []),
-            logo_url: oms.restaurant_logo_url,
-          logo_filename: oms.logo_filename,
-          logo_size: oms.logo_size
-        }));
-        allCustomizations = [...allCustomizations, ...transformedOmsData];
-      } else if (omsError) {
-        console.error('Error loading OMS customizations:', omsError);
-      }
-
-      // Sort combined data by creation date
-      allCustomizations.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-      window.allCustomizations = allCustomizations; // Store customizations globally
-
-      const modal = document.getElementById('customizations-modal');
-      const modalTitle = document.getElementById('customizations-modal-title');
-      const modalContent = document.getElementById('customizations-modal-content');
-
-      modalTitle.textContent = `All Product Customizations (${allCustomizations.length} items)`;
-      
-      modalContent.innerHTML = `
-        <div class="mb-6">
-          <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-              </svg>
-            </div>
-            <input 
-              type="text" 
-              id="customizations-search-input" 
-              placeholder="Search by email address..." 
-              class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              onkeyup="filterCustomizations()"
-            />
-          </div>
-          <p class="mt-2 text-sm text-gray-500">Type an email address to quickly find a specific customization</p>
-        </div>
-        <div id="customizations-list" class="space-y-6">
-          ${renderCustomizations(allCustomizations)}
-        </div>
-      `;
-
-      // Lock body scroll
-      document.body.style.overflow = 'hidden';
-      modal.classList.remove('hidden');
-    } catch (error) {
-      console.error('Error loading customizations:', error);
-      alert('Error loading customizations: ' + error.message);
-    }
-  };
-
-  // Function to render customizations
-  function renderCustomizations(customizations) {
-    if (customizations && customizations.length > 0) {
-      return customizations.map((customization, index) => `
-        <div class="bg-white p-6 rounded-lg border shadow-sm customization-item" data-email="${(customization.contact_email || '').toLowerCase()}">
-          <div class="flex justify-between items-start mb-6">
-            <h4 class="text-xl font-bold text-gray-900">#${index + 1} - ${customization.product_name || 'Order Menu System'}</h4>
-            <span class="text-sm text-gray-500">${new Date(customization.created_at).toLocaleDateString()}</span>
-          </div>
-          
-          <!-- Product Information Section -->
-          <div class="bg-gray-50 p-4 rounded-lg mb-4">
-            <h5 class="text-lg font-semibold text-gray-900 mb-3">Product Information</h5>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="space-y-2">
-                <div class="flex justify-between">
-                  <span class="text-sm font-medium text-gray-600">Product Type:</span>
-                  <span class="text-sm text-gray-900">${customization.product_type || 'order-menu-system'}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-sm font-medium text-gray-600">Product Name:</span>
-                  <span class="text-sm text-gray-900">${customization.product_name || 'Order Menu System'}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-sm font-medium text-gray-600">Price:</span>
-                  <span class="text-sm text-gray-900">₹${(customization.product_price || customization.total_amount || 0).toLocaleString('en-IN')}</span>
-                </div>
-              </div>
-              <div class="space-y-2">
-                <div class="flex justify-between">
-                  <span class="text-sm font-medium text-gray-600">Project Name:</span>
-                  <span class="text-sm text-gray-900">${customization.project_name || 'Not provided'}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-sm font-medium text-gray-600">Restaurant Name:</span>
-                  <span class="text-sm text-gray-900">${customization.restaurant_name || 'Not provided'}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-sm font-medium text-gray-600">Owner Name:</span>
-                  <span class="text-sm text-gray-900">${customization.owner_name || 'Not provided'}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Contact Information Section -->
-          <div class="bg-gray-50 p-4 rounded-lg mb-4">
-            <h5 class="text-lg font-semibold text-gray-900 mb-3">Contact Information</h5>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="space-y-2">
-                <div class="flex justify-between">
-                  <span class="text-sm font-medium text-gray-600">Email:</span>
-                  <span class="text-sm text-gray-900">${customization.contact_email || customization.email || 'Not provided'}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-sm font-medium text-gray-600">Phone:</span>
-                  <span class="text-sm text-gray-900">${customization.phone || customization.contact_phone || 'Not provided'}</span>
-                </div>
-              </div>
-              <div class="space-y-2">
-                <div class="flex justify-between">
-                  <span class="text-sm font-medium text-gray-600">Created:</span>
-                  <span class="text-sm text-gray-900">${new Date(customization.created_at).toLocaleString()}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-sm font-medium text-gray-600">Updated:</span>
-                  <span class="text-sm text-gray-900">${new Date(customization.updated_at || customization.created_at).toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Restaurant Information Section -->
-          ${customization.restaurant_name || customization.contact_person || customization.phone ? `
-          <div class="bg-gray-50 p-4 rounded-lg mb-4">
-            <h5 class="text-lg font-semibold text-gray-900 mb-3">Restaurant Information</h5>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="space-y-2">
-                <div class="flex justify-between">
-                  <span class="text-sm font-medium text-gray-600">Restaurant Name:</span>
-                  <span class="text-sm text-gray-900">${customization.restaurant_name || 'Not provided'}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-sm font-medium text-gray-600">Contact Person:</span>
-                  <span class="text-sm text-gray-900">${customization.contact_person || 'Not provided'}</span>
-                </div>
-              </div>
-              <div class="space-y-2">
-                <div class="flex justify-between">
-                  <span class="text-sm font-medium text-gray-600">Phone:</span>
-                  <span class="text-sm text-gray-900">${customization.phone || customization.contact_phone || 'Not provided'}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          ` : ''}
-          
-          <!-- Address Information Section -->
-          ${customization.restaurant_address || customization.city || customization.state ? `
-          <div class="bg-gray-50 p-4 rounded-lg mb-4">
-            <h5 class="text-lg font-semibold text-gray-900 mb-3">Address Information</h5>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="space-y-2">
-                <div class="flex justify-between">
-                  <span class="text-sm font-medium text-gray-600">Address:</span>
-                  <span class="text-sm text-gray-900">${customization.restaurant_address || customization.address_line_1 || 'Not provided'}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-sm font-medium text-gray-600">City:</span>
-                  <span class="text-sm text-gray-900">${customization.city || 'Not provided'}</span>
-                </div>
-              </div>
-              <div class="space-y-2">
-                <div class="flex justify-between">
-                  <span class="text-sm font-medium text-gray-600">State:</span>
-                  <span class="text-sm text-gray-900">${customization.state || 'Not provided'}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-sm font-medium text-gray-600">Pincode:</span>
-                  <span class="text-sm text-gray-900">${customization.pincode || 'Not provided'}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-sm font-medium text-gray-600">Country:</span>
-                  <span class="text-sm text-gray-900">${customization.country || 'Not provided'}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          ` : ''}
-          
-          <!-- Additional Requirements Section -->
-          ${customization.additional_requirements ? `
-          <div class="bg-gray-50 p-4 rounded-lg mb-4">
-            <h5 class="text-lg font-semibold text-gray-900 mb-3">Additional Requirements</h5>
-            <div class="space-y-2">
-              <div class="flex flex-col sm:flex-row sm:justify-between gap-2">
-                <span class="text-sm font-medium text-gray-600 flex-shrink-0">Requirements:</span>
-                <span class="text-sm text-gray-900 break-words overflow-wrap-anywhere sm:text-right">${customization.additional_requirements}</span>
-              </div>
-            </div>
-          </div>
-          ` : ''}
-          
-          <!-- Logo Section -->
-          ${customization.logo_url ? `
-          <div class="bg-gray-50 p-4 rounded-lg mb-4">
-            <h5 class="text-lg font-semibold text-gray-900 mb-3">Restaurant Logo</h5>
-            <div class="flex items-center space-x-4">
-              <img src="${customization.logo_url}" alt="Restaurant Logo" class="h-16 w-16 object-contain border rounded">
-              <div>
-                <p class="text-sm text-gray-600">${customization.logo_filename || 'Restaurant Logo'}</p>
-                <p class="text-xs text-gray-500">Logo uploaded successfully</p>
-              </div>
-            </div>
-          </div>
-          ` : ''}
-          
-          <!-- Menu Photos Section -->
-          ${(() => {
-            let photos = customization.menu_photos_urls || [];
-            console.log('🔍 Admin Panel - Raw menu_photos_urls:', photos, 'type:', typeof photos);
-            
-            // Handle both string (JSON) and array formats
-            try {
-              if (typeof photos === 'string') {
-                console.log('📝 Admin Panel - Parsing JSON string');
-                photos = JSON.parse(photos);
-              }
-            } catch (e) {
-              console.error('❌ Admin Panel - Failed to parse JSON:', e);
-            }
-            
-            console.log('🔍 Admin Panel - Parsed photos:', photos, 'isArray:', Array.isArray(photos), 'length:', Array.isArray(photos) ? photos.length : 'N/A');
-            
-            // Handle array of objects (with url property) or array of strings
-            const photoCount = Array.isArray(photos) ? photos.length : 0;
-            console.log('🔍 Admin Panel - Photo count:', photoCount);
-            
-            if (photoCount > 0) {
-              const photosHTML = photos.slice(0, 8).map(photo => {
-                console.log('🔍 Admin Panel - Processing photo:', photo, 'type:', typeof photo);
-                // Handle both object format {url, filename} and string format
-                const photoUrl = typeof photo === 'string' ? photo : (photo.url || photo.publicUrl || '');
-                const photoFilename = typeof photo === 'object' ? (photo.filename || 'menu-photo') : 'menu-photo';
-                console.log('🔍 Admin Panel - Extracted URL:', photoUrl, 'filename:', photoFilename);
-                
-                if (!photoUrl) {
-                  console.warn('⚠️ Admin Panel - No URL found for photo:', photo);
-                  return '';
-                }
-                
-                return `<div data-image-url="${photoUrl.replace(/"/g, '&quot;')}" class="image-view-trigger cursor-pointer hover:opacity-80 transition-opacity inline-block">
-                  <img src="${photoUrl}" alt="${photoFilename}" class="h-20 w-20 object-cover border rounded" title="Click to view full size: ${photoFilename}" onerror="console.error('❌ Failed to load image:', this.src); this.style.display='none';">
-                </div>`;
-              }).filter(Boolean).join('');
-              
-              console.log('🔍 Admin Panel - Generated HTML length:', photosHTML.length);
-              
-              return `
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <h5 class="text-lg font-semibold text-gray-900 mb-3">Menu Photos (${photoCount} photos)</h5>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-              ${photosHTML}
-              ${photoCount > 8 ? `
-                <div class="h-20 w-20 border rounded flex items-center justify-center bg-gray-100">
-                  <span class="text-xs text-gray-500">+${photoCount - 8} more</span>
-                </div>
-              ` : ''}
-            </div>
-          </div>
-          `;
-            }
-            console.log('⚠️ Admin Panel - No photos to display');
-            return '';
-          })()}
-        </div>
-      `).join('');
-    } else {
-      return `
-        <div class="text-center py-8">
-          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-          <h3 class="mt-2 text-sm font-medium text-gray-900">No customizations found</h3>
-          <p class="mt-1 text-sm text-gray-500">No customizations match your search criteria.</p>
-        </div>
-      `;
-    }
-  }
-
-  // Function to filter customizations based on search input
-  window.filterCustomizations = function() {
-    const searchInput = document.getElementById('customizations-search-input');
-    const customizationsListTitle = document.getElementById('customizations-modal-title');
-    const searchTerm = searchInput.value.toLowerCase().trim();
-    
-    if (!searchTerm) {
-      document.getElementById('customizations-list').innerHTML = renderCustomizations(allCustomizations);
-      customizationsListTitle.textContent = `All Product Customizations (${allCustomizations.length} items)`;
-      return;
-    }
-
-    const filteredCustomizations = allCustomizations.filter(customization => 
-      (customization.contact_email || '').toLowerCase().includes(searchTerm)
-    );
-
-    document.getElementById('customizations-list').innerHTML = renderCustomizations(filteredCustomizations);
-    customizationsListTitle.textContent = `Product Customizations (${filteredCustomizations.length} of ${allCustomizations.length} items)`;
-  };
-
-  // Make loadCustomizationsData globally accessible
-  window.loadCustomizationsData = loadCustomizationsData;
-  
-  // Add refresh function to clear cache and reload data
-  window.refreshOMSCustomizations = async function() {
-    console.log('🔄 Refreshing OMS customizations and clearing cache...');
-    // Clear any cached data
-    window.allCustomizations = [];
-    // Reload data
-    await loadCustomizationsData();
-    console.log('✅ OMS customizations refreshed');
-  };
-
-  // Function to view customization details
-  window.viewCustomizationDetails = async function(customizationId) {
-    console.log('🔍 Viewing customization details for ID:', customizationId);
-    console.log('🔍 Supabase client available:', !!supabase);
-    console.log('🔄 Force refreshing data from order_customizations table...');
-    
-    try {
-      if (!supabase) {
-        console.error('❌ Supabase client not available');
-        alert('Database connection not available. Please refresh the page.');
-        return;
-      }
-
-      console.log('🔍 Fetching fresh data directly from order_customizations table...');
-      
-      // First try to get from order_customizations table (since that's where OMS data is stored)
-      let { data: omsCustomization, error: omsError } = await supabase
-        .from('order_customizations')
-        .select('*')
-        .eq('id', customizationId)
-        .single();
-
-      let customization = null;
-      let error = null;
-
-      if (omsError) {
-        console.log('Not found in order_customizations, trying customization_forms...');
-        // If not found in order_customizations, try customization_forms table
-        const { data: regularCustomization, error: regularError } = await supabase
-          .from('customization_forms')
-          .select('*')
-          .eq('id', customizationId)
-          .single();
-
-        if (regularError) {
-          console.error('Error loading customization details:', regularError);
-          alert('Error loading customization details: ' + regularError.message);
-          return;
-        }
-
-        customization = regularCustomization;
-        error = null;
-      } else {
-        console.log('✅ Found OMS customization in order_customizations table:', omsCustomization);
-        
-        // Transform OMS data to match expected format
-        customization = {
-          id: omsCustomization.id,
-          contact_email: omsCustomization.email || 'Not provided',
-          email: omsCustomization.email || 'Not provided',
-          product_type: 'order-menu-system',
-          product_name: 'Order Menu System',
-          project_name: omsCustomization.project_name || 'Not provided',
-          restaurant_name: omsCustomization.restaurant_name || 'Not provided',
-          owner_name: omsCustomization.owner_name || 'Not provided',
-          restaurant_address: omsCustomization.address_line_1 || 'Not provided',
-          contact_person: omsCustomization.contact_person || 'Not provided',
-          phone: omsCustomization.phone_number || 'Not provided',
-          contact_phone: omsCustomization.phone_number || 'Not provided',
-          additional_requirements: omsCustomization.additional_requirements || 'Not provided',
-          primary_color: null,
-          secondary_color: null,
-          accent_color: null,
-          text_color: null,
-          product_price: omsCustomization.total_amount || 0,
-          total_amount: omsCustomization.total_amount || 0,
-          created_at: omsCustomization.created_at,
-          updated_at: omsCustomization.updated_at || omsCustomization.created_at,
-          // OMS specific fields
-          menu_categories: omsCustomization.menu_categories || [],
-          menu_items: omsCustomization.menu_items || [],
-          logo_url: omsCustomization.restaurant_logo_url,
-          logo_filename: omsCustomization.logo_filename,
-          logo_size: omsCustomization.logo_size,
-          // Additional fields from order_customizations
-          city: omsCustomization.city || 'Not provided',
-          state: omsCustomization.state || 'Not provided',
-          pincode: omsCustomization.pincode || 'Not provided',
-          country: omsCustomization.country || 'Not provided',
-          house_flat_number: omsCustomization.house_flat_number || 'Not provided',
-          menu_photos_urls: omsCustomization.menu_photos_urls || []
-        };
-        error = null;
-      }
-
-      console.log('🔍 Database response:', { data: customization, error });
-      console.log('🔍 Raw customization data from database:', customization);
-
-      if (error) {
-        console.error('❌ Error loading customization details:', error);
-        alert('Error loading customization details: ' + error.message);
-        return;
-      }
-
-      if (!customization) {
-        console.error('❌ No customization found with ID:', customizationId);
-        alert('No customization found with the specified ID.');
-        return;
-      }
-
-      console.log('✅ Customization data loaded:', customization);
-
-      const modal = document.getElementById('details-modal');
-      const modalTitle = document.getElementById('modal-title');
-      const modalContent = document.getElementById('modal-content');
-
-      console.log('🔍 Modal elements found:', {
-        modal: !!modal,
-        modalTitle: !!modalTitle,
-        modalContent: !!modalContent
-      });
-
-      if (!modal || !modalTitle || !modalContent) {
-        console.error('❌ Modal elements not found');
-        alert('Modal elements not found. Please refresh the page.');
-        return;
-      }
-
-      // Prepare images (logo + menu photos)
-      let photos = customization.menu_photos_urls || [];
-      try {
-        if (typeof photos === 'string') photos = JSON.parse(photos);
-      } catch {}
-      // If photos are missing but logo exists (common mis-save), treat logo as a photo
-      const logoUrlSource = customization.logo_url || customization.restaurant_logo_url || '';
-      let movedLogoIntoPhotos = false;
-      if ((!Array.isArray(photos) || photos.length === 0) && logoUrlSource) {
-        photos = [{ url: logoUrlSource, filename: 'restaurant-logo' }];
-        movedLogoIntoPhotos = true;
-      }
-      const photosHtml = Array.isArray(photos) && photos.length
-        ? `<div class="grid grid-cols-3 sm:grid-cols-4 gap-3">${photos.map(p => {
-            const imgUrl = typeof p === 'string' ? p : (p.url || p.publicUrl || '');
-            const filename = typeof p === 'string' ? 'menu-photo' : (p.filename || 'menu-photo');
-            if (!imgUrl) return '';
-            return `
-            <div data-image-url="${imgUrl.replace(/"/g, '&quot;')}" class="image-view-trigger block cursor-pointer hover:opacity-80 transition-opacity">
-              <img src="${imgUrl}" crossorigin="anonymous" alt="${filename}" class="w-20 h-20 object-cover rounded border" title="Click to view full size: ${filename}"/>
-              <p class="mt-1 text-xs text-gray-500 truncate">${filename}</p>
-            </div>
-          `;
-          }).filter(Boolean).join('')}</div>`
-        : '<p class="text-gray-500">No menu photos uploaded</p>';
-
-      const hasPhotos = Array.isArray(photos) && photos.length > 0;
-      const logoOnly = (!!customization.logo_url || !!customization.restaurant_logo_url) && !hasPhotos && !movedLogoIntoPhotos;
-      const logoHtml = logoOnly
-        ? `<img src="${customization.logo_url || customization.restaurant_logo_url}" alt="Restaurant Logo" class="w-20 h-20 object-cover rounded border"/>`
-        : '';
-
-      modalTitle.textContent = 'Customization Details';
-      modalContent.innerHTML = `
-        <div class="space-y-4">
-          <!-- Product Information Section -->
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <h4 class="text-lg font-semibold text-gray-900 mb-3">Product Information</h4>
-            <div class="space-y-2">
-              <div class="flex justify-between">
-                <span class="text-sm font-medium text-gray-600">Product Type:</span>
-                <span class="text-sm text-gray-900">${customization.product_type || 'Not specified'}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-sm font-medium text-gray-600">Product Name:</span>
-                <span class="text-sm text-gray-900">${customization.product_name || 'Not specified'}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-sm font-medium text-gray-600">Price:</span>
-                <span class="text-sm text-gray-900">₹${(customization.product_price || customization.total_amount || 0).toLocaleString('en-IN')}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-sm font-medium text-gray-600">Project Name:</span>
-                <span class="text-sm text-gray-900">${customization.project_name || 'Not specified'}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-sm font-medium text-gray-600">Restaurant Name:</span>
-                <span class="text-sm text-gray-900">${customization.restaurant_name || 'N/A'}</span>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Images Section -->
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <h4 class="text-lg font-semibold text-gray-900 mb-3">Images</h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              ${logoOnly ? `
-              <div>
-                <p class="text-sm font-medium text-gray-600 mb-2">Restaurant Logo</p>
-                ${logoHtml || '<span class="text-gray-500">Not uploaded</span>'}
-              </div>
-              ` : ''}
-              <div>
-                <div class="flex items-center justify-between mb-2">
-                  <p class="text-sm font-medium text-gray-600">Menu Photos</p>
-                </div>
-                ${photosHtml}
-              </div>
-            </div>
-          </div>
-
-          <!-- Contact Information Section -->
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <h4 class="text-lg font-semibold text-gray-900 mb-3">Contact Information</h4>
-            <div class="space-y-2">
-              <div class="flex justify-between">
-                <span class="text-sm font-medium text-gray-600">Email:</span>
-                <span class="text-sm text-gray-900">${customization.contact_email || customization.email || 'Not provided'}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-sm font-medium text-gray-600">Phone:</span>
-                <span class="text-sm text-gray-900">${customization.phone || customization.contact_phone || 'Not provided'}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-sm font-medium text-gray-600">Created:</span>
-                <span class="text-sm text-gray-900">${new Date(customization.created_at).toLocaleString()}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-sm font-medium text-gray-600">Updated:</span>
-                <span class="text-sm text-gray-900">${new Date(customization.updated_at).toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-          
-          ${customization.additional_requirements ? `
-          <!-- Additional Requirements Section -->
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <h4 class="text-lg font-semibold text-gray-900 mb-3">Additional Requirements</h4>
-            <div class="space-y-2">
-              <div class="flex flex-col sm:flex-row sm:justify-between gap-2">
-                <span class="text-sm font-medium text-gray-600 flex-shrink-0">Requirements:</span>
-                <span class="text-sm text-gray-900 break-words overflow-wrap-anywhere sm:text-right">${customization.additional_requirements}</span>
-              </div>
-            </div>
-          </div>
-          ` : ''}
-          
-          
-          <!-- Restaurant Information Section (for Order Menu System) -->
-          ${customization.restaurant_name || customization.contact_person || customization.phone ? `
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <h4 class="text-lg font-semibold text-gray-900 mb-3">Restaurant Information</h4>
-            <div class="space-y-2">
-              ${customization.restaurant_name ? `
-              <div class="flex justify-between">
-                <span class="text-sm font-medium text-gray-600">Restaurant Name:</span>
-                <span class="text-sm text-gray-900">${customization.restaurant_name}</span>
-              </div>
-              ` : ''}
-              ${customization.contact_person ? `
-              <div class="flex justify-between">
-                <span class="text-sm font-medium text-gray-600">Contact Person:</span>
-                <span class="text-sm text-gray-900">${customization.contact_person}</span>
-              </div>
-              ` : ''}
-              ${customization.phone ? `
-              <div class="flex justify-between">
-                <span class="text-sm font-medium text-gray-600">Phone:</span>
-                <span class="text-sm text-gray-900">${customization.phone}</span>
-              </div>
-              ` : ''}
-            </div>
-          </div>
-          ` : ''}
-          
-          <!-- Address Information Section (for Order Menu System) -->
-          ${customization.restaurant_address || customization.city || customization.state ? `
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <h4 class="text-lg font-semibold text-gray-900 mb-3">Address Information</h4>
-            <div class="space-y-2">
-              ${customization.restaurant_address ? `
-              <div class="flex justify-between">
-                <span class="text-sm font-medium text-gray-600">Address:</span>
-                <span class="text-sm text-gray-900">${customization.restaurant_address}</span>
-              </div>
-              ` : ''}
-              ${customization.city ? `
-              <div class="flex justify-between">
-                <span class="text-sm font-medium text-gray-600">City:</span>
-                <span class="text-sm text-gray-900">${customization.city}</span>
-              </div>
-              ` : ''}
-              ${customization.state ? `
-              <div class="flex justify-between">
-                <span class="text-sm font-medium text-gray-600">State:</span>
-                <span class="text-sm text-gray-900">${customization.state}</span>
-              </div>
-              ` : ''}
-              ${customization.pincode ? `
-              <div class="flex justify-between">
-                <span class="text-sm font-medium text-gray-600">Pincode:</span>
-                <span class="text-sm text-gray-900">${customization.pincode}</span>
-              </div>
-              ` : ''}
-              ${customization.country ? `
-              <div class="flex justify-between">
-                <span class="text-sm font-medium text-gray-600">Country:</span>
-                <span class="text-sm text-gray-900">${customization.country}</span>
-              </div>
-              ` : ''}
-            </div>
-          </div>
-          ` : ''}
-          
-        </div>
-      `;
-
-      console.log('🔍 Showing modal...');
-      // Lock body scroll
-      document.body.style.overflow = 'hidden';
-      modal.classList.remove('hidden');
-      console.log('✅ Modal should now be visible');
-      
-      // Verify modal is visible
-      setTimeout(() => {
-        const isVisible = !modal.classList.contains('hidden');
-        console.log('🔍 Modal visibility check:', isVisible);
-        if (!isVisible) {
-          console.error('❌ Modal is not visible after showing');
-        }
-      }, 100);
-    } catch (error) {
-      console.error('Error viewing customization details:', error);
-      alert('Error viewing customization details: ' + error.message);
-    }
-  };
-
-  // Image Modal Functions for viewing full-size images
-  window.openImageModal = function(imageUrl) {
-    console.log('🖼️ Opening image modal for:', imageUrl);
-    const modal = document.getElementById('image-modal');
-    const img = document.getElementById('image-modal-img');
-    if (modal && img && imageUrl) {
-      img.src = imageUrl;
-      img.onerror = function() {
-        console.error('❌ Failed to load image:', imageUrl);
-        // Just close the modal without showing alert
-        closeImageModal();
-      };
-      // Lock body scroll
-      document.body.style.overflow = 'hidden';
-      modal.classList.remove('hidden');
-    } else {
-      console.error('❌ Image modal elements not found or invalid URL');
-    }
-  };
-
-  window.closeImageModal = function() {
-    const modal = document.getElementById('image-modal');
-    if (modal) {
-      modal.classList.add('hidden');
-      // Unlock body scroll
-      document.body.style.overflow = '';
-      // Clear image src to free memory
-      const img = document.getElementById('image-modal-img');
-      if (img) img.src = '';
-    }
-  };
-
-  // Close image modal on Escape key
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      closeImageModal();
-    }
-  });
-
-  // Attach click handlers to image-view-trigger elements
-  document.addEventListener('DOMContentLoaded', function() {
-    const imageModal = document.getElementById('image-modal');
-    if (imageModal) {
-      imageModal.addEventListener('click', function(e) {
-        if (e.target === imageModal) {
-          closeImageModal();
-        }
-      });
-    }
-
-    // Use event delegation for dynamically loaded content
-    document.addEventListener('click', function(e) {
-      const trigger = e.target.closest('.image-view-trigger');
-      if (trigger) {
-        e.preventDefault();
-        e.stopPropagation();
-        const imageUrl = trigger.getAttribute('data-image-url') || trigger.getAttribute('href');
-        if (imageUrl) {
-          openImageModal(imageUrl);
-        } else {
-          console.error('❌ No image URL found');
-        }
-      }
-    });
-  });
-
-</script>
-
-<!-- Modal for viewing details -->
-<div id="details-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-  <div class="flex items-start justify-center min-h-screen p-2 sm:p-4 py-4">
-    <div class="relative mx-auto border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white my-4 max-h-[calc(100vh-2rem)] flex flex-col">
-      <div class="flex items-center justify-between p-4 sm:p-5 border-b border-gray-200 flex-shrink-0">
-        <h3 id="modal-title" class="text-lg font-medium text-gray-900">Details</h3>
-        <button onclick="document.getElementById('details-modal').classList.add('hidden'); document.body.style.overflow = '';" class="text-gray-400 hover:text-gray-600 flex-shrink-0 ml-4">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-      </div>
-      <div id="modal-content" class="text-gray-600 p-4 sm:p-5 overflow-y-auto flex-1 min-h-0 max-w-full" style="overflow-x: hidden; word-wrap: break-word;">
-        <!-- Content will be populated by JavaScript -->
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal for viewing all contact form details -->
-<div id="contact-details-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-  <div class="flex items-start justify-center min-h-screen p-2 sm:p-4 py-4">
-    <div class="relative mx-auto border w-11/12 md:w-5/6 lg:w-4/5 xl:w-3/4 shadow-lg rounded-md bg-white my-4 max-h-[calc(100vh-2rem)] flex flex-col">
-      <div class="flex items-center justify-between p-4 sm:p-5 border-b border-gray-200 flex-shrink-0">
-        <h3 id="contact-modal-title" class="text-lg sm:text-xl font-medium text-gray-900">Contact Form Details</h3>
-        <button onclick="document.getElementById('contact-details-modal').classList.add('hidden'); document.body.style.overflow = '';" class="text-gray-400 hover:text-gray-600 flex-shrink-0 ml-4">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-      </div>
-      <div id="contact-modal-content" class="text-gray-600 p-4 sm:p-5 overflow-y-auto flex-1 min-h-0">
-        <!-- Content will be populated by JavaScript -->
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Image Modal for viewing full-size images -->
-<div id="image-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-[60] flex items-center justify-center p-4">
-  <div class="relative max-w-7xl w-full h-full flex items-center justify-center">
-    <button onclick="closeImageModal()" class="absolute top-4 right-4 z-20 text-white hover:text-gray-200 bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm rounded-full p-3 transition-all shadow-lg border-2 border-white border-opacity-30">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-      </svg>
-    </button>
-    <img id="image-modal-img" src="" alt="Full size image" class="max-w-[95vw] max-h-[95vh] object-contain rounded-lg shadow-2xl" />
-  </div>
-</div>
-
-<!-- Modal for viewing all customizations -->
-<div id="customizations-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-  <div class="flex items-start justify-center min-h-screen p-2 sm:p-4 py-4">
-    <div class="relative mx-auto border w-11/12 md:w-5/6 lg:w-4/5 xl:w-3/4 shadow-lg rounded-md bg-white my-4 max-h-[calc(100vh-2rem)] flex flex-col">
-      <div class="flex items-center justify-between p-4 sm:p-5 border-b border-gray-200 flex-shrink-0">
-        <h3 id="customizations-modal-title" class="text-lg sm:text-xl font-medium text-gray-900">Product Customizations</h3>
-        <button onclick="document.getElementById('customizations-modal').classList.add('hidden'); document.body.style.overflow = '';" class="text-gray-400 hover:text-gray-600 flex-shrink-0 ml-4">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-      </div>
-      <div id="customizations-modal-content" class="text-gray-600 p-4 sm:p-5 overflow-y-auto flex-1 min-h-0">
-        <!-- Content will be populated by JavaScript -->
-      </div>
-    </div>
-  </div>
-</div>

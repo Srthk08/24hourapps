@@ -14,3 +14,6 @@ WHERE slug = 'order-menu-system';
 -- 3. Verify deletion (should return 0 rows)
 SELECT * FROM public.products WHERE slug = 'order-menu-system';
 
+
+
+

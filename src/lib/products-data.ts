@@ -148,14 +148,93 @@ export const getProductsByCategory = async (category: string): Promise<Product[]
  */
 export const getProductPlans = async (productId: string) => {
   try {
+    // Check if this is Android TV App by getting product slug from Supabase or mock data
+    let isAndroidTVApp = false;
+    try {
+      // Try to get product from Supabase
+      const { data: productData } = await supabase
+        .from('products')
+        .select('slug')
+        .eq('id', productId)
+        .single();
+      
+      if (productData && productData.slug === 'android-tv-app') {
+        isAndroidTVApp = true;
+      } else {
+        // Check mock data as fallback
+        const mockProduct = mockProducts.find(p => p.slug === 'android-tv-app');
+        if (mockProduct && mockProduct.id === productId) {
+          isAndroidTVApp = true;
+        }
+      }
+    } catch (e) {
+      // If we can't determine, continue with normal flow
+    }
+    
+    // If this is Android TV App, return the updated plan data directly from code
+    if (isAndroidTVApp) {
+      return [
+        {
+          id: '1',
+          product_id: productId,
+          name: 'Standard',
+          description: 'Lifetime access with basic customization features',
+          price: 9900.00,
+          features: [
+            'Unlimited Customers',
+            'Name, Logo, Background/Wallpaper or Theme Image Customization',
+            'Free Panel to Change DNS or Portal Address anytime',
+            'Single Portals/DNS'
+          ],
+          delivery_days: 0,
+          is_popular: false,
+          sort_order: 1,
+          created_at: new Date().toISOString()
+        },
+        {
+          id: '2',
+          product_id: productId,
+          name: 'Pro',
+          description: 'Lifetime access - Everything in Standard plus advanced features',
+          price: 29900.00,
+          features: [
+            'Everything in Standard',
+            'Unlimited DNS/Portals',
+            'Intro Video',
+            'Get All Future Updates in £19 Only'
+          ],
+          delivery_days: 0,
+          is_popular: true,
+          sort_order: 2,
+          created_at: new Date().toISOString()
+        },
+        {
+          id: '3',
+          product_id: productId,
+          name: 'Pro Gold',
+          description: 'Lifetime access - Everything in Pro plus zero-cost future updates',
+          price: 44900.00,
+          features: [
+            'Everything in Pro',
+            'All Future updates at ZERO cost'
+          ],
+          delivery_days: 0,
+          is_popular: false,
+          sort_order: 3,
+          created_at: new Date().toISOString()
+        }
+      ];
+    }
+    
     // Import getProductPlans from supabase
     const { getProductPlans: getSupabasePlans } = await import('./supabase');
     
     // Try to fetch from Supabase first
     const supabasePlans = await getSupabasePlans(productId);
     
-    // If we got plans from Supabase, use them
-    if (supabasePlans && supabasePlans.length > 0) {
+    // If we got plans from Supabase and it's NOT Android TV App, use them
+    // (Android TV App plans are overridden above with new content)
+    if (supabasePlans && supabasePlans.length > 0 && !isAndroidTVApp) {
       return supabasePlans;
     }
     

@@ -1,4 +1,4 @@
-// shared data store for user/admin sync
+// shared data store for user sync
 
 export interface UserOrder {
   id: string;

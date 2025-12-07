@@ -525,9 +525,14 @@ BEGIN
         -- Update existing plans if they exist
         UPDATE public.product_plans 
         SET name = 'Standard', 
-            description = 'Custom Android TV app with basic features',
+            description = 'Lifetime access with basic customization features',
             price = 9900.00,
-            features = ARRAY['Custom Design', 'Content Management', 'Remote Control Support'],
+            features = ARRAY[
+                'Unlimited Customers',
+                'Name, Logo, Background/Wallpaper or Theme Image Customization',
+                'Free Panel to Change DNS or Portal Address anytime',
+                'Single Portals/DNS'
+            ],
             delivery_days = 14,
             is_popular = false,
             sort_order = 1,
@@ -536,9 +541,14 @@ BEGIN
         
         UPDATE public.product_plans 
         SET name = 'Pro', 
-            description = 'Advanced features with analytics',
+            description = 'Lifetime access OR £29 Per Month - Everything in Standard plus advanced features',
             price = 29900.00,
-            features = ARRAY['All Standard Features', 'Advanced Analytics', 'Multi-user Support', 'Custom Integrations'],
+            features = ARRAY[
+                'Everything in Standard',
+                'Unlimited DNS/Portals',
+                'Intro Video',
+                'Get All Future Updates in £19 Only'
+            ],
             delivery_days = 14,
             is_popular = true,
             sort_order = 2,
@@ -547,9 +557,12 @@ BEGIN
         
         UPDATE public.product_plans 
         SET name = 'Pro Gold', 
-            description = 'Complete solution with dedicated support',
+            description = 'Lifetime access - Everything in Pro plus zero-cost future updates',
             price = 44900.00,
-            features = ARRAY['All Pro Features', 'Dedicated Support', 'Custom Development', 'White-label Option'],
+            features = ARRAY[
+                'Everything in Pro',
+                'All Future updates at ZERO cost'
+            ],
             delivery_days = 21,
             is_popular = false,
             sort_order = 3,
@@ -559,9 +572,22 @@ BEGIN
         -- Insert new plans if they don't exist
         INSERT INTO public.product_plans (product_id, name, description, price, features, delivery_days, is_popular, sort_order)
         VALUES 
-        (android_tv_id, 'Standard', 'Custom Android TV app with basic features', 9900.00, ARRAY['Custom Design', 'Content Management', 'Remote Control Support'], 14, false, 1),
-        (android_tv_id, 'Pro', 'Advanced features with analytics', 29900.00, ARRAY['All Standard Features', 'Advanced Analytics', 'Multi-user Support', 'Custom Integrations'], 14, true, 2),
-        (android_tv_id, 'Pro Gold', 'Complete solution with dedicated support', 44900.00, ARRAY['All Pro Features', 'Dedicated Support', 'Custom Development', 'White-label Option'], 21, false, 3)
+        (android_tv_id, 'Standard', 'Lifetime access with basic customization features', 9900.00, ARRAY[
+            'Unlimited Customers',
+            'Name, Logo, Background/Wallpaper or Theme Image Customization',
+            'Free Panel to Change DNS or Portal Address anytime',
+            'Single Portals/DNS'
+        ], 14, false, 1),
+        (android_tv_id, 'Pro', 'Lifetime access OR £29 Per Month - Everything in Standard plus advanced features', 29900.00, ARRAY[
+            'Everything in Standard',
+            'Unlimited DNS/Portals',
+            'Intro Video',
+            'Get All Future Updates in £19 Only'
+        ], 14, true, 2),
+        (android_tv_id, 'Pro Gold', 'Lifetime access - Everything in Pro plus zero-cost future updates', 44900.00, ARRAY[
+            'Everything in Pro',
+            'All Future updates at ZERO cost'
+        ], 21, false, 3)
         ON CONFLICT DO NOTHING;
     END IF;
 

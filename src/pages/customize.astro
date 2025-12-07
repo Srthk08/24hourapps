@@ -1,0 +1,1518 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Customize Your Plan - DevExpress">
+  <section class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex flex-col-reverse lg:flex-row gap-8">
+        <!-- Left Side: Customization Form -->
+        <div class="flex-1 bg-white rounded-xl shadow-lg p-8 relative">
+          <!-- Close button - positioned at top right corner inside the form box -->
+          <button 
+            id="back-to-plans-btn"
+            type="button"
+            class="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-md text-gray-400 hover:text-gray-600 transition-colors hover:bg-gray-50"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+          
+          <div class="flex items-center mb-8 pr-12">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+              </div>
+              <h2 class="text-3xl font-bold text-gray-900">Upload Files</h2>
+            </div>
+          </div>
+
+          <form id="customization-form" class="space-y-6">
+            <!-- User Information Section -->
+            <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:border-primary-300 transition-colors">
+              <div class="space-y-4">
+                <!-- Name Field -->
+                <div>
+                  <label class="block text-gray-900 font-semibold mb-2 text-lg">
+                    Name<span class="text-red-500 ml-1">*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="user-name" 
+                    name="user_name" 
+                    required
+                    autocomplete="off"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-gray-900 bg-white"
+                    placeholder="Enter your name"
+                  />
+                </div>
+
+                <!-- Email Field -->
+                <div>
+                  <label class="block text-gray-900 font-semibold mb-2 text-lg">
+                    Email<span class="text-red-500 ml-1">*</span>
+                  </label>
+                  <input 
+                    type="email" 
+                    id="user-email" 
+                    name="user_email" 
+                    required
+                    autocomplete="off"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-gray-900 bg-white"
+                    placeholder="Enter your email"
+                  />
+                </div>
+
+                <!-- Phone Number Field -->
+                <div>
+                  <label class="block text-gray-900 font-semibold mb-2 text-lg">
+                    Phone Number<span class="text-red-500 ml-1">*</span>
+                  </label>
+                  <input 
+                    type="tel" 
+                    id="user-phone" 
+                    name="user_phone" 
+                    required
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-gray-900 bg-white"
+                    readonly
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Logo Upload Section -->
+            <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:border-primary-300 transition-colors">
+              <div class="flex items-center justify-between flex-wrap gap-4">
+                <div class="flex-1 min-w-[200px]">
+                  <label class="block text-gray-900 font-semibold mb-2 text-lg">
+                    Logo<span class="text-red-500 ml-1">*</span>
+                  </label>
+                  <p class="text-gray-600 text-sm">Size: Any Size</p>
+                  <input 
+                    type="file" 
+                    id="logo-upload" 
+                    name="logo" 
+                    accept="image/*" 
+                    required
+                    class="hidden"
+                  />
+                  <p id="logo-file-name" class="text-primary-600 text-sm mt-2 hidden font-medium"></p>
+                </div>
+                <button 
+                  type="button"
+                  class="select-logo-btn bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-lg font-medium transition-colors whitespace-nowrap shadow-sm hover:shadow-md"
+                >
+                  SELECT
+                </button>
+              </div>
+              <!-- Logo Preview -->
+              <div id="logo-preview-container" class="mt-4 hidden">
+                <p class="text-gray-700 text-sm font-medium mb-2">Preview:</p>
+                <div class="relative inline-block border-2 border-primary-300 rounded-lg p-2 bg-white">
+                  <img id="logo-preview" src="" alt="Logo Preview" class="max-w-full max-h-48 rounded object-contain" />
+                  <button 
+                    type="button"
+                    id="logo-preview-remove"
+                    class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-md"
+                    title="Remove preview"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Background/Wallpaper Upload Section -->
+            <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:border-primary-300 transition-colors">
+              <div class="flex items-center justify-between flex-wrap gap-4">
+                <div class="flex-1 min-w-[200px]">
+                  <label class="block text-gray-900 font-semibold mb-2 text-lg">
+                    Background/Wallpaper
+                  </label>
+                  <p class="text-gray-600 text-sm">Size: 1920x1080</p>
+                  <input 
+                    type="file" 
+                    id="background-upload" 
+                    name="background" 
+                    accept="image/*"
+                    class="hidden"
+                  />
+                  <p id="background-file-name" class="text-primary-600 text-sm mt-2 hidden font-medium"></p>
+                </div>
+                <button 
+                  type="button"
+                  class="select-background-btn bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-lg font-medium transition-colors whitespace-nowrap shadow-sm hover:shadow-md"
+                >
+                  SELECT
+                </button>
+              </div>
+              <!-- Background Preview -->
+              <div id="background-preview-container" class="mt-4 hidden">
+                <p class="text-gray-700 text-sm font-medium mb-2">Preview:</p>
+                <div class="relative inline-block border-2 border-primary-300 rounded-lg p-2 bg-white max-w-full">
+                  <img id="background-preview" src="" alt="Background Preview" class="max-w-full max-h-48 rounded object-cover" />
+                  <button 
+                    type="button"
+                    id="background-preview-remove"
+                    class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-md"
+                    title="Remove preview"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Intro Video Upload Section (Only for Pro and Pro Gold plans) -->
+            <div id="intro-video-section" class="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:border-primary-300 transition-colors hidden">
+              <div class="flex items-center justify-between flex-wrap gap-4">
+                <div class="flex-1 min-w-[200px]">
+                  <label class="block text-gray-900 font-semibold mb-2 text-lg">
+                    Intro Video on app start
+                  </label>
+                  <p class="text-gray-600 text-sm">3-8 Seconds, MP4 video</p>
+                  <input 
+                    type="file" 
+                    id="intro-video-upload" 
+                    name="intro_video" 
+                    accept="video/mp4"
+                    class="hidden"
+                  />
+                  <p id="intro-video-file-name" class="text-primary-600 text-sm mt-2 hidden font-medium"></p>
+                </div>
+                <button 
+                  type="button"
+                  class="select-intro-video-btn bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-lg font-medium transition-colors whitespace-nowrap shadow-sm hover:shadow-md"
+                >
+                  SELECT
+                </button>
+              </div>
+              <!-- Intro Video Preview -->
+              <div id="intro-video-preview-container" class="mt-4 hidden">
+                <p class="text-gray-700 text-sm font-medium mb-2">Preview:</p>
+                <div class="relative inline-block border-2 border-primary-300 rounded-lg p-2 bg-white max-w-full">
+                  <video id="intro-video-preview" src="" controls class="max-w-full max-h-64 rounded" preload="metadata"></video>
+                  <button 
+                    type="button"
+                    id="intro-video-preview-remove"
+                    class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-md"
+                    title="Remove preview"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex justify-end pt-6">
+              <button 
+                type="submit"
+                class="bg-primary-600 hover:bg-primary-700 text-white px-10 py-3 rounded-lg font-semibold transition-colors text-lg shadow-md hover:shadow-lg"
+              >
+                SUBMIT AND MAKE PAYMENT
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Right Side: Selected Plan Details -->
+        <div class="lg:w-96 bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+          <h3 class="text-2xl font-bold text-gray-900 mb-6">Selected Plan</h3>
+          <div id="selected-plan-details" class="space-y-4">
+            <!-- Plan details will be populated here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  // Get plan data from URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const productId = urlParams.get('productId');
+  let productName = urlParams.get('productName') || '';
+  const price = urlParams.get('price');
+  const planName = urlParams.get('planName');
+  const planId = urlParams.get('planId');
+  const featuresJson = urlParams.get('features');
+  let description = urlParams.get('description') || '';
+  const deliveryDays = urlParams.get('deliveryDays');
+  const productSlug = urlParams.get('productSlug') || '';
+
+  // Decode URL parameters properly
+  try {
+    productName = decodeURIComponent(productName);
+    description = decodeURIComponent(description);
+  } catch (e) {
+    console.log('Using original values without decoding');
+  }
+
+  // Parse features
+  let features = [];
+  try {
+    if (featuresJson) {
+      const decodedFeatures = decodeURIComponent(featuresJson);
+      features = JSON.parse(decodedFeatures);
+    }
+  } catch (e) {
+    console.error('Error parsing features:', e);
+    // Try parsing without decodeURIComponent as fallback
+    try {
+      features = JSON.parse(featuresJson || '[]');
+    } catch (e2) {
+      console.error('Error parsing features (fallback):', e2);
+    }
+  }
+
+  const planData = {
+    name: planName,
+    price: price ? parseFloat(price) : 0,
+    delivery_days: deliveryDays ? parseInt(deliveryDays) : 0,
+    features: features,
+    description: description || ''
+  };
+
+  // Store plan data globally
+  (window as any).selectedPlanData = {
+    productId,
+    productName,
+    price: price ? parseFloat(price) : 0,
+    planName,
+    planId,
+    planData
+  };
+
+  // Show/hide Intro Video section based on plan
+  const introVideoSection = document.getElementById('intro-video-section');
+  const introVideoInput = document.getElementById('intro-video-upload') as HTMLInputElement;
+  
+  if (introVideoSection && introVideoInput && planName) {
+    if (planName === 'Pro' || planName === 'Pro Gold') {
+      introVideoSection.classList.remove('hidden');
+      introVideoInput.required = false;
+    } else {
+      introVideoSection.classList.add('hidden');
+      introVideoInput.required = false;
+      introVideoInput.value = '';
+    }
+  }
+
+  // Populate plan details on right side
+  const planDetailsContainer = document.getElementById('selected-plan-details');
+  if (planDetailsContainer && productName && planName && price) {
+    // Check if it's Android TV App by slug or product name
+    const isAndroidTVApp = productSlug === 'android-tv-app' || 
+                          productName.toLowerCase().includes('android tv') ||
+                          productName === 'Android TV App';
+    
+    const displayPrice = isAndroidTVApp && planName === 'Standard' ? '£99.00' : 
+                        isAndroidTVApp && planName === 'Pro' ? '£299.00' :
+                        isAndroidTVApp && planName === 'Pro Gold' ? '£449.00' :
+                        `₹${parseFloat(price).toLocaleString()}`;
+    
+    const paymentTerm = 'Lifetime';
+    
+    // Escape HTML to prevent XSS and fix encoding issues
+    const escapeHtml = (text: string) => {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    };
+    
+    planDetailsContainer.innerHTML = `
+      <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <h4 class="text-lg font-semibold text-gray-900 mb-2">${escapeHtml(productName)}</h4>
+        <p class="text-gray-600 text-sm mb-4">${escapeHtml(planName)} Plan</p>
+        <div class="text-2xl font-bold text-primary-600 mb-2">${displayPrice}</div>
+        <p class="text-gray-500 text-sm mb-2">${paymentTerm}</p>
+        ${planData.delivery_days && planData.delivery_days > 0 ? `<p class="text-gray-500 text-sm">Delivery in ${planData.delivery_days} day${planData.delivery_days > 1 ? 's' : ''}</p>` : ''}
+      </div>
+      ${planData.features && planData.features.length > 0 ? `
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <h5 class="text-gray-900 font-medium mb-3">Features:</h5>
+          <ul class="space-y-2">
+            ${planData.features.map((feature: string) => `
+              <li class="flex items-start text-gray-700 text-sm">
+                <svg class="w-4 h-4 text-primary-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span>${escapeHtml(feature)}</span>
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+      ` : ''}
+    `;
+  }
+
+  // Wait for Supabase to be ready
+  async function waitForSupabase(maxRetries = 20, delay = 200) {
+    for (let i = 0; i < maxRetries; i++) {
+      if ((window as any).supabase && (window as any).supabase.from) {
+        return (window as any).supabase;
+      }
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+    return null;
+  }
+
+  // Quick population from session data (runs immediately)
+  function populateFromSession() {
+    try {
+      const nameField = document.getElementById('user-name') as HTMLInputElement;
+      const emailField = document.getElementById('user-email') as HTMLInputElement;
+      const phoneField = document.getElementById('user-phone') as HTMLInputElement;
+
+      if (!nameField || !emailField || !phoneField) {
+        console.log('⏳ Fields not ready, will retry...');
+        setTimeout(populateFromSession, 100);
+        return;
+      }
+
+      // Get data from sessionStorage immediately
+      const sessionData = sessionStorage.getItem('simple-auth-session');
+      if (sessionData) {
+        try {
+          const session = JSON.parse(sessionData);
+          console.log('🔍 Session data for quick populate:', session);
+          
+          if (session && session.user) {
+            const user = session.user;
+            console.log('👤 User data found:', {
+              email: user.email,
+              full_name: user.full_name,
+              name: user.name,
+              phone: user.phone
+            });
+            
+            // Populate Name - try multiple sources
+            if (nameField) {
+              const name = user.full_name || 
+                          user.name || 
+                          (user.email ? user.email.split('@')[0] : '') ||
+                          '';
+              
+              if (name) {
+                // Multiple ways to set the value - be very aggressive
+                nameField.value = name;
+                nameField.setAttribute('value', name);
+                nameField.defaultValue = name;
+                
+                // Use Object.defineProperty to make it harder to clear
+                try {
+                  Object.defineProperty(nameField, 'value', {
+                    value: name,
+                    writable: true,
+                    configurable: true
+                  });
+                } catch (e) {
+                  // If that fails, just use normal assignment
+                  nameField.value = name;
+                }
+                
+                // Force update by dispatching events
+                nameField.dispatchEvent(new Event('input', { bubbles: true }));
+                nameField.dispatchEvent(new Event('change', { bubbles: true }));
+                
+                // Verify it was set
+                const verifyName = nameField.value;
+                if (verifyName === name) {
+                  console.log('✅ Quick populate - Name set and verified:', verifyName);
+                } else {
+                  console.error('❌ Quick populate - Name mismatch! Set:', name, 'Got:', verifyName);
+                  // Try again multiple times
+                  setTimeout(() => {
+                    nameField.value = name;
+                    nameField.setAttribute('value', name);
+                  }, 50);
+                  setTimeout(() => {
+                    nameField.value = name;
+                    nameField.setAttribute('value', name);
+                  }, 200);
+                }
+              } else {
+                console.warn('⚠️ No name found in user data');
+              }
+            }
+            
+            // Populate Email - must have email
+            if (emailField) {
+              if (user.email) {
+                // Multiple ways to set the value - be very aggressive
+                emailField.value = user.email;
+                emailField.setAttribute('value', user.email);
+                emailField.defaultValue = user.email;
+                
+                // Use Object.defineProperty to make it harder to clear
+                try {
+                  Object.defineProperty(emailField, 'value', {
+                    value: user.email,
+                    writable: true,
+                    configurable: true
+                  });
+                } catch (e) {
+                  // If that fails, just use normal assignment
+                  emailField.value = user.email;
+                }
+                
+                // Force update by dispatching events
+                emailField.dispatchEvent(new Event('input', { bubbles: true }));
+                emailField.dispatchEvent(new Event('change', { bubbles: true }));
+                
+                // Verify it was set
+                const verifyEmail = emailField.value;
+                if (verifyEmail === user.email) {
+                  console.log('✅ Quick populate - Email set and verified:', verifyEmail);
+                } else {
+                  console.error('❌ Quick populate - Email mismatch! Set:', user.email, 'Got:', verifyEmail);
+                  // Try again multiple times
+                  setTimeout(() => {
+                    emailField.value = user.email;
+                    emailField.setAttribute('value', user.email);
+                  }, 50);
+                  setTimeout(() => {
+                    emailField.value = user.email;
+                    emailField.setAttribute('value', user.email);
+                  }, 200);
+                }
+              } else {
+                console.warn('⚠️ No email found in user data');
+              }
+            }
+            
+            // Populate Phone
+            if (phoneField && user.phone) {
+              phoneField.value = user.phone;
+              phoneField.setAttribute('value', user.phone);
+              console.log('✅ Quick populate - Phone set to:', user.phone);
+            }
+          } else {
+            console.warn('⚠️ Session exists but no user object');
+          }
+        } catch (e) {
+          console.error('❌ Error parsing session data:', e);
+        }
+      } else {
+        console.warn('⚠️ No session data found in sessionStorage');
+      }
+    } catch (error) {
+      console.error('❌ Error in populateFromSession:', error);
+    }
+  }
+
+  // Populate user information from profile
+  async function populateUserInfo() {
+    try {
+      console.log('🔄 Starting to populate user info...');
+      
+      // Wait for DOM to be ready
+      const nameField = document.getElementById('user-name') as HTMLInputElement;
+      const emailField = document.getElementById('user-email') as HTMLInputElement;
+      const phoneField = document.getElementById('user-phone') as HTMLInputElement;
+
+      if (!nameField || !emailField || !phoneField) {
+        console.warn('⚠️ Form fields not found, retrying in 100ms...');
+        setTimeout(populateUserInfo, 100);
+        return;
+      }
+
+      // Get user ID from session first
+      let userId = null;
+      let userEmail = '';
+      let userData = null;
+
+      // Try to get user from sessionStorage
+      const sessionData = sessionStorage.getItem('simple-auth-session');
+      if (sessionData) {
+        try {
+          const session = JSON.parse(sessionData);
+          console.log('🔍 Raw session data:', session);
+          if (session && session.user) {
+            userData = session.user;
+            userId = session.user.id;
+            userEmail = session.user.email || '';
+            console.log('✅ Found user in sessionStorage:', {
+              email: userEmail,
+              id: userId,
+              full_name: session.user.full_name,
+              name: session.user.name,
+              phone: session.user.phone,
+              hasFullName: !!session.user.full_name,
+              hasEmail: !!session.user.email
+            });
+          } else {
+            console.warn('⚠️ Session exists but no user data:', session);
+          }
+        } catch (e) {
+          console.error('Error parsing session data:', e);
+        }
+      } else {
+        console.warn('⚠️ No session data in sessionStorage');
+      }
+
+      // If no user from sessionStorage, try auth manager
+      if (!userData) {
+        const authManager = (window as any).globalAuthManager || (window as any).simpleAuthManager;
+        if (authManager && authManager.isUserLoggedIn && authManager.isUserLoggedIn()) {
+          userData = authManager.getCurrentUser();
+          if (userData) {
+            userId = userData.id;
+            userEmail = userData.email || '';
+            console.log('✅ Found user in auth manager:', userEmail, 'ID:', userId);
+          }
+        }
+      }
+
+      // If still no user, try localStorage
+      if (!userData) {
+        const localUserData = localStorage.getItem('simple-auth-user');
+        if (localUserData) {
+          try {
+            userData = JSON.parse(localUserData);
+            userId = userData.id;
+            userEmail = userData.email || '';
+            console.log('✅ Found user in localStorage:', userEmail, 'ID:', userId);
+          } catch (e) {
+            console.error('Error parsing local user data:', e);
+          }
+        }
+      }
+
+      // PRIORITY: Try to fetch from Supabase profiles table (most reliable)
+      let profileData = null;
+      if (userId) {
+        const supabase = await waitForSupabase();
+        if (supabase) {
+          try {
+            console.log('🔍 Fetching profile from Supabase for user ID:', userId);
+            const { data: profile, error } = await supabase
+              .from('profiles')
+              .select('full_name, email, phone')
+              .eq('id', userId)
+              .single();
+            
+            if (!error && profile) {
+              profileData = profile;
+              console.log('✅ Found profile in Supabase:', {
+                full_name: profile.full_name,
+                email: profile.email,
+                phone: profile.phone,
+                hasFullName: !!profile.full_name,
+                hasEmail: !!profile.email,
+                hasPhone: !!profile.phone
+              });
+            } else {
+              console.log('⚠️ Profile not found in Supabase or error:', error);
+              // If profile doesn't exist, try to get email from auth user
+              if (error && error.code === 'PGRST116') {
+                console.log('ℹ️ Profile record does not exist, will use session data');
+              }
+            }
+          } catch (e) {
+            console.error('Error fetching from Supabase:', e);
+          }
+        } else {
+          console.warn('⚠️ Supabase not available after waiting');
+        }
+      }
+
+      // Log what we have before merging
+      console.log('📊 Data before merging:', {
+        hasProfileData: !!profileData,
+        profileData: profileData,
+        hasUserData: !!userData,
+        userData: userData ? {
+          id: userData.id,
+          email: userData.email,
+          full_name: userData.full_name,
+          name: userData.name,
+          phone: userData.phone
+        } : null,
+        userEmail: userEmail
+      });
+
+      // Merge profile data from Supabase with session data (prioritize Supabase but keep session fallbacks)
+      let finalData = userData || {};
+      if (profileData) {
+        // Merge Supabase profile data, but keep session data for missing fields
+        finalData = {
+          ...userData,
+          ...profileData,
+          // Ensure we have email from somewhere - prioritize profile, then userData, then userEmail
+          email: (profileData.email && profileData.email.trim()) || 
+                 (userData?.email && userData.email.trim()) || 
+                 (userEmail && userEmail.trim()) || 
+                 '',
+          // Ensure we have full_name from somewhere
+          full_name: (profileData.full_name && profileData.full_name.trim()) || 
+                    (userData?.full_name && userData.full_name.trim()) || 
+                    (userData?.name && userData.name.trim()) || 
+                    '',
+          // Phone from Supabase takes priority
+          phone: (profileData.phone && profileData.phone.trim()) || 
+                 (userData?.phone && userData.phone.trim()) || 
+                 (userData?.phone_number && userData.phone_number.trim()) || 
+                 ''
+        };
+      } else if (userData) {
+        // If no profile data, use userData directly but ensure we have email
+        finalData = {
+          ...userData,
+          email: userData.email || userEmail || '',
+          full_name: userData.full_name || userData.name || '',
+          phone: userData.phone || userData.phone_number || ''
+        };
+      }
+
+      console.log('📊 Final merged data:', {
+        email: finalData.email,
+        full_name: finalData.full_name,
+        phone: finalData.phone
+      });
+
+      // Populate form fields
+      if (finalData) {
+        // Handle different user data structures - try multiple sources
+        const userName = finalData.full_name || 
+                        finalData.name || 
+                        finalData.user_metadata?.full_name ||
+                        (finalData.email ? finalData.email.split('@')[0] : '') || 
+                        '';
+        
+        const finalEmail = finalData.email || 
+                          userData?.email || 
+                          userEmail || 
+                          '';
+        
+        const userPhone = finalData.phone || 
+                         finalData.phone_number || 
+                         finalData.user_metadata?.phone ||
+                         '';
+
+        // Always set the fields, even if empty (so user can see what's missing)
+        if (nameField && userName) {
+          // Multiple ways to set the value to ensure it sticks
+          nameField.value = userName;
+          nameField.setAttribute('value', userName);
+          nameField.defaultValue = userName;
+          
+          // Use Object.defineProperty to make it harder to clear
+          try {
+            Object.defineProperty(nameField, 'value', {
+              value: userName,
+              writable: true,
+              configurable: true
+            });
+          } catch (e) {
+            // If that fails, just use normal assignment
+            nameField.value = userName;
+          }
+          
+          // Verify it was set
+          const verifyName = nameField.value;
+          if (verifyName === userName) {
+            console.log('✅ Name field populated and verified:', verifyName);
+          } else {
+            console.error('❌ Name field value mismatch! Set:', userName, 'Got:', verifyName);
+            // Try again
+            nameField.value = userName;
+          }
+        } else if (nameField) {
+          console.warn('⚠️ Name is empty - checking data:', { 
+            finalData, 
+            userData, 
+            profileData,
+            userName,
+            finalDataFullName: finalData.full_name,
+            userDataFullName: userData?.full_name,
+            profileDataFullName: profileData?.full_name
+          });
+        } else {
+          console.error('❌ Name field not found in DOM');
+        }
+
+        if (emailField && finalEmail) {
+          // Multiple ways to set the value to ensure it sticks
+          emailField.value = finalEmail;
+          emailField.setAttribute('value', finalEmail);
+          emailField.defaultValue = finalEmail;
+          
+          // Use Object.defineProperty to make it harder to clear
+          try {
+            Object.defineProperty(emailField, 'value', {
+              value: finalEmail,
+              writable: true,
+              configurable: true
+            });
+          } catch (e) {
+            // If that fails, just use normal assignment
+            emailField.value = finalEmail;
+          }
+          
+          // Verify it was set
+          const verifyEmail = emailField.value;
+          if (verifyEmail === finalEmail) {
+            console.log('✅ Email field populated and verified:', verifyEmail);
+          } else {
+            console.error('❌ Email field value mismatch! Set:', finalEmail, 'Got:', verifyEmail);
+            // Try again
+            emailField.value = finalEmail;
+          }
+        } else if (emailField) {
+          console.warn('⚠️ Email is empty - checking data:', { 
+            finalData, 
+            userData, 
+            profileData, 
+            userEmail,
+            finalDataEmail: finalData.email,
+            userDataEmail: userData?.email,
+            profileDataEmail: profileData?.email
+          });
+        } else {
+          console.error('❌ Email field not found in DOM');
+        }
+
+        if (phoneField) {
+          phoneField.value = userPhone;
+          phoneField.setAttribute('value', userPhone);
+          phoneField.defaultValue = userPhone;
+          if (userPhone) {
+            console.log('✅ Phone field populated:', userPhone);
+          }
+        } else {
+          console.error('❌ Phone field not found in DOM');
+        }
+        
+        // Trigger multiple events to ensure any listeners are notified
+        if (nameField && userName) {
+          nameField.dispatchEvent(new Event('input', { bubbles: true }));
+          nameField.dispatchEvent(new Event('change', { bubbles: true }));
+          nameField.dispatchEvent(new Event('blur', { bubbles: true }));
+        }
+        if (emailField && finalEmail) {
+          emailField.dispatchEvent(new Event('input', { bubbles: true }));
+          emailField.dispatchEvent(new Event('change', { bubbles: true }));
+          emailField.dispatchEvent(new Event('blur', { bubbles: true }));
+        }
+        if (phoneField) {
+          phoneField.dispatchEvent(new Event('input', { bubbles: true }));
+          phoneField.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        
+        // Final verification after a short delay
+        setTimeout(() => {
+          if (nameField && userName && nameField.value !== userName) {
+            console.warn('⚠️ Name field was cleared! Restoring...');
+            nameField.value = userName;
+          }
+          if (emailField && finalEmail && emailField.value !== finalEmail) {
+            console.warn('⚠️ Email field was cleared! Restoring...');
+            emailField.value = finalEmail;
+          }
+        }, 100);
+
+        console.log('✅ User information populated successfully:', {
+          name: userName,
+          email: finalEmail,
+          phone: userPhone,
+          source: profileData ? 'Supabase' : 'Session'
+        });
+      } else {
+        console.warn('⚠️ No user data found to populate form');
+        console.log('Debug info:', {
+          hasUserId: !!userId,
+          hasUserEmail: !!userEmail,
+          hasSessionStorage: !!sessionStorage.getItem('simple-auth-session'),
+          hasLocalStorage: !!localStorage.getItem('simple-auth-user'),
+          supabaseAvailable: !!(window as any).supabase
+        });
+      }
+    } catch (error) {
+      console.error('Error populating user info:', error);
+    }
+  }
+
+  // Setup file upload handlers
+  function setupFileUploadHandlers() {
+    const logoUpload = document.getElementById('logo-upload');
+    const backgroundUpload = document.getElementById('background-upload');
+    const introVideoUpload = document.getElementById('intro-video-upload');
+    const selectLogoBtn = document.querySelector('.select-logo-btn');
+    const selectBackgroundBtn = document.querySelector('.select-background-btn');
+    const selectIntroVideoBtn = document.querySelector('.select-intro-video-btn');
+
+    // Logo upload
+    if (selectLogoBtn && logoUpload) {
+      selectLogoBtn.addEventListener('click', () => {
+        logoUpload.click();
+      });
+      
+      logoUpload.addEventListener('change', (e: any) => {
+        const file = e.target.files[0];
+        const fileNameDisplay = document.getElementById('logo-file-name');
+        const previewContainer = document.getElementById('logo-preview-container');
+        const previewImg = document.getElementById('logo-preview') as HTMLImageElement;
+        
+        if (file && fileNameDisplay) {
+          fileNameDisplay.textContent = `Selected: ${file.name}`;
+          fileNameDisplay.classList.remove('hidden');
+          
+          // Show preview
+          if (previewContainer && previewImg) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              if (event.target?.result) {
+                previewImg.src = event.target.result as string;
+                previewContainer.classList.remove('hidden');
+              }
+            };
+            reader.readAsDataURL(file);
+          }
+        }
+      });
+      
+      // Remove logo preview handler
+      const logoPreviewRemove = document.getElementById('logo-preview-remove');
+      if (logoPreviewRemove) {
+        logoPreviewRemove.addEventListener('click', () => {
+          const previewContainer = document.getElementById('logo-preview-container');
+          const previewImg = document.getElementById('logo-preview') as HTMLImageElement;
+          const fileNameDisplay = document.getElementById('logo-file-name');
+          
+          if (logoUpload) (logoUpload as HTMLInputElement).value = '';
+          if (previewContainer) previewContainer.classList.add('hidden');
+          if (previewImg) previewImg.src = '';
+          if (fileNameDisplay) {
+            fileNameDisplay.classList.add('hidden');
+            fileNameDisplay.textContent = '';
+          }
+        });
+      }
+    }
+
+    // Background upload
+    if (selectBackgroundBtn && backgroundUpload) {
+      selectBackgroundBtn.addEventListener('click', () => {
+        backgroundUpload.click();
+      });
+      
+      backgroundUpload.addEventListener('change', (e: any) => {
+        const file = e.target.files[0];
+        const fileNameDisplay = document.getElementById('background-file-name');
+        const previewContainer = document.getElementById('background-preview-container');
+        const previewImg = document.getElementById('background-preview') as HTMLImageElement;
+        
+        if (file && fileNameDisplay) {
+          fileNameDisplay.textContent = `Selected: ${file.name}`;
+          fileNameDisplay.classList.remove('hidden');
+          
+          // Show preview
+          if (previewContainer && previewImg) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              if (event.target?.result) {
+                previewImg.src = event.target.result as string;
+                previewContainer.classList.remove('hidden');
+              }
+            };
+            reader.readAsDataURL(file);
+          }
+        }
+      });
+      
+      // Remove background preview handler
+      const backgroundPreviewRemove = document.getElementById('background-preview-remove');
+      if (backgroundPreviewRemove) {
+        backgroundPreviewRemove.addEventListener('click', () => {
+          const previewContainer = document.getElementById('background-preview-container');
+          const previewImg = document.getElementById('background-preview') as HTMLImageElement;
+          const fileNameDisplay = document.getElementById('background-file-name');
+          
+          if (backgroundUpload) (backgroundUpload as HTMLInputElement).value = '';
+          if (previewContainer) previewContainer.classList.add('hidden');
+          if (previewImg) previewImg.src = '';
+          if (fileNameDisplay) {
+            fileNameDisplay.classList.add('hidden');
+            fileNameDisplay.textContent = '';
+          }
+        });
+      }
+    }
+
+    // Intro video upload
+    if (selectIntroVideoBtn && introVideoUpload) {
+      selectIntroVideoBtn.addEventListener('click', () => {
+        introVideoUpload.click();
+      });
+      
+      introVideoUpload.addEventListener('change', (e: any) => {
+        const file = e.target.files[0];
+        const fileNameDisplay = document.getElementById('intro-video-file-name');
+        const previewContainer = document.getElementById('intro-video-preview-container');
+        const previewVideo = document.getElementById('intro-video-preview') as HTMLVideoElement;
+        
+        if (file && fileNameDisplay) {
+          fileNameDisplay.textContent = `Selected: ${file.name}`;
+          fileNameDisplay.classList.remove('hidden');
+          
+          // Show preview
+          if (previewContainer && previewVideo) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              if (event.target?.result) {
+                previewVideo.src = event.target.result as string;
+                previewContainer.classList.remove('hidden');
+              }
+            };
+            reader.readAsDataURL(file);
+          }
+        }
+      });
+      
+      // Remove intro video preview handler
+      const introVideoPreviewRemove = document.getElementById('intro-video-preview-remove');
+      if (introVideoPreviewRemove) {
+        introVideoPreviewRemove.addEventListener('click', () => {
+          const previewContainer = document.getElementById('intro-video-preview-container');
+          const previewVideo = document.getElementById('intro-video-preview') as HTMLVideoElement;
+          const fileNameDisplay = document.getElementById('intro-video-file-name');
+          
+          if (introVideoUpload) (introVideoUpload as HTMLInputElement).value = '';
+          if (previewContainer) previewContainer.classList.add('hidden');
+          if (previewVideo) {
+            previewVideo.src = '';
+            previewVideo.load(); // Reset video element
+          }
+          if (fileNameDisplay) {
+            fileNameDisplay.classList.add('hidden');
+            fileNameDisplay.textContent = '';
+          }
+        });
+      }
+    }
+  }
+
+  // Automatic fetch function - gets user data from multiple sources
+  async function autoFetchUserData() {
+    try {
+      console.log('🔄 Auto-fetching user data...');
+      
+      // Source 1: sessionStorage (most recent)
+      let userData = null;
+      const sessionData = sessionStorage.getItem('simple-auth-session');
+      if (sessionData) {
+        try {
+          const session = JSON.parse(sessionData);
+          if (session && session.user) {
+            userData = session.user;
+            console.log('✅ Found user in sessionStorage:', userData.email);
+          }
+        } catch (e) {
+          console.error('Error parsing sessionStorage:', e);
+        }
+      }
+      
+      // Source 2: localStorage (fallback)
+      if (!userData) {
+        const localUserData = localStorage.getItem('simple-auth-user');
+        if (localUserData) {
+          try {
+            userData = JSON.parse(localUserData);
+            console.log('✅ Found user in localStorage:', userData.email);
+          } catch (e) {
+            console.error('Error parsing localStorage:', e);
+          }
+        }
+      }
+      
+      // Source 3: Auth Manager
+      if (!userData) {
+        const authManager = (window as any).globalAuthManager || (window as any).simpleAuthManager;
+        if (authManager && authManager.isUserLoggedIn && authManager.isUserLoggedIn()) {
+          userData = authManager.getCurrentUser();
+          if (userData) {
+            console.log('✅ Found user in auth manager:', userData.email);
+          }
+        }
+      }
+      
+      // Source 4: Fetch from Supabase profiles table if we have user ID
+      if (userData && userData.id) {
+        const supabase = await waitForSupabase();
+        if (supabase) {
+          try {
+            const { data: profile, error } = await supabase
+              .from('profiles')
+              .select('full_name, email, phone')
+              .eq('id', userData.id)
+              .single();
+            
+            if (!error && profile) {
+              // Merge Supabase profile data with session data
+              userData = {
+                ...userData,
+                full_name: profile.full_name || userData.full_name,
+                email: profile.email || userData.email,
+                phone: profile.phone || userData.phone
+              };
+              console.log('✅ Fetched profile from Supabase:', userData);
+            }
+          } catch (e) {
+            console.error('Error fetching from Supabase:', e);
+          }
+        }
+      }
+      
+      return userData;
+    } catch (error) {
+      console.error('Error in autoFetchUserData:', error);
+      return null;
+    }
+  }
+
+  // Function to force set values and ensure they persist
+  async function forceSetFieldValues() {
+    const nameField = document.getElementById('user-name') as HTMLInputElement;
+    const emailField = document.getElementById('user-email') as HTMLInputElement;
+    const phoneField = document.getElementById('user-phone') as HTMLInputElement;
+    
+    if (!nameField || !emailField || !phoneField) {
+      return;
+    }
+    
+    // Auto-fetch user data from all sources
+    const userData = await autoFetchUserData();
+    
+    if (userData) {
+      const name = userData.full_name || userData.name || '';
+      const email = userData.email || '';
+      const phone = userData.phone || '';
+      
+      // Force set name with multiple methods
+      if (name) {
+        nameField.value = name;
+        nameField.setAttribute('value', name);
+        nameField.defaultValue = name;
+        try {
+          Object.defineProperty(nameField, 'value', {
+            value: name,
+            writable: true,
+            configurable: true
+          });
+        } catch (e) {
+          nameField.value = name;
+        }
+        nameField.dispatchEvent(new Event('input', { bubbles: true }));
+        nameField.dispatchEvent(new Event('change', { bubbles: true }));
+        console.log('🔧 Force set name:', name);
+      }
+      
+      // Force set email with multiple methods
+      if (email) {
+        emailField.value = email;
+        emailField.setAttribute('value', email);
+        emailField.defaultValue = email;
+        try {
+          Object.defineProperty(emailField, 'value', {
+            value: email,
+            writable: true,
+            configurable: true
+          });
+        } catch (e) {
+          emailField.value = email;
+        }
+        emailField.dispatchEvent(new Event('input', { bubbles: true }));
+        emailField.dispatchEvent(new Event('change', { bubbles: true }));
+        console.log('🔧 Force set email:', email);
+      }
+      
+      // Force set phone with multiple methods
+      if (phone) {
+        phoneField.value = phone;
+        phoneField.setAttribute('value', phone);
+        phoneField.defaultValue = phone;
+        phoneField.dispatchEvent(new Event('input', { bubbles: true }));
+        phoneField.dispatchEvent(new Event('change', { bubbles: true }));
+        console.log('🔧 Force set phone:', phone);
+      }
+    } else {
+      // Fallback: Try sessionStorage directly
+      const sessionData = sessionStorage.getItem('simple-auth-session');
+      if (sessionData) {
+        try {
+          const session = JSON.parse(sessionData);
+          if (session && session.user) {
+            const user = session.user;
+            const name = user.full_name || user.name || '';
+            const email = user.email || '';
+            const phone = user.phone || '';
+            
+            if (name) {
+              nameField.value = name;
+              nameField.setAttribute('value', name);
+              console.log('🔧 Force set name (fallback):', name);
+            }
+            
+            if (email) {
+              emailField.value = email;
+              emailField.setAttribute('value', email);
+              console.log('🔧 Force set email (fallback):', email);
+            }
+            
+            if (phone) {
+              phoneField.value = phone;
+              phoneField.setAttribute('value', phone);
+              console.log('🔧 Force set phone (fallback):', phone);
+            }
+          }
+        } catch (e) {
+          console.error('Error in forceSetFieldValues fallback:', e);
+        }
+      }
+    }
+  }
+
+  // AUTOMATIC FETCH AND POPULATE - Runs immediately and continuously
+  async function autoFetchAndPopulate() {
+    console.log('🚀 Starting automatic fetch and populate...');
+    
+    // Wait for fields to be available
+    let attempts = 0;
+    const maxAttempts = 20;
+    
+    const checkAndPopulate = async () => {
+      const nameField = document.getElementById('user-name') as HTMLInputElement;
+      const emailField = document.getElementById('user-email') as HTMLInputElement;
+      const phoneField = document.getElementById('user-phone') as HTMLInputElement;
+      
+      if (nameField && emailField && phoneField) {
+        // Fields are ready, fetch and populate
+        await forceSetFieldValues();
+        console.log('✅ Auto-populated fields');
+        return true;
+      } else {
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(checkAndPopulate, 100);
+        } else {
+          console.warn('⚠️ Fields not found after', maxAttempts, 'attempts');
+        }
+        return false;
+      }
+    };
+    
+    await checkAndPopulate();
+  }
+
+  // Setup handlers when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      setupFileUploadHandlers();
+      // AUTOMATIC FETCH - runs immediately
+      autoFetchAndPopulate();
+      // Quick populate immediately from session
+      populateFromSession();
+      // Force set values immediately and repeatedly
+      setTimeout(() => forceSetFieldValues(), 50);
+      setTimeout(() => forceSetFieldValues(), 150);
+      setTimeout(() => forceSetFieldValues(), 300);
+      // Then do full populate with Supabase data
+      setTimeout(() => populateUserInfo(), 100);
+      setTimeout(() => populateUserInfo(), 500);
+      setTimeout(() => populateUserInfo(), 1000);
+      setTimeout(() => populateUserInfo(), 2000);
+      // Keep forcing values to persist
+      setTimeout(() => forceSetFieldValues(), 600);
+      setTimeout(() => forceSetFieldValues(), 1200);
+      setTimeout(() => forceSetFieldValues(), 2500);
+      setTimeout(() => forceSetFieldValues(), 4000);
+    });
+  } else {
+    setupFileUploadHandlers();
+    // AUTOMATIC FETCH - runs immediately
+    autoFetchAndPopulate();
+    // Quick populate immediately from session
+    populateFromSession();
+    // Force set values immediately and repeatedly
+    setTimeout(() => forceSetFieldValues(), 50);
+    setTimeout(() => forceSetFieldValues(), 150);
+    setTimeout(() => forceSetFieldValues(), 300);
+    // Then do full populate with Supabase data
+    setTimeout(() => populateUserInfo(), 100);
+    setTimeout(() => populateUserInfo(), 500);
+    setTimeout(() => populateUserInfo(), 1000);
+    setTimeout(() => populateUserInfo(), 2000);
+    // Keep forcing values to persist
+    setTimeout(() => forceSetFieldValues(), 600);
+    setTimeout(() => forceSetFieldValues(), 1200);
+    setTimeout(() => forceSetFieldValues(), 2500);
+    setTimeout(() => forceSetFieldValues(), 4000);
+  }
+  
+  // Also try quick populate on window load
+  window.addEventListener('load', () => {
+    // AUTOMATIC FETCH on window load
+    autoFetchAndPopulate();
+    setTimeout(() => populateFromSession(), 50);
+    setTimeout(() => forceSetFieldValues(), 100);
+    setTimeout(() => populateUserInfo(), 500);
+    setTimeout(() => forceSetFieldValues(), 600);
+    setTimeout(() => forceSetFieldValues(), 1000);
+  });
+
+  // Listen for user login events and repopulate
+  window.addEventListener('user-logged-in', () => {
+    console.log('🔄 User logged in event detected, auto-fetching and repopulating fields...');
+    // AUTOMATIC FETCH on login
+    autoFetchAndPopulate();
+    setTimeout(() => populateFromSession(), 100);
+    setTimeout(() => forceSetFieldValues(), 150);
+    setTimeout(() => populateUserInfo(), 500);
+    setTimeout(() => forceSetFieldValues(), 600);
+  });
+
+  // Continuous check to ensure fields are populated (runs every 2 seconds until populated)
+  async function ensureFieldsPopulated() {
+    const nameField = document.getElementById('user-name') as HTMLInputElement;
+    const emailField = document.getElementById('user-email') as HTMLInputElement;
+    
+    if (nameField && emailField) {
+      const hasName = nameField.value && nameField.value.trim().length > 0;
+      const hasEmail = emailField.value && emailField.value.trim().length > 0;
+      
+      if (!hasName || !hasEmail) {
+        console.log('🔄 Fields not fully populated, auto-fetching...', {
+          hasName,
+          hasEmail,
+          nameValue: nameField.value,
+          emailValue: emailField.value
+        });
+        
+        // AUTOMATIC FETCH when fields are empty
+        await autoFetchAndPopulate();
+        await forceSetFieldValues();
+        populateFromSession();
+        populateUserInfo();
+        
+        // Keep checking for up to 10 seconds
+        if (typeof (window as any).populateCheckCount === 'undefined') {
+          (window as any).populateCheckCount = 0;
+        }
+        (window as any).populateCheckCount++;
+        
+        if ((window as any).populateCheckCount < 5) {
+          setTimeout(ensureFieldsPopulated, 2000);
+        } else {
+          console.log('⏹️ Stopped checking after 10 seconds');
+          delete (window as any).populateCheckCount;
+        }
+      } else {
+        console.log('✅ Fields are populated:', {
+          name: nameField.value,
+          email: emailField.value
+        });
+        delete (window as any).populateCheckCount;
+      }
+    } else {
+      // Fields not ready yet, retry
+      setTimeout(ensureFieldsPopulated, 500);
+    }
+  }
+
+  // Start continuous check after a short delay
+  setTimeout(() => {
+    ensureFieldsPopulated();
+  }, 1000);
+  
+  // Also set up an interval to continuously monitor and auto-fetch
+  setInterval(async () => {
+    const nameField = document.getElementById('user-name') as HTMLInputElement;
+    const emailField = document.getElementById('user-email') as HTMLInputElement;
+    
+    if (nameField && emailField) {
+      const hasName = nameField.value && nameField.value.trim().length > 0;
+      const hasEmail = emailField.value && emailField.value.trim().length > 0;
+      
+      // If fields are empty but user is logged in, auto-fetch
+      if ((!hasName || !hasEmail)) {
+        const sessionData = sessionStorage.getItem('simple-auth-session');
+        if (sessionData) {
+          console.log('🔄 Auto-fetching: Fields empty but user logged in');
+          await forceSetFieldValues();
+        }
+      }
+    }
+  }, 3000); // Check every 3 seconds
+
+  // Watch for field value changes and restore if cleared
+  function watchFieldChanges() {
+    const nameField = document.getElementById('user-name') as HTMLInputElement;
+    const emailField = document.getElementById('user-email') as HTMLInputElement;
+    
+    if (!nameField || !emailField) {
+      setTimeout(watchFieldChanges, 500);
+      return;
+    }
+
+    let lastNameValue = nameField.value || '';
+    let lastEmailValue = emailField.value || '';
+
+    // Watch for value changes
+    const checkValues = () => {
+      const currentName = nameField.value || '';
+      const currentEmail = emailField.value || '';
+
+      // If name was cleared but we had a value before, restore it
+      if (lastNameValue && !currentName && nameField.value !== lastNameValue) {
+        console.warn('🔄 Name field was cleared! Restoring:', lastNameValue);
+        nameField.value = lastNameValue;
+        nameField.setAttribute('value', lastNameValue);
+      } else if (currentName) {
+        lastNameValue = currentName;
+      }
+
+      // If email was cleared but we had a value before, restore it
+      if (lastEmailValue && !currentEmail && emailField.value !== lastEmailValue) {
+        console.warn('🔄 Email field was cleared! Restoring:', lastEmailValue);
+        emailField.value = lastEmailValue;
+        emailField.setAttribute('value', lastEmailValue);
+      } else if (currentEmail) {
+        lastEmailValue = currentEmail;
+      }
+    };
+
+    // Check every 500ms
+    setInterval(checkValues, 500);
+
+    // Also watch for attribute changes
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'value') {
+          checkValues();
+        }
+      });
+    });
+
+    observer.observe(nameField, { attributes: true, attributeFilter: ['value'] });
+    observer.observe(emailField, { attributes: true, attributeFilter: ['value'] });
+
+    console.log('👀 Started watching field changes');
+  }
+
+  // Start watching after fields are populated
+  setTimeout(watchFieldChanges, 2000);
+
+  // Form submission handler
+  const customizationForm = document.getElementById('customization-form');
+  if (customizationForm) {
+    customizationForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(customizationForm as HTMLFormElement);
+      const planData = (window as any).selectedPlanData;
+
+      if (!planData) {
+        alert('Plan data not found. Please select a plan again.');
+        return;
+      }
+
+      // Add plan data to form
+      formData.append('productId', planData.productId);
+      formData.append('productName', planData.productName);
+      formData.append('price', planData.price.toString());
+      formData.append('planName', planData.planName);
+      formData.append('planId', planData.planId);
+
+      console.log('📤 Submitting customization form:', {
+        productId: planData.productId,
+        planName: planData.planName,
+        price: planData.price,
+        hasLogo: formData.has('logo'),
+        hasBackground: formData.has('background'),
+        hasIntroVideo: formData.has('intro_video')
+      });
+
+      // Show loading state
+      const submitBtn = customizationForm.querySelector('button[type="submit"]') as HTMLButtonElement;
+      const originalText = submitBtn?.textContent || 'SUBMIT AND MAKE PAYMENT';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+      }
+
+      try {
+        // Store form data in sessionStorage for dashboard to pick up
+        const customizationData = {
+          logo: formData.has('logo') ? 'uploaded' : null,
+          background: formData.has('background') ? 'uploaded' : null,
+          introVideo: formData.has('intro_video') ? 'uploaded' : null,
+          planData: planData
+        };
+        sessionStorage.setItem('customization-data', JSON.stringify(customizationData));
+        
+        // Set a flag to indicate form was submitted successfully
+        sessionStorage.setItem('customization-submitted', 'true');
+
+        // Redirect to payment page based on selected plan
+        const planName = planData.planName;
+        let paymentUrl = '';
+        
+        if (planName === 'Standard') {
+          paymentUrl = 'https://payments.pabbly.com/subscribe/64b5ac0151ec8e7e17414fdc/standard';
+        } else if (planName === 'Pro') {
+          paymentUrl = 'https://payments.pabbly.com/subscribe/64b5ac4efe311a807f914346/pro';
+        } else if (planName === 'Pro Gold') {
+          paymentUrl = 'https://payments.pabbly.com/subscribe/653ec8aedcb4fe3b88714c51/pro-gold';
+        } else {
+          // Fallback to dashboard if plan name doesn't match
+          paymentUrl = '/profile';
+        }
+        
+        // Redirect to payment page
+        window.location.href = paymentUrl;
+      } catch (error) {
+        console.error('Error submitting form:', error);
+        alert('An error occurred. Please try again.');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+        }
+      }
+    });
+  }
+
+  // Function to redirect back to plan selection page
+  function redirectToPlanSelection() {
+    // Get product slug from URL or use default
+    const urlParams = new URLSearchParams(window.location.search);
+    const productSlug = urlParams.get('productSlug') || '';
+    
+    // Redirect to the product page where they selected the plan
+    if (productSlug) {
+      window.location.href = `/products/${productSlug}`;
+    } else {
+      // Fallback to products listing if slug not available
+      window.location.href = '/products';
+    }
+  }
+
+  // Back button handler - redirect to plan selection page
+  const backToPlansBtn = document.getElementById('back-to-plans-btn');
+  if (backToPlansBtn) {
+    backToPlansBtn.addEventListener('click', redirectToPlanSelection);
+  }
+
+  // Check if plan data is missing
+  if (!productId || !planName) {
+    console.error('Missing plan data, redirecting to products page');
+    setTimeout(() => {
+      window.location.href = '/products';
+    }, 2000);
+  }
+</script>
+

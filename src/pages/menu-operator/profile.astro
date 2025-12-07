@@ -296,7 +296,7 @@ import MenuOperatorGuard from '../../components/MenuOperatorGuard.astro';
           profile.role = 'menu_operator';
         } else {
           console.log('❌ No valid role found - redirecting to dashboard');
-          window.location.href = '/dashboard';
+          window.location.href = '/profile';
           return;
         }
       }
@@ -317,7 +317,7 @@ import MenuOperatorGuard from '../../components/MenuOperatorGuard.astro';
             profile.role = 'menu_operator';
           } else {
             console.log('❌ No valid role found - redirecting to dashboard');
-            window.location.href = '/dashboard';
+            window.location.href = '/profile';
             return;
           }
         }

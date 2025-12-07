@@ -23,7 +23,7 @@ import Layout from '../layouts/Layout.astro';
 
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
       <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-        <form id="login-form" class="space-y-6">
+        <form id="login-form" class="space-y-6" autocomplete="off">
           <!-- Error Message -->
           <div id="error-message" class="hidden p-4 bg-red-50 border border-red-200 rounded-lg">
             <div class="flex flex-col">
@@ -54,15 +54,29 @@ import Layout from '../layouts/Layout.astro';
             <label for="email" class="block text-sm font-medium text-gray-700">
               Email address
             </label>
-            <div class="mt-1">
+            <div class="mt-1 relative">
               <input
                 id="email"
                 name="email"
                 type="email"
                 required
-                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                autocomplete="off"
+                data-lpignore="true"
+                data-form-type="other"
+                class="appearance-none block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                 placeholder="Enter your email address"
               />
+              <button
+                type="button"
+                id="clear-email-btn"
+                class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none hidden"
+                title="Clear email"
+                onclick="clearEmailField()"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
             </div>
           </div>
 
@@ -76,6 +90,7 @@ import Layout from '../layouts/Layout.astro';
                 name="password"
                 type="password"
                 required
+                autocomplete="current-password"
                 class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                 placeholder="Enter your password"
               />
@@ -225,6 +240,22 @@ import Layout from '../layouts/Layout.astro';
 
 <script>
     import { supabase } from '../lib/supabase';
+
+    // Function to clear email field
+    function clearEmailField() {
+      const emailInput = document.getElementById('email') as HTMLInputElement;
+      const clearBtn = document.getElementById('clear-email-btn');
+      if (emailInput) {
+        emailInput.value = '';
+        emailInput.focus();
+        if (clearBtn) {
+          clearBtn.classList.add('hidden');
+        }
+      }
+    }
+    
+    // Make clearEmailField available globally
+    (window as any).clearEmailField = clearEmailField;
 
     // Get DOM elements
   const form = document.getElementById('login-form') as HTMLFormElement;
@@ -391,6 +422,50 @@ import Layout from '../layouts/Layout.astro';
 
   // Event listener for Google sign-in button
   googleSigninBtn?.addEventListener('click', handleGoogleAuth);
+  
+  // Handle email input to show/hide clear button
+  const emailInput = document.getElementById('email') as HTMLInputElement;
+  const clearEmailBtn = document.getElementById('clear-email-btn');
+  
+  if (emailInput && clearEmailBtn) {
+    // Show clear button when email has value
+    emailInput.addEventListener('input', () => {
+      if (emailInput.value.length > 0) {
+        clearEmailBtn.classList.remove('hidden');
+      } else {
+        clearEmailBtn.classList.add('hidden');
+      }
+    });
+    
+    // Show clear button on focus if there's a value
+    emailInput.addEventListener('focus', () => {
+      if (emailInput.value.length > 0) {
+        clearEmailBtn.classList.remove('hidden');
+      }
+    });
+    
+    // Clear autofilled value on first focus if it's from browser autofill
+    let hasClearedAutofill = false;
+    emailInput.addEventListener('focus', () => {
+      if (!hasClearedAutofill && emailInput.value) {
+        // Check if this might be autofilled (user didn't type it)
+        // We'll allow one clear on focus
+        setTimeout(() => {
+          if (emailInput.value && !emailInput.matches(':focus')) {
+            // Field was filled but user didn't type - might be autofill
+            hasClearedAutofill = true;
+          }
+        }, 100);
+      }
+    });
+    
+    // Select all text on focus to make it easy to replace
+    emailInput.addEventListener('click', function() {
+      if (this.value && document.activeElement === this) {
+        this.select();
+      }
+    });
+  }
 
   // Listen for auth state changes
   supabase.auth.onAuthStateChange(async (event, session) => {
@@ -586,12 +661,20 @@ import Layout from '../layouts/Layout.astro';
               console.log('🔍 Role value from database:', JSON.stringify(profileData.role));
               
               // Role-based redirect - ADMIN ROLE TAKES PRIORITY OVER STATUS
-              // But preserve redirect parameter for product selection
-              if (profileData.role === 'admin' || profileData.role === 'developer' || profileData.role === 'support') {
+              // Check for admin role (case-insensitive, handle variations like "isadmin")
+              const userRole = String(profileData.role || '').toLowerCase().trim();
+              const isAdmin = userRole === 'admin' || 
+                            userRole === 'administrator' || 
+                            userRole === 'isadmin' ||
+                            userRole.includes('admin');
+              
+              if (isAdmin) {
+                // Admin users can access both dashboard and admin panel
+                // Default to dashboard, but they can access admin panel via menu
                 if (!redirectParam || redirectParam === '/dashboard') {
-                  redirectUrl = '/admin';
+                  redirectUrl = '/dashboard';
                   console.log(`🎉 ADMIN USER DETECTED: ${profileData.full_name} (${profileData.role})`);
-                  console.log(`🚀 Redirecting to admin panel: ${redirectUrl}`);
+                  console.log(`🚀 Redirecting to dashboard (admin can access admin panel via menu): ${redirectUrl}`);
                 } else {
                   // Preserve the redirect parameter (e.g., /dashboard?product=5&price=999)
                   redirectUrl = redirectParam;
@@ -632,7 +715,11 @@ import Layout from '../layouts/Layout.astro';
               userData.full_name = profileData.full_name || userData.full_name;
               userData.phone = profileData.phone || userData.phone;
               userData.company_name = profileData.company_name || userData.company_name;
+              // CRITICAL: Store the role from database (handles "isadmin", "admin", etc.)
               userData.role = profileData.role || userData.role;
+              
+              console.log('🔍 Storing role in userData:', userData.role);
+              console.log('🔍 Raw role from profile:', profileData.role);
               
               console.log('🔍 Profile data from Supabase:', {
                 role: profileData.role,

@@ -578,12 +578,8 @@ const { title, description = "DevExpress - 24 Hour Delivery" } = Astro.props;
       (function() {
         const pathname = window.location.pathname;
         
-        // Check for admin panel
-        if (pathname.startsWith('/admin')) {
-          // Add admin panel classes immediately
-          document.documentElement.classList.add('admin-panel-active');
-          document.body.classList.add('admin-panel-active');
-          
+        // Check for menu operator panel
+        if (pathname.startsWith('/menu-operator')) {
           // Hide navbar immediately
           function hideNavbarImmediately() {
             const header = document.querySelector('header:not(.menu-operator-header)');
@@ -1387,8 +1383,6 @@ document.addEventListener('DOMContentLoaded', () => {
           const userMenu = document.getElementById('user-menu');
           const mobileAuthButtons = document.getElementById('mobile-auth-buttons');
           const mobileUserMenu = document.getElementById('mobile-user-menu');
-          const adminPanelLink = document.getElementById('admin-panel-link');
-          const mobileAdminPanelLink = document.getElementById('mobile-admin-panel-link');
 
           // Always show auth buttons and hide user menu during navigation
           if (authButtons) authButtons.classList.remove('hidden');
@@ -1396,13 +1390,6 @@ document.addEventListener('DOMContentLoaded', () => {
           if (mobileAuthButtons) mobileAuthButtons.classList.remove('hidden');
           if (mobileUserMenu) mobileUserMenu.classList.add('hidden');
           
-          // Hide admin panel links during navigation
-          if (adminPanelLink) {
-            adminPanelLink.classList.add('hidden');
-          }
-          if (mobileAdminPanelLink) {
-            mobileAdminPanelLink.classList.add('hidden');
-          }
 
           // Only show user menu if user is actually logged in (removed isNavigating check to prevent fluctuation)
           if (this.isAuthenticated && this.currentUser) {
@@ -1411,16 +1398,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (mobileAuthButtons) mobileAuthButtons.classList.add('hidden');
             if (mobileUserMenu) mobileUserMenu.classList.remove('hidden');
 
-            // Show admin panel links if user has admin role
-            const isAdmin = this.currentUser.role === 'admin' || this.currentUser.role === 'developer' || this.currentUser.role === 'support';
-            
-            if (adminPanelLink && isAdmin) {
-              adminPanelLink.classList.remove('hidden');
-            }
-            
-            if (mobileAdminPanelLink && isAdmin) {
-              mobileAdminPanelLink.classList.remove('hidden');
-            }
+            // Admin panel removed - no longer showing admin links
 
             // Update user info
             this.updateHeaderUserInfo();
@@ -1534,8 +1512,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Global navbar visibility functions - simplified to prevent fluctuation
       window.hideUserNavbar = function() {
-        // Only hide if in admin panel or menu operator panel
-        if (window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/menu-operator')) {
+        // Only hide if in menu operator panel
+        if (window.location.pathname.startsWith('/menu-operator')) {
           const header = document.querySelector('header:not(.menu-operator-header)');
           if (header) {
             header.classList.add('admin-hidden');
@@ -1545,8 +1523,8 @@ document.addEventListener('DOMContentLoaded', () => {
       };
       
       window.showUserNavbar = function() {
-        // Only show if not in admin panel or menu operator panel
-        if (!window.location.pathname.startsWith('/admin') && !window.location.pathname.startsWith('/menu-operator')) {
+        // Only show if not in menu operator panel
+        if (!window.location.pathname.startsWith('/menu-operator')) {
           const header = document.querySelector('header:not(.menu-operator-header)');
           if (header) {
             header.classList.remove('admin-hidden');
@@ -1557,22 +1535,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       };
       
-      // Check if we're in admin panel or menu operator panel and hide navbar accordingly
+      // Check if we're in menu operator panel and hide navbar accordingly
       function checkAdminPanelNavbar() {
         const pathname = window.location.pathname;
         
-        if (pathname.startsWith('/admin')) {
-          document.body.classList.add('admin-panel-active');
-          window.hideUserNavbar();
-        } else if (pathname.startsWith('/menu-operator')) {
+        if (pathname.startsWith('/menu-operator')) {
           document.body.classList.add('menu-operator-panel-active');
           document.documentElement.classList.add('menu-operator-panel-active');
           window.hideUserNavbar();
         } else {
-          // Only remove admin/menu operator classes and show navbar if we're NOT in admin/menu operator panel
-          document.body.classList.remove('admin-panel-active');
+          // Only remove menu operator classes and show navbar if we're NOT in menu operator panel
           document.body.classList.remove('menu-operator-panel-active');
-          document.documentElement.classList.remove('admin-panel-active');
           document.documentElement.classList.remove('menu-operator-panel-active');
           window.showUserNavbar();
         }
@@ -1582,11 +1555,10 @@ document.addEventListener('DOMContentLoaded', () => {
       function handleNavigation() {
         const pathname = window.location.pathname;
         
-        // Remove any admin/menu operator classes when navigating away from admin/menu operator
-        if (!pathname.startsWith('/admin') && !pathname.startsWith('/menu-operator')) {
-          document.documentElement.classList.remove('admin-panel-active');
+        // Remove any menu operator classes when navigating away from menu operator
+        if (!pathname.startsWith('/menu-operator')) {
           document.documentElement.classList.remove('menu-operator-panel-active');
-          document.body.classList.remove('admin-panel-active');
+          document.body.classList.remove('menu-operator-panel-active');
           document.body.classList.remove('menu-operator-panel-active');
           
           // No need to manipulate header styles - it should be visible by default
@@ -1629,11 +1601,11 @@ document.addEventListener('DOMContentLoaded', () => {
       function handlePageTransition() {
         const pathname = window.location.pathname;
         
-        // Ensure navbar is always visible on non-admin and non-menu-operator pages
-        if (!pathname.startsWith('/admin') && !pathname.startsWith('/menu-operator')) {
+        // Ensure navbar is always visible on non-menu-operator pages
+        if (!pathname.startsWith('/menu-operator')) {
           const header = document.querySelector('header:not(.menu-operator-header)');
           if (header) {
-            // Reset any admin/menu operator hiding styles immediately without delay
+            // Reset any menu operator hiding styles immediately without delay
             header.style.display = 'block';
             header.style.visibility = 'visible';
             header.style.opacity = '1';

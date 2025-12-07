@@ -8,11 +8,11 @@
 /forgot-password  /forgot-password/index.html  200
 /reset-password  /reset-password/index.html  200
 
-# Admin routes
-/admin/*  /admin/index.html  200
-
 # Menu Operator routes
 /menu-operator/*  /menu-operator/index.html  200
+
+# Admin routes
+/admin/*  /admin/index.html  200
 
 # Product routes
 /products/*  /products/index.html  200

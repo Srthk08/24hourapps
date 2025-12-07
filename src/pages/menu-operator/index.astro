@@ -1153,11 +1153,7 @@ import MenuOperatorAdminLayout from '../../layouts/MenuOperatorAdminLayout.astro
         if (!fallbackProfile.role || fallbackProfile.role.toLowerCase().trim() !== 'menu_operator') {
           console.log('User does not have menu_operator role. Role:', fallbackProfile.role);
           // Redirect based on role
-          if (fallbackProfile.role === 'admin') {
-            window.location.href = '/admin';
-          } else {
-            window.location.href = '/dashboard';
-          }
+          window.location.href = '/profile';
           return;
         }
 
@@ -1172,11 +1168,7 @@ import MenuOperatorAdminLayout from '../../layouts/MenuOperatorAdminLayout.astro
       if (!profile.role || profile.role.toLowerCase().trim() !== 'menu_operator') {
         console.log('User does not have menu_operator role. Role:', profile.role);
         // Redirect based on role
-        if (profile.role === 'admin') {
-          window.location.href = '/admin';
-        } else {
-          window.location.href = '/dashboard';
-        }
+        window.location.href = '/profile';
         return;
       }
 

@@ -23,6 +23,9 @@ export async function saveCustomizationForm(formData, productType) {
 
     const dbProductType = PRODUCT_TYPE_MAP[productType] || productType;
 
+    // Get contact email - this is the primary email field
+    const contactEmail = formData.email || formData.contact_email || formData.contactEmail || '';
+    
     const dbData = {
       product_type: dbProductType,
       product_name: formData.productName || formData.product_name || 'Unknown Product',
@@ -37,7 +40,9 @@ export async function saveCustomizationForm(formData, productType) {
       logo_filename: formData.logoFilename || formData.logo_filename || null,
       logo_mime_type: formData.logoMimeType || formData.logo_mime_type || null,
       logo_size: formData.logoSize || formData.logo_size || null,
-      contact_email: formData.email || formData.contact_email || formData.contactEmail || '',
+      contact_email: contactEmail,
+      customer_email: contactEmail, // Set customer_email from contact_email
+      customer_name: formData.customerName || formData.customer_name || formData.contactPerson || formData.contact_person || '',
       contact_phone: formData.phone || formData.contact_phone || formData.contactPhone || '',
       primary_color: formData.primaryColor || formData.primary_color || '#3B82F6',
       secondary_color: formData.secondaryColor || formData.secondary_color || '#10B981',

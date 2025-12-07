@@ -1,0 +1,507 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Support Tickets - Admin Panel">
+  <div class="min-h-screen bg-gray-50 pb-20">
+    <!-- Page Header -->
+    <div class="bg-white border-b border-gray-200 shadow-sm">
+      <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+          <div class="flex-1 min-w-0">
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-900">Support Tickets</h2>
+            <p class="mt-1 text-xs sm:text-sm text-gray-500">Manage and respond to customer support tickets</p>
+          </div>
+          <a href="/admin" class="flex items-center space-x-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-sm whitespace-nowrap">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            <span class="hidden sm:inline">Back to Dashboard</span>
+            <span class="sm:hidden">Back</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="bg-white border-b border-gray-200 shadow-sm">
+      <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4">
+        <div class="flex flex-col gap-3">
+          <div class="flex-1 w-full">
+            <div class="relative">
+              <input 
+                type="text" 
+                id="email-search-input" 
+                placeholder="Search by email..." 
+                class="w-full pl-10 sm:pl-11 pr-4 py-2 sm:py-2.5 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-xs sm:text-sm"
+              />
+              <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2 overflow-x-auto">
+            <select id="status-filter-select" class="px-3 sm:px-4 py-2 sm:py-2.5 border-2 border-gray-300 rounded-lg sm:rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 whitespace-nowrap">
+              <option value="all">All Status</option>
+              <option value="open">Open</option>
+              <option value="in_progress">In Progress</option>
+              <option value="resolved">Resolved</option>
+              <option value="closed">Closed</option>
+            </select>
+            <select id="priority-filter-select" class="px-3 sm:px-4 py-2 sm:py-2.5 border-2 border-gray-300 rounded-lg sm:rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 whitespace-nowrap">
+              <option value="all">All Priority</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tickets List -->
+    <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6">
+      <div id="tickets-list" class="space-y-4">
+        <div class="text-center py-16">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+            <svg class="w-8 h-8 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+          </div>
+          <p class="text-gray-500 font-medium">Loading tickets...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ticket Reply Modal -->
+    <div id="ticket-reply-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50 backdrop-blur-sm">
+      <div class="flex items-center justify-center min-h-screen p-2 sm:p-4">
+        <div class="bg-white rounded-xl sm:rounded-2xl shadow-2xl max-w-3xl w-full p-4 sm:p-6 lg:p-8 transform transition-all max-h-[95vh] overflow-y-auto">
+          <!-- Modal Header -->
+          <div class="mb-6 pb-6 border-b border-gray-200">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <h3 id="modal-ticket-subject" class="text-2xl font-bold text-gray-900 mb-4"></h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  <div class="flex items-center space-x-2">
+                    <span class="text-gray-500 font-medium">Ticket #:</span>
+                    <span id="modal-ticket-number" class="text-gray-900 font-mono font-semibold"></span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="text-gray-500 font-medium">Customer:</span>
+                    <span id="modal-ticket-customer" class="text-gray-900 font-semibold"></span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="text-gray-500 font-medium">Email:</span>
+                    <span id="modal-ticket-email" class="text-gray-900"></span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="text-gray-500 font-medium">Priority:</span>
+                    <span id="modal-ticket-priority" class="px-3 py-1 text-xs font-semibold text-white rounded-full"></span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="text-gray-500 font-medium">Status:</span>
+                    <span id="modal-ticket-status" class="px-3 py-1 text-xs font-semibold text-white rounded-full"></span>
+                  </div>
+                </div>
+              </div>
+              <button onclick="closeTicketReplyModal()" class="ml-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Original Message -->
+          <div class="mb-6">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Original Message</label>
+            <div id="modal-ticket-description" class="bg-gray-50 border-2 border-gray-200 p-4 rounded-xl text-sm text-gray-700 max-h-48 overflow-y-auto leading-relaxed"></div>
+          </div>
+
+          <!-- Reply Textarea -->
+          <div class="mb-6">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Your Reply</label>
+            <textarea 
+              id="reply-message" 
+              rows="6" 
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
+              placeholder="Type your reply here..."
+            ></textarea>
+          </div>
+
+          <!-- Status and Options -->
+          <div class="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-5 mb-4 sm:mb-6">
+            <div class="flex flex-col gap-3">
+              <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-0 sm:space-x-2">
+                <span class="text-xs sm:text-sm font-medium text-gray-700">Update Status:</span>
+                <select id="ticket-status-select" class="w-full sm:w-auto px-3 sm:px-4 py-2 border-2 border-gray-300 rounded-lg sm:rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                  <option value="open">Open</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="resolved">Resolved</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+            <button onclick="closeTicketReplyModal()" class="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all duration-200 font-semibold text-sm">
+              Cancel
+            </button>
+            <button onclick="sendTicketReply()" class="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 font-semibold text-sm shadow-md hover:shadow-lg">
+              Send Reply
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://tguopyxmlfxcalhfitob.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRndW9weXhtbGZ4Y2FsaGZpdG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMTk3NDQsImV4cCI6MjA3OTc5NTc0NH0.GUtJWVu8i6NWoleXI_Fd-ePM4vOFQtulyk1kqZgPgRM';
+    
+    let supabase = null;
+    let currentTicket = null;
+    let allTickets = [];
+    let currentStatusFilter = 'all';
+    let currentPriorityFilter = 'all';
+    
+    function waitForSupabase() {
+      return new Promise((resolve) => {
+        if (window.supabase && window.supabase.auth && typeof window.supabase.auth.getUser === 'function') {
+          supabase = window.supabase;
+          resolve(supabase);
+        } 
+        else if (window.supabase && typeof window.supabase.createClient === 'function') {
+          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          resolve(supabase);
+        } 
+        else {
+          setTimeout(() => waitForSupabase().then(resolve), 100);
+        }
+      });
+    }
+    
+    async function loadTickets() {
+      try {
+        if (!supabase) {
+          await waitForSupabase();
+        }
+        
+        const { data: tickets, error } = await supabase
+          .from('support_tickets')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error('Error loading tickets:', error);
+          document.getElementById('tickets-list').innerHTML = '<div class="text-center py-12 text-red-500"><p>Error loading tickets.</p></div>';
+          return;
+        }
+        
+        allTickets = tickets || [];
+        applyFilters();
+        
+      } catch (error) {
+        console.error('Error loading tickets:', error);
+        document.getElementById('tickets-list').innerHTML = '<div class="text-center py-12 text-red-500"><p>Error loading tickets.</p></div>';
+      }
+    }
+    
+    function applyFilters() {
+      let filtered = [...allTickets];
+      
+      // Apply email search filter
+      const emailSearch = document.getElementById('email-search-input').value.toLowerCase().trim();
+      if (emailSearch) {
+        filtered = filtered.filter(ticket => 
+          (ticket.customer_email || '').toLowerCase().includes(emailSearch) ||
+          (ticket.email || '').toLowerCase().includes(emailSearch) ||
+          (ticket.user_email || '').toLowerCase().includes(emailSearch)
+        );
+      }
+      
+      // Apply status filter
+      if (currentStatusFilter !== 'all') {
+        filtered = filtered.filter(ticket => ticket.status === currentStatusFilter);
+      }
+      
+      // Apply priority filter
+      if (currentPriorityFilter !== 'all') {
+        filtered = filtered.filter(ticket => ticket.priority === currentPriorityFilter);
+      }
+      
+      renderTickets(filtered);
+    }
+    
+    function renderTickets(tickets) {
+      const ticketsList = document.getElementById('tickets-list');
+      
+      if (tickets.length === 0) {
+        ticketsList.innerHTML = `
+          <div class="text-center py-20">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-4">
+              <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">No tickets found</h3>
+            <p class="text-gray-500 text-sm">Try adjusting your search or filter criteria</p>
+          </div>
+        `;
+        return;
+      }
+      
+      ticketsList.innerHTML = tickets.map(ticket => {
+        const priorityColors = {
+          'urgent': 'bg-red-600 text-white',
+          'high': 'bg-orange-500 text-white',
+          'medium': 'bg-yellow-500 text-white',
+          'low': 'bg-green-500 text-white'
+        };
+        
+        const statusColors = {
+          'open': 'bg-blue-600 text-white',
+          'in_progress': 'bg-yellow-500 text-white',
+          'resolved': 'bg-green-600 text-white',
+          'closed': 'bg-gray-600 text-white'
+        };
+        
+        const priorityClass = priorityColors[ticket.priority] || 'bg-gray-500 text-white';
+        const statusClass = statusColors[ticket.status] || 'bg-gray-500 text-white';
+        
+        return `
+          <div class="bg-white border-2 border-gray-200 rounded-lg sm:rounded-xl p-4 sm:p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-200">
+            <div class="flex flex-col sm:flex-row items-start sm:items-start justify-between gap-4">
+              <div class="flex-1 min-w-0 w-full">
+                <div class="flex items-start flex-wrap gap-2 mb-3">
+                  <h3 class="text-lg sm:text-xl font-bold text-gray-900 break-words">${ticket.subject || 'No Subject'}</h3>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="px-2 sm:px-3 py-1 text-xs font-semibold rounded-full ${priorityClass} shadow-sm whitespace-nowrap">
+                      ${(ticket.priority || 'N/A').toUpperCase()}
+                    </span>
+                    <span class="px-2 sm:px-3 py-1 text-xs font-semibold rounded-full ${statusClass} shadow-sm whitespace-nowrap">
+                      ${(ticket.status || 'N/A').replace('_', ' ').toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 mb-3 sm:mb-4 text-xs sm:text-sm">
+                  <div class="flex items-center space-x-2 min-w-0">
+                    <span class="text-gray-500 font-medium whitespace-nowrap">Ticket #:</span>
+                    <span class="text-gray-900 font-mono font-semibold truncate">${ticket.ticket_number || ticket.id.substring(0, 8)}</span>
+                  </div>
+                  <div class="flex items-center space-x-2 min-w-0">
+                    <span class="text-gray-500 font-medium whitespace-nowrap">Customer:</span>
+                    <span class="text-gray-900 font-semibold truncate">${ticket.customer_name || ticket.customer_email || 'N/A'}</span>
+                  </div>
+                  <div class="flex items-center space-x-2 min-w-0">
+                    <span class="text-gray-500 font-medium whitespace-nowrap">Email:</span>
+                    <span class="text-gray-900 truncate">${ticket.customer_email || ticket.email || 'N/A'}</span>
+                  </div>
+                  <div class="flex items-center space-x-2 min-w-0">
+                    <svg class="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="text-gray-500 truncate">${new Date(ticket.created_at).toLocaleString()}</span>
+                  </div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-3 sm:p-4 mt-3 sm:mt-4">
+                  <p class="text-xs sm:text-sm text-gray-700 leading-relaxed break-words">${ticket.description || 'No description'}</p>
+                </div>
+              </div>
+              <button 
+                onclick="openTicketReply('${ticket.id}')" 
+                class="w-full sm:w-auto ml-0 sm:ml-4 px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white rounded-lg sm:rounded-xl hover:bg-blue-700 transition-all duration-200 font-semibold text-xs sm:text-sm shadow-md hover:shadow-lg flex-shrink-0"
+              >
+                Reply
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    async function openTicketReply(ticketId) {
+      try {
+        if (!supabase) {
+          await waitForSupabase();
+        }
+        
+        const { data: ticket, error } = await supabase
+          .from('support_tickets')
+          .select('*')
+          .eq('id', ticketId)
+          .single();
+        
+        if (error || !ticket) {
+          showToast('Error loading ticket details', 'error');
+          return;
+        }
+        
+        currentTicket = ticket;
+        
+        document.getElementById('modal-ticket-subject').textContent = ticket.subject || 'No Subject';
+        document.getElementById('modal-ticket-number').textContent = ticket.ticket_number || ticket.id.substring(0, 8);
+        document.getElementById('modal-ticket-customer').textContent = ticket.customer_name || ticket.customer_email || 'N/A';
+        document.getElementById('modal-ticket-email').textContent = ticket.customer_email || ticket.email || 'N/A';
+        
+        // Set priority badge with color
+        const priorityElement = document.getElementById('modal-ticket-priority');
+        const priority = ticket.priority || 'N/A';
+        const priorityColors = {
+          'urgent': 'bg-red-600',
+          'high': 'bg-orange-500',
+          'medium': 'bg-yellow-500',
+          'low': 'bg-green-500'
+        };
+        priorityElement.textContent = priority.toUpperCase();
+        priorityElement.className = `px-3 py-1 text-xs font-semibold text-white rounded-full ${priorityColors[priority] || 'bg-gray-500'}`;
+        
+        // Set status badge with color
+        const statusElement = document.getElementById('modal-ticket-status');
+        const status = ticket.status || 'N/A';
+        const statusColors = {
+          'open': 'bg-blue-600',
+          'in_progress': 'bg-yellow-500',
+          'resolved': 'bg-green-600',
+          'closed': 'bg-gray-600'
+        };
+        statusElement.textContent = status.replace('_', ' ').toUpperCase();
+        statusElement.className = `px-3 py-1 text-xs font-semibold text-white rounded-full ${statusColors[status] || 'bg-gray-500'}`;
+        
+        document.getElementById('modal-ticket-description').textContent = ticket.description || 'No description';
+        document.getElementById('reply-message').value = '';
+        document.getElementById('ticket-status-select').value = ticket.status || 'open';
+        
+        document.getElementById('ticket-reply-modal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        
+      } catch (error) {
+        console.error('Error opening ticket reply:', error);
+        showToast('Error loading ticket details', 'error');
+      }
+    }
+    
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-medium text-sm transform transition-all duration-300 ${
+        type === 'success' ? 'bg-green-500' : 'bg-red-500'
+      }`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-20px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 2000);
+    }
+    
+    function closeTicketReplyModal() {
+      document.getElementById('ticket-reply-modal').classList.add('hidden');
+      document.body.style.overflow = '';
+      currentTicket = null;
+    }
+    
+    async function sendTicketReply() {
+      try {
+        if (!currentTicket) return;
+        
+        const replyMessage = document.getElementById('reply-message').value.trim();
+        if (!replyMessage) {
+          showToast('Please enter a reply message', 'error');
+          return;
+        }
+        
+        if (!supabase) {
+          await waitForSupabase();
+        }
+        
+        // Get current admin user
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+          showToast('Error: Admin authentication required', 'error');
+          return;
+        }
+        
+        const finalStatus = document.getElementById('ticket-status-select').value;
+        
+        // Save reply to support_ticket_replies table
+        const { error: replyError } = await supabase
+          .from('support_ticket_replies')
+          .insert([{
+            ticket_id: currentTicket.id,
+            reply_text: replyMessage,
+            replied_by: user.id,
+            is_admin_reply: true
+          }]);
+        
+        if (replyError) {
+          console.error('Error saving reply:', replyError);
+          showToast('Error saving reply: ' + replyError.message, 'error');
+          return;
+        }
+        
+        // Update ticket status
+        const { error: updateError } = await supabase
+          .from('support_tickets')
+          .update({
+            status: finalStatus,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', currentTicket.id);
+        
+        if (updateError) {
+          console.error('Error updating ticket:', updateError);
+          showToast('Reply saved but error updating ticket status', 'error');
+          return;
+        }
+        
+        showToast('Reply sent successfully!', 'success');
+        closeTicketReplyModal();
+        await loadTickets();
+        
+      } catch (error) {
+        console.error('Error sending reply:', error);
+        alert('Error sending reply: ' + error.message);
+      }
+    }
+    
+    window.openTicketReply = openTicketReply;
+    window.closeTicketReplyModal = closeTicketReplyModal;
+    window.sendTicketReply = sendTicketReply;
+    
+    // Search functionality
+    document.getElementById('email-search-input').addEventListener('input', (e) => {
+      applyFilters();
+    });
+    
+    // Status filter
+    document.getElementById('status-filter-select').addEventListener('change', (e) => {
+      currentStatusFilter = e.target.value;
+      applyFilters();
+    });
+    
+    // Priority filter
+    document.getElementById('priority-filter-select').addEventListener('change', (e) => {
+      currentPriorityFilter = e.target.value;
+      applyFilters();
+    });
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+      await waitForSupabase();
+      await loadTickets();
+    });
+    
+    document.getElementById('ticket-reply-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'ticket-reply-modal') {
+        closeTicketReplyModal();
+      }
+    });
+  </script>
+</AdminLayout>
+
