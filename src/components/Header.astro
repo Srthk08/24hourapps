@@ -379,17 +379,13 @@
     width: 300px; /* Fixed width to prevent layout shifts */
   }
   
-  /* Ensure main header container is stable */
-  header > div > div {
-    position: relative;
-    min-height: 96px; /* h-24 = 96px */
+  /* Prevent layout shifts - minimal fixes only */
+  header {
+    contain: layout style paint; /* Prevent layout recalculations */
   }
   
-  /* Prevent any layout shifts in navbar */
-  #main-navigation,
-  #auth-buttons,
-  #user-menu {
-    will-change: auto; /* Prevent browser optimizations that cause shifts */
+  header > div > div {
+    contain: layout; /* Prevent layout shifts */
   }
   
   /* Prevent navbar elements from moving during state changes - use absolute positioning */
@@ -429,6 +425,20 @@
           opacity: 1 !important;
           transition: none !important;
           visibility: visible !important;
+        }
+  
+  /* Prevent layout shifts on navigation link clicks - minimal fixes only */
+  #main-navigation a {
+    will-change: auto;
+    backface-visibility: hidden;
+    transform: translateZ(0); /* Force GPU acceleration to prevent reflows */
+  }
+  
+  /* Prevent navigation links from causing reflow */
+  #main-navigation a:active,
+  #main-navigation a:focus {
+    outline: 2px solid rgba(255, 255, 255, 0.5);
+    outline-offset: 2px;
   }
 </style>
 
@@ -1317,9 +1327,30 @@
     }
   }
 
+  // Prevent layout shifts on navigation link clicks - minimal fixes only
+  function preventNavigationShifts() {
+    // Prevent browser scroll restoration that causes jumps
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    
+    const navLinks = document.querySelectorAll('#main-navigation a, #mobile-menu a[href^="/"]');
+    
+    navLinks.forEach(link => {
+      // Prevent layout shifts when clicking - use GPU acceleration
+      link.addEventListener('click', (e) => {
+        // Force GPU layer to prevent reflows
+        link.style.transform = 'translateZ(0)';
+      }, { passive: true });
+    });
+  }
+
   // Initialize everything when page loads
   document.addEventListener('DOMContentLoaded', () => {
     console.log('Header initializing with fallback support');
+    
+    // Prevent navigation shifts
+    preventNavigationShifts();
     
     // Set initial UI state immediately with fallback
     setInitialUIState();

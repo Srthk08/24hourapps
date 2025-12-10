@@ -108,3 +108,4 @@ SELECT * FROM public.contact_submissions WHERE email = 'quick@test.com';
 3. Result of the quick test query above
 
 
+

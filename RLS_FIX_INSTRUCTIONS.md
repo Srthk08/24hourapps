@@ -66,3 +66,4 @@ You should see 3 INSERT policies:
 3. "Public can insert contact forms" (for public role)
 
 
+

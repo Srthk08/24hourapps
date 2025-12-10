@@ -94,3 +94,4 @@ You should see at least 1 INSERT policy (preferably 3).
 **Start with Option 1 (ULTIMATE_RLS_FIX.sql) - it's the most comprehensive fix!**
 
 
+

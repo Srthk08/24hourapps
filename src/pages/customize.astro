@@ -1446,17 +1446,233 @@ import Layout from '../layouts/Layout.astro';
       }
 
       try {
-        // Store form data in sessionStorage for dashboard to pick up
-        const customizationData = {
-          logo: formData.has('logo') ? 'uploaded' : null,
-          background: formData.has('background') ? 'uploaded' : null,
-          introVideo: formData.has('intro_video') ? 'uploaded' : null,
-          planData: planData
+        // Get Supabase client
+        const supabase = await waitForSupabase();
+        if (!supabase) {
+          throw new Error('Supabase client not available. Please refresh the page and try again.');
+        }
+
+        // Get form values
+        const userName = (formData.get('user_name') as string) || '';
+        const userEmail = (formData.get('user_email') as string) || '';
+        const userPhone = (formData.get('user_phone') as string) || '';
+        const logoFile = formData.get('logo') as File | null;
+        const backgroundFile = formData.get('background') as File | null;
+        const introVideoFile = formData.get('intro_video') as File | null;
+
+        // Validate required fields
+        if (!userName || !userEmail || !userPhone) {
+          alert('Please fill in all required fields (Name, Email, Phone Number)');
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+          }
+          return;
+        }
+
+        if (!logoFile) {
+          alert('Please upload a logo file');
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+          }
+          return;
+        }
+
+        console.log('📤 Starting form submission to Supabase...');
+        console.log('Form data:', {
+          userName,
+          userEmail,
+          userPhone,
+          hasLogo: !!logoFile,
+          hasBackground: !!backgroundFile,
+          hasIntroVideo: !!introVideoFile,
+          productName: planData.productName,
+          planName: planData.planName,
+          price: planData.price
+        });
+
+        // Get current user ID if logged in
+        let userId = null;
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          userId = user?.id || null;
+          console.log('👤 Current user ID:', userId);
+        } catch (authError) {
+          console.log('ℹ️ User not logged in, proceeding without user_id');
+        }
+
+        // Upload files to Supabase Storage
+        const uploadFile = async (file: File, folder: string): Promise<{ url: string; filename: string; size: number; mimeType: string } | null> => {
+          if (!file) return null;
+
+          try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+            
+            console.log(`📤 Uploading ${folder} file:`, file.name, 'Size:', file.size);
+
+            // Check if storage is available
+            if (!supabase.storage) {
+              throw new Error('Supabase storage is not available. Please check your Supabase configuration.');
+            }
+
+            // Upload to Supabase Storage
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from('customization-files')
+              .upload(fileName, file, {
+                cacheControl: '3600',
+                upsert: false
+              });
+
+            if (uploadError) {
+              console.error(`❌ Error uploading ${folder}:`, uploadError);
+              
+              // If bucket doesn't exist, provide helpful error message
+              if (uploadError.message?.includes('Bucket not found') || uploadError.message?.includes('not found')) {
+                throw new Error(`Storage bucket 'customization-files' not found. Please run the setup_customization_storage.sql script in Supabase SQL Editor to create it.`);
+              }
+              
+              throw uploadError;
+            }
+
+            // Get public URL
+            const { data: { publicUrl } } = supabase.storage
+              .from('customization-files')
+              .getPublicUrl(fileName);
+
+            console.log(`✅ ${folder} uploaded successfully:`, publicUrl);
+
+            return {
+              url: publicUrl,
+              filename: file.name,
+              size: file.size,
+              mimeType: file.type
+            };
+          } catch (error: any) {
+            console.error(`❌ Error uploading ${folder} file:`, error);
+            throw new Error(`Failed to upload ${folder}: ${error.message || error}`);
+          }
         };
-        sessionStorage.setItem('customization-data', JSON.stringify(customizationData));
-        
-        // Set a flag to indicate form was submitted successfully
+
+        // Upload all files
+        let logoData = null;
+        let backgroundData = null;
+        let introVideoData = null;
+
+        if (logoFile) {
+          logoData = await uploadFile(logoFile, 'logos');
+        }
+
+        if (backgroundFile) {
+          backgroundData = await uploadFile(backgroundFile, 'backgrounds');
+        }
+
+        if (introVideoFile) {
+          introVideoData = await uploadFile(introVideoFile, 'intro-videos');
+        }
+
+        // Helper function to validate UUID
+        const isValidUUID = (str: string | null | undefined): boolean => {
+          if (!str) return false;
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          return uuidRegex.test(str);
+        };
+
+        // Validate and convert UUID fields
+        const productId = planData.productId && isValidUUID(planData.productId) ? planData.productId : null;
+        const planId = planData.planId && isValidUUID(planData.planId) ? planData.planId : null;
+        const validUserId = userId && isValidUUID(userId) ? userId : null;
+
+        console.log('🔍 Validating UUIDs:', {
+          productId: planData.productId,
+          isValidProductId: isValidUUID(planData.productId),
+          finalProductId: productId,
+          planId: planData.planId,
+          isValidPlanId: isValidUUID(planData.planId),
+          finalPlanId: planId,
+          userId: userId,
+          isValidUserId: isValidUUID(userId),
+          finalUserId: validUserId
+        });
+
+        // Prepare data for database
+        const customizationData: any = {
+          customer_name: userName,
+          customer_email: userEmail,
+          contact_phone: userPhone,
+          phone: userPhone, // Also save to phone field
+          product_name: planData.productName || 'Unknown Product',
+          product_id: productId, // Only set if valid UUID, otherwise null
+          product_slug: planData.productSlug || null,
+          product_type: planData.productType || null,
+          product_price: planData.price ? `₹${planData.price}` : null,
+          plan_name: planData.planName || null,
+          plan_id: planId, // Only set if valid UUID, otherwise null
+          price: planData.price ? parseFloat(planData.price.toString()) : null,
+          price_currency: 'GBP',
+          features: planData.planData?.features ? (Array.isArray(planData.planData.features) ? planData.planData.features : []) : [],
+          status: 'pending',
+          user_id: validUserId // Only set if valid UUID, otherwise null
+        };
+
+        // Add file data if uploaded
+        if (logoData) {
+          customizationData.logo_url = logoData.url;
+          customizationData.logo_filename = logoData.filename;
+          customizationData.logo_mime_type = logoData.mimeType;
+          customizationData.logo_size = logoData.size;
+        }
+
+        if (backgroundData) {
+          customizationData.background_url = backgroundData.url;
+          customizationData.background_filename = backgroundData.filename;
+          customizationData.background_mime_type = backgroundData.mimeType;
+          customizationData.background_size = backgroundData.size;
+        }
+
+        if (introVideoData) {
+          customizationData.intro_video_url = introVideoData.url;
+          customizationData.intro_video_filename = introVideoData.filename;
+          customizationData.intro_video_mime_type = introVideoData.mimeType;
+          customizationData.intro_video_size = introVideoData.size;
+        }
+
+        // Remove null UUID fields to avoid database errors
+        const cleanedData = { ...customizationData };
+        if (!cleanedData.product_id) delete cleanedData.product_id;
+        if (!cleanedData.plan_id) delete cleanedData.plan_id;
+        if (!cleanedData.user_id) delete cleanedData.user_id;
+
+        console.log('📝 Saving to Supabase customization_forms table:', cleanedData);
+
+        // Save to Supabase
+        const { data: savedData, error: dbError } = await supabase
+          .from('customization_forms')
+          .insert([cleanedData])
+          .select()
+          .single();
+
+        if (dbError) {
+          console.error('❌ Error saving to database:', dbError);
+          throw new Error(`Failed to save form data: ${dbError.message}`);
+        }
+
+        console.log('✅ Form data saved successfully:', savedData);
+
+        // Store form data in sessionStorage for dashboard to pick up
+        const sessionData = {
+          logo: logoData ? 'uploaded' : null,
+          background: backgroundData ? 'uploaded' : null,
+          introVideo: introVideoData ? 'uploaded' : null,
+          planData: planData,
+          customizationId: savedData.id
+        };
+        sessionStorage.setItem('customization-data', JSON.stringify(sessionData));
         sessionStorage.setItem('customization-submitted', 'true');
+
+        // Show success message
+        alert('Form submitted successfully! Redirecting to payment...');
 
         // Redirect to payment page based on selected plan
         const planName = planData.planName;
@@ -1475,9 +1691,9 @@ import Layout from '../layouts/Layout.astro';
         
         // Redirect to payment page
         window.location.href = paymentUrl;
-      } catch (error) {
-        console.error('Error submitting form:', error);
-        alert('An error occurred. Please try again.');
+      } catch (error: any) {
+        console.error('❌ Error submitting form:', error);
+        alert(`Error: ${error.message || 'An error occurred. Please try again.'}`);
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.textContent = originalText;

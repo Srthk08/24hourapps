@@ -89,3 +89,4 @@ If you've followed all steps and it still doesn't work:
 **Note:** This fix is designed to be the most permissive while still maintaining security. Anonymous users can insert contact submissions, but only admins can view/update/delete them.
 
 
+
