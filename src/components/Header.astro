@@ -2,18 +2,23 @@
   <div class="max-w-7xl mx-auto pl-4 sm:pl-6 lg:pl-8 pr-6 sm:pr-8 lg:pr-12">
     <div class="flex justify-between items-center h-24">
       <!-- Logo -->
-      <div class="flex items-center">
-        <a href="/" class="flex items-center">
+      <div class="flex items-center flex-shrink-0" style="min-width: 200px; height: 96px;">
+        <a href="/" class="flex items-center h-full">
           <!-- Logo Image - Official Website Logo -->
           <img 
             id="main-logo"
             src="/Logo.png" 
             alt="DevExpress Logo" 
             class="h-24 w-auto object-contain max-w-md"
+            style="display: block; max-width: 100%; height: 96px; width: auto;"
             onerror="this.onerror=null; this.style.display='none'; document.getElementById('fallback-logo').style.display='flex';"
+            loading="eager"
+            decoding="async"
+            fetchpriority="high"
+            crossorigin="anonymous"
           />
           <!-- Fallback Logo (shown if image doesn't exist) -->
-          <div id="fallback-logo" class="w-14 h-14 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center backdrop-blur-sm" style="display: none;">
+          <div id="fallback-logo" class="w-14 h-14 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center backdrop-blur-sm" style="display: none; position: absolute; left: 0;">
             <span class="text-white font-bold text-xl">24</span>
           </div>
         </a>
@@ -151,20 +156,20 @@
     </div>
 
     <!-- Mobile Menu - Enhanced with all navigation options -->
-    <div id="mobile-menu" class="hidden lg:hidden">
+    <div id="mobile-menu" class="hidden lg:hidden" style="display: none;">
       <div class="pt-8 pb-8 px-0">
         <!-- Main Navigation Links - Clean layout without icons for non-logged users -->
-        <div class="space-y-8 mb-20">
-          <a href="/" class="block px-6 py-4 text-2xl font-light text-white hover:text-white transition-colors duration-300">
+        <div id="mobile-nav-links" class="space-y-8 mb-20" style="display: block !important; visibility: visible !important; opacity: 1 !important; height: auto !important; overflow: visible !important;">
+          <a href="/" id="mobile-home-link" class="block px-6 py-4 text-2xl font-light text-white hover:text-white transition-colors duration-300" style="display: block !important; visibility: visible !important; opacity: 1 !important; margin-top: 0 !important; margin-bottom: 2rem !important;">
             Home
           </a>
-          <a href="/products" class="block px-6 py-4 text-2xl font-light text-white hover:text-white transition-colors duration-300">
+          <a href="/products" id="mobile-products-link" class="block px-6 py-4 text-2xl font-light text-white hover:text-white transition-colors duration-300" style="display: block !important; visibility: visible !important; opacity: 1 !important; margin-top: 2rem !important; margin-bottom: 2rem !important;">
             Products
           </a>
-          <a href="/about" class="block px-6 py-4 text-2xl font-light text-white hover:text-white transition-colors duration-300">
+          <a href="/about" id="mobile-about-link" class="block px-6 py-4 text-2xl font-light text-white hover:text-white transition-colors duration-300" style="display: block !important; visibility: visible !important; opacity: 1 !important; margin-top: 2rem !important; margin-bottom: 2rem !important;">
             About
           </a>
-          <a href="/contact" class="block px-6 py-4 text-2xl font-light text-white hover:text-white transition-colors duration-300">
+          <a href="/contact" id="mobile-contact-link" class="block px-6 py-4 text-2xl font-light text-white hover:text-white transition-colors duration-300" style="display: block !important; visibility: visible !important; opacity: 1 !important; margin-top: 2rem !important; margin-bottom: 2rem !important;">
             Contact
           </a>
         </div>
@@ -250,12 +255,12 @@
             <!-- Sign Out Button -->
             <button
               onclick="signOut()"
-              class="w-full flex items-center px-6 py-4 text-2xl font-light text-red-400 hover:text-red-300 hover:bg-red-500 hover:bg-opacity-20 transition-colors duration-300"
+              class="flex items-center w-full px-6 py-4 text-2xl font-light text-red-400 hover:text-red-300 hover:bg-red-500 hover:bg-opacity-20 transition-colors duration-300 text-left"
             >
               <svg class="w-5 h-5 mr-4 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
               </svg>
-              <span class="flex-1 text-left">Sign Out</span>
+              <span class="flex-1">Sign Out</span>
             </button>
           </div>
         </div>
@@ -276,10 +281,38 @@
   
   /* Mobile responsive fixes */
   @media (max-width: 1024px) {
-    /* Mobile menu container */
+    /* Mobile menu container - Full width dropdown below navbar - Absolute position to push content down */
     #mobile-menu {
-      position: relative;
-      z-index: 50;
+      position: absolute !important;
+      top: 100% !important; /* Below navbar */
+      left: 0 !important;
+      right: 0 !important;
+      width: 100% !important;
+      background-color: rgb(37, 99, 235) !important; /* blue-600 */
+      z-index: 1 !important; /* Very low z-index so content is visible */
+      min-height: auto !important;
+      max-height: none !important;
+      height: auto !important;
+      overflow-y: visible !important;
+      overflow-x: hidden !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    /* Ensure content below menu is visible */
+    #mobile-menu:not(.hidden) ~ *,
+    body > *:not(header) {
+      position: relative !important;
+      z-index: 2 !important; /* Higher than menu so content is visible */
+    }
+    
+    /* Show mobile menu when not hidden */
+    #mobile-menu:not(.hidden) {
+      display: block !important;
+    }
+    
+    /* Hide mobile menu when hidden */
+    #mobile-menu.hidden {
+      display: none !important;
     }
     
     /* Mobile auth section */
@@ -324,8 +357,111 @@
     }
     
     /* Mobile menu spacing */
+    #mobile-menu .space-y-8 > * + * {
+      margin-top: 2rem;
+    }
+    
+    /* Mobile menu spacing */
     #mobile-menu .space-y-3 > * + * {
       margin-top: 0.75rem;
+    }
+    
+    /* Ensure all menu items are visible */
+    #mobile-menu a,
+    #mobile-menu button {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      width: 100% !important;
+    }
+    
+    /* Ensure menu content is fully visible */
+    #mobile-menu > div {
+      width: 100% !important;
+      display: block !important;
+      visibility: visible !important;
+      min-height: auto !important;
+      height: auto !important;
+      overflow: visible !important;
+    }
+    
+    /* Ensure navigation links container is visible */
+    #mobile-menu > div > div:first-child {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      min-height: auto !important;
+      height: auto !important;
+      overflow: visible !important;
+    }
+    
+    /* Ensure all navigation links are visible */
+    #mobile-menu > div > div:first-child a {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      height: auto !important;
+      min-height: 48px !important;
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+    }
+    
+    /* Force all navigation links to show - override any hiding */
+    #mobile-menu a[href="/"],
+    #mobile-menu a[href="/products"],
+    #mobile-menu a[href="/about"],
+    #mobile-menu a[href="/contact"],
+    #mobile-home-link,
+    #mobile-products-link,
+    #mobile-about-link,
+    #mobile-contact-link {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      position: relative !important;
+      z-index: 10 !important;
+      height: auto !important;
+      min-height: 48px !important;
+    }
+    
+    /* Ensure navigation links container is always visible when menu is open */
+    #mobile-nav-links {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      height: auto !important;
+      overflow: visible !important;
+    }
+    
+    /* When menu is not hidden, show all links */
+    #mobile-menu:not(.hidden) #mobile-nav-links,
+    #mobile-menu:not(.hidden) #mobile-home-link,
+    #mobile-menu:not(.hidden) #mobile-products-link,
+    #mobile-menu:not(.hidden) #mobile-about-link,
+    #mobile-menu:not(.hidden) #mobile-contact-link {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+    
+    /* Ensure auth section is visible when shown */
+    #mobile-menu > div > div:last-child {
+      display: block !important;
+      visibility: visible !important;
+    }
+    
+    /* Ensure auth buttons are visible */
+    #mobile-auth-buttons:not(.hidden) {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+    
+    /* Ensure user menu is visible */
+    #mobile-user-menu:not(.hidden) {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
     }
   }
   
@@ -381,11 +517,101 @@
   
   /* Prevent layout shifts - minimal fixes only */
   header {
+    position: relative; /* For absolute positioned mobile menu */
     contain: layout style paint; /* Prevent layout recalculations */
+    overflow: visible !important; /* Allow mobile menu to show */
+  }
+  
+  /* Ensure header container allows overflow and menu pushes content */
+  header > div {
+    position: relative;
+    overflow: visible !important;
+  }
+  
+  /* Ensure mobile menu pushes content down when open and content is visible */
+  @media (max-width: 1024px) {
+    header {
+      position: relative !important;
+      overflow: visible !important;
+      z-index: 1 !important; /* Lower z-index so content is visible */
+    }
+    
+    /* Ensure body content is visible below menu */
+    body {
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+      position: relative !important;
+    }
+    
+    /* Ensure main content and all page content is visible above menu */
+    main,
+    body > *:not(header),
+    [role="main"],
+    .main-content {
+      position: relative !important;
+      z-index: 2 !important; /* Higher than menu */
+    }
   }
   
   header > div > div {
     contain: layout; /* Prevent layout shifts */
+  }
+  
+  /* Lock logo container to prevent fluctuations */
+  header > div > div > div:first-child {
+    flex-shrink: 0 !important;
+    position: relative;
+    min-width: 200px;
+    height: 96px;
+    contain: layout style paint;
+    will-change: auto;
+    transform: translateZ(0); /* GPU layer */
+  }
+  
+  /* Lock logo image to prevent layout shifts and re-rendering */
+  #main-logo {
+    display: block !important;
+    position: relative;
+    height: 96px !important;
+    width: auto !important;
+    max-width: 100% !important;
+    object-fit: contain;
+    contain: layout style paint; /* Prevent re-rendering */
+    will-change: auto;
+    transform: translateZ(0); /* GPU layer - keeps in persistent layer */
+    backface-visibility: hidden;
+    image-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Prevent image from reloading on navigation */
+    content-visibility: auto;
+    isolation: isolate; /* Create new stacking context */
+  }
+  
+  /* Prevent logo from being re-rendered on navigation */
+  #main-logo[src] {
+    image-rendering: -webkit-optimize-contrast;
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+  }
+  
+  /* Lock fallback logo in same space */
+  #fallback-logo {
+    position: absolute !important;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) translateZ(0);
+    will-change: auto;
+  }
+  
+  /* Lock logo link container */
+  header > div > div > div:first-child > a {
+    display: flex;
+    align-items: center;
+    height: 96px;
+    position: relative;
+    contain: layout;
+    will-change: auto;
   }
   
   /* Prevent navbar elements from moving during state changes - use absolute positioning */
@@ -443,6 +669,45 @@
 </style>
 
 <script>
+  // IMMEDIATE: Lock logo container to prevent layout shifts and reloading
+  (function() {
+    const style = document.createElement('style');
+    style.textContent = `
+      header > div > div > div:first-child {
+        flex-shrink: 0 !important;
+        min-width: 200px !important;
+        height: 96px !important;
+        contain: layout style paint !important;
+        will-change: auto !important;
+        transform: translateZ(0) !important;
+      }
+      #main-logo {
+        height: 96px !important;
+        width: auto !important;
+        max-width: 100% !important;
+        contain: layout style paint !important;
+        will-change: auto !important;
+        transform: translateZ(0) !important;
+        backface-visibility: hidden !important;
+        isolation: isolate !important;
+        image-rendering: auto !important;
+      }
+      #fallback-logo {
+        position: absolute !important;
+        transform: translateY(-50%) translateZ(0) !important;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    // Preload and cache logo image to prevent reloading
+    const logoLink = document.createElement('link');
+    logoLink.rel = 'preload';
+    logoLink.as = 'image';
+    logoLink.href = '/Logo.png';
+    logoLink.fetchPriority = 'high';
+    document.head.appendChild(logoLink);
+  })();
+  
   // Immediate script to prevent flashing - runs before DOM is ready
   (function() {
     // CRITICAL: Check auth state with proper validation
@@ -1215,7 +1480,10 @@
     const mobileMenuIcon = document.getElementById('mobile-menu-icon');
 
     if (mobileMenuButton && mobileMenu && mobileMenuIcon) {
-      mobileMenuButton.addEventListener('click', () => {
+      mobileMenuButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Mobile menu button clicked');
         toggleMobileMenu();
       });
 
@@ -1250,18 +1518,110 @@
     const mobileMenu = document.getElementById('mobile-menu');
     const mobileMenuIcon = document.getElementById('mobile-menu-icon');
 
+    console.log('toggleMobileMenu called', { mobileMenu, mobileMenuIcon, isMobileMenuOpen });
+
     if (mobileMenu && mobileMenuIcon) {
       isMobileMenuOpen = !isMobileMenuOpen;
+      console.log('Menu state:', isMobileMenuOpen);
 
       if (isMobileMenuOpen) {
+        // Show mobile menu - pushes content down
         mobileMenu.classList.remove('hidden');
+        mobileMenu.style.display = 'block';
+        mobileMenu.style.visibility = 'visible';
+        mobileMenu.style.opacity = '1';
+        mobileMenu.style.position = 'absolute';
+        mobileMenu.style.top = '100%';
+        mobileMenu.style.left = '0';
+        mobileMenu.style.right = '0';
+        mobileMenu.style.width = '100%';
+        mobileMenu.style.height = 'auto';
+        mobileMenu.style.minHeight = 'auto';
+        mobileMenu.style.maxHeight = 'none';
+        mobileMenu.style.overflowY = 'visible';
+        mobileMenu.style.overflowX = 'hidden';
+        mobileMenu.style.zIndex = '1'; /* Very low z-index so content is visible */
+        mobileMenu.style.backgroundColor = 'rgb(37, 99, 235)';
+        
+        // Ensure all page content is visible above menu
+        const mainContent = document.querySelector('main') || document.body.children[1];
+        if (mainContent && mainContent !== mobileMenu.parentElement) {
+          mainContent.style.position = 'relative';
+          mainContent.style.zIndex = '2';
+        }
+        
+        // Ensure menu container is visible
+        const menuContainer = mobileMenu.querySelector('div.pt-8');
+        if (menuContainer) {
+          menuContainer.style.display = 'block';
+          menuContainer.style.visibility = 'visible';
+          menuContainer.style.height = 'auto';
+          menuContainer.style.overflow = 'visible';
+        }
+        
+        // Ensure all navigation links container is visible
+        const navLinksContainer = mobileMenu.querySelector('div.space-y-8.mb-20');
+        if (navLinksContainer) {
+          navLinksContainer.style.display = 'block';
+          navLinksContainer.style.visibility = 'visible';
+          navLinksContainer.style.opacity = '1';
+          navLinksContainer.style.height = 'auto';
+          navLinksContainer.style.overflow = 'visible';
+        }
+        
+        // Force show ALL navigation links individually by ID
+        const homeLink = document.getElementById('mobile-home-link');
+        const productsLink = document.getElementById('mobile-products-link');
+        const aboutLink = document.getElementById('mobile-about-link');
+        const contactLink = document.getElementById('mobile-contact-link');
+        
+        [homeLink, productsLink, aboutLink, contactLink].forEach(link => {
+          if (link) {
+            link.style.display = 'block';
+            link.style.visibility = 'visible';
+            link.style.opacity = '1';
+            link.style.height = 'auto';
+            link.style.minHeight = '48px';
+            link.style.position = 'relative';
+            link.style.zIndex = '10';
+            link.style.marginTop = '2rem';
+            link.style.marginBottom = '2rem';
+          }
+        });
+        
+        // Also ensure the container is visible
+        const navContainer = document.getElementById('mobile-nav-links');
+        if (navContainer) {
+          navContainer.style.display = 'block';
+          navContainer.style.visibility = 'visible';
+          navContainer.style.opacity = '1';
+          navContainer.style.height = 'auto';
+          navContainer.style.overflow = 'visible';
+        }
+        
+        // Also get all links in the container
+        const navLinks = mobileMenu.querySelectorAll('div.space-y-8.mb-20 a');
+        navLinks.forEach(link => {
+          link.style.display = 'block';
+          link.style.visibility = 'visible';
+          link.style.opacity = '1';
+          link.style.height = 'auto';
+          link.style.minHeight = '48px';
+        });
+        
+        console.log('Mobile menu opened - Links found:', navLinks.length);
+        
         mobileMenuIcon.style.transform = 'rotate(90deg)';
         // Change icon to X
         mobileMenuIcon.innerHTML = `
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         `;
       } else {
+        // Hide mobile menu
         mobileMenu.classList.add('hidden');
+        mobileMenu.style.display = 'none';
+        mobileMenu.style.visibility = 'hidden';
+        isMobileMenuOpen = false;
         mobileMenuIcon.style.transform = 'rotate(0deg)';
         // Change icon back to hamburger
         mobileMenuIcon.innerHTML = `
@@ -1277,13 +1637,18 @@
 
     if (mobileMenu && mobileMenuIcon) {
       mobileMenu.classList.add('hidden');
+      mobileMenu.style.display = 'none';
+      mobileMenu.style.visibility = 'hidden';
+      isMobileMenuOpen = false;
       mobileMenuIcon.style.transform = 'rotate(0deg)';
       mobileMenuIcon.innerHTML = `
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
       `;
-      isMobileMenuOpen = false;
     }
   }
+  
+  // Make closeMobileMenu available globally
+  window.closeMobileMenu = closeMobileMenu;
 
   // Function to preserve URL parameters when navigating to profile
   function initDashboardLinks() {
@@ -1345,9 +1710,126 @@
     });
   }
 
+  // Cache logo src to prevent reloading
+  let cachedLogoSrc = null;
+  let logoLoaded = false;
+  
+  // Lock logo to prevent layout shifts and reloading
+  function lockLogo() {
+    const logoContainer = document.querySelector('header > div > div > div:first-child');
+    const logo = document.getElementById('main-logo');
+    const fallbackLogo = document.getElementById('fallback-logo');
+    const logoLink = logoContainer?.querySelector('a');
+    
+    if (logoContainer) {
+      logoContainer.style.flexShrink = '0';
+      logoContainer.style.minWidth = '200px';
+      logoContainer.style.height = '96px';
+      logoContainer.style.contain = 'layout style paint';
+      logoContainer.style.willChange = 'auto';
+      logoContainer.style.transform = 'translateZ(0)';
+    }
+    
+    if (logo) {
+      // Cache the src once loaded to prevent reloading
+      if (logo.complete && logo.naturalWidth > 0) {
+        if (!cachedLogoSrc) {
+          cachedLogoSrc = logo.src;
+          logoLoaded = true;
+        }
+      }
+      
+      // Lock logo dimensions and prevent re-rendering
+      logo.style.height = '96px';
+      logo.style.width = 'auto';
+      logo.style.maxWidth = '100%';
+      logo.style.display = 'block';
+      logo.style.contain = 'layout style paint'; // Prevent re-rendering
+      logo.style.willChange = 'auto';
+      logo.style.transform = 'translateZ(0)'; // Keep in GPU layer - prevents reload
+      logo.style.backfaceVisibility = 'hidden';
+      logo.style.isolation = 'isolate'; // Create persistent layer
+      logo.style.imageRendering = 'auto';
+      logo.style.pointerEvents = 'auto';
+      
+      // Ensure image stays in cache by keeping it in GPU layer
+      // The transform: translateZ(0) creates a compositing layer that persists
+    }
+    
+    if (fallbackLogo) {
+      fallbackLogo.style.position = 'absolute';
+      fallbackLogo.style.left = '0';
+      fallbackLogo.style.top = '50%';
+      fallbackLogo.style.transform = 'translateY(-50%) translateZ(0)';
+    }
+    
+    if (logoLink) {
+      logoLink.style.display = 'flex';
+      logoLink.style.alignItems = 'center';
+      logoLink.style.height = '96px';
+      logoLink.style.position = 'relative';
+      logoLink.style.contain = 'layout';
+    }
+  }
+  
   // Initialize everything when page loads
   document.addEventListener('DOMContentLoaded', () => {
     console.log('Header initializing with fallback support');
+    
+    // Lock logo immediately
+    lockLogo();
+    setTimeout(lockLogo, 50);
+    setTimeout(lockLogo, 100);
+    setTimeout(lockLogo, 200);
+    
+    // Lock logo when image loads and cache it to prevent reloading
+    const logo = document.getElementById('main-logo');
+    if (logo) {
+      // Cache logo src immediately
+      if (logo.src && !cachedLogoSrc) {
+        cachedLogoSrc = logo.src;
+      }
+      
+      if (logo.complete && logo.naturalWidth > 0) {
+        logoLoaded = true;
+        cachedLogoSrc = logo.src;
+        lockLogo();
+      } else {
+        // Cache on load - ensure it's only loaded once
+        const loadHandler = function() {
+          logoLoaded = true;
+          cachedLogoSrc = logo.src;
+          lockLogo();
+          // Keep image in GPU layer to prevent reloading
+          logo.style.transform = 'translateZ(0)';
+          logo.style.contain = 'layout style paint';
+        };
+        
+        logo.addEventListener('load', loadHandler, { once: true });
+        logo.addEventListener('error', lockLogo, { once: true });
+      }
+      
+      // Prevent logo from being removed or recreated - monitor for src changes
+      const logoContainer = logo.parentElement;
+      if (logoContainer && cachedLogoSrc) {
+        // Observe for any src attribute changes that might cause reload
+        const observer = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
+              // If src changes unexpectedly, restore cached src
+              if (cachedLogoSrc && logo.src !== cachedLogoSrc && logoLoaded) {
+                logo.src = cachedLogoSrc;
+              }
+            }
+          });
+        });
+        
+        observer.observe(logo, {
+          attributes: true,
+          attributeFilter: ['src']
+        });
+      }
+    }
     
     // Prevent navigation shifts
     preventNavigationShifts();
@@ -1480,6 +1962,11 @@
     setInterval(() => {
       maintainProfileLinks();
     }, 2000); // Check every 2 seconds
+    
+    // Continuously monitor and lock logo to prevent fluctuations
+    setInterval(() => {
+      lockLogo();
+    }, 300); // Check every 300ms
 
     console.log('✅ Header initialized with fallback support');
   });
@@ -1487,6 +1974,9 @@
   // Also initialize on window load as backup
   window.addEventListener('load', () => {
     console.log('Window loaded, ensuring header is properly initialized');
+    lockLogo();
+    setTimeout(lockLogo, 50);
+    setTimeout(lockLogo, 150);
     updateHeaderFallback();
   });
 
