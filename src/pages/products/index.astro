@@ -5,38 +5,16 @@ import { getProducts } from '../../lib/products-data';
 // Only fetch products once and filter client-side for better performance
 const products = await getProducts();
 
-// Helper function to get fallback image URLs based on product slug
-const getFallbackImage = (slug: string): string => {
-  const fallbackImages: Record<string, string> = {
-    'restaurant-menu-system': 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop&crop=center',
-    'android-tv-app': 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=300&fit=crop&crop=center',
-    'streaming-mobile-app': 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=300&fit=crop&crop=center',
-    'restaurant-website': 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop&crop=center',
-  };
-  return fallbackImages[slug] || 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&h=300&fit=crop&crop=center';
-};
-
-// Helper function to get product image with fallback
-const getProductImage = (product: any): string => {
-  // If image is a local path and doesn't start with http, use fallback
-  if (product.featured_image && !product.featured_image.startsWith('http')) {
-    return getFallbackImage(product.slug);
-  }
-  // If image is already a URL, use it
-  if (product.featured_image && product.featured_image.startsWith('http')) {
-    return product.featured_image;
-  }
-  // Default fallback
-  return getFallbackImage(product.slug);
-};
-
 // Pre-process products for faster client-side filtering and remove duplicates
 const processedProducts = products
   .map(product => ({
     ...product,
     category: product.category || 'other',
     slug: product.slug || product.name.toLowerCase().replace(/\s+/g, '-'),
-    featured_image: getProductImage(product) // Ensure we have a valid image URL
+    base_price: product.base_price || 0,
+    featured_image: product.featured_image || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop&crop=center',
+    features: product.features || [],
+    short_description: product.short_description || product.description || ''
   }))
   .filter((product, index, self) => 
     // Remove duplicates based on id
@@ -79,6 +57,9 @@ const processedProducts = products
           <button class="filter-btn px-6 py-2 rounded-full bg-white text-gray-700 hover:bg-gray-100 font-medium transition-all border border-gray-300" data-filter="restaurant">
             Restaurant Menu
           </button>
+          <button class="filter-btn px-6 py-2 rounded-full bg-white text-gray-700 hover:bg-gray-100 font-medium transition-all border border-gray-300" data-filter="order-menu-system">
+            Order Menu System
+          </button>
           <button class="filter-btn px-6 py-2 rounded-full bg-white text-gray-700 hover:bg-gray-100 font-medium transition-all border border-gray-300" data-filter="mobile">
             Mobile Apps
           </button>
@@ -111,30 +92,39 @@ const processedProducts = products
           // Get specific labels for products
           const getProductLabel = (product) => {
             if (product.slug === 'restaurant-website') return 'Restaurant Website';
+            if (product.slug === 'order-menu-system') return 'Order Menu System';
             return categoryLabels[product.category] || 'Product';
           };
+          
+          // Format price safely - ensure it's a number
+          // Special handling for Android TV App - show £99.00
+          let price = typeof product.base_price === 'number' ? product.base_price : parseFloat(product.base_price) || 0;
+          let formattedPrice;
+          if (product.slug === 'android-tv-app') {
+            formattedPrice = '£99.00'; // Android TV App shows GBP pricing
+          } else {
+            formattedPrice = `₹${price.toLocaleString('en-IN')}`;
+          }
+          
+          // Get safe image URL with fallback
+          const imageUrl = product.featured_image || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop&crop=center';
           
           return (
             <div class="product-card bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2" data-category={product.category} data-product-id={product.id} data-product-slug={product.slug} data-product-name={product.name}>
               <div class="relative rounded-t-xl overflow-hidden" style="height: 192px;">
-                <img 
-                  src={product.featured_image} 
-                  alt={product.name} 
-                  class="w-full h-full object-cover" 
-                  onerror={`this.onerror=null; this.src='${getFallbackImage(product.slug)}';`}
-                />
-                <div class={`category-badge absolute top-4 left-4 px-3 py-1 rounded-full text-white text-sm font-medium bg-gradient-to-r ${categoryColors[product.category]}`}>
+                <img src={imageUrl} alt={product.name} class="w-full h-full object-cover" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop&crop=center'" />
+                <div class={`category-badge absolute top-4 left-4 px-3 py-1 rounded-full text-white text-sm font-medium bg-gradient-to-r ${categoryColors[product.category] || 'from-gray-500 to-gray-600'}`}>
                   {getProductLabel(product)}
                 </div>
               </div>
               
               <div class="p-6">
                 <h3 class="text-xl font-bold text-black mb-2">{product.name}</h3>
-                <p class="text-black font-medium mb-4">{product.short_description}</p>
+                <p class="text-black font-medium mb-4">{product.short_description || product.description || ''}</p>
                 
                 <div class="mb-4">
                   <div class="flex flex-wrap gap-2">
-                    {product.features.slice(0, 3).map((feature) => (
+                    {(product.features || []).slice(0, 3).map((feature) => (
                       <span class="px-2 py-1 bg-gray-100 text-black text-xs rounded-full font-medium">{feature}</span>
                     ))}
                   </div>
@@ -144,9 +134,7 @@ const processedProducts = products
                   <div class="flex items-center justify-between">
                     <div>
                       <span class="text-sm text-black font-medium">Starting from</span>
-                      <div class="text-2xl font-bold text-primary-600">
-                        {product.slug === 'android-tv-app' ? '£99.00' : `₹${product.base_price.toLocaleString()}`}
-                      </div>
+                      <div class="text-2xl font-bold text-blue-600">{formattedPrice}</div>
                     </div>
                   </div>
                   <div class="flex justify-center">
@@ -230,8 +218,11 @@ const processedProducts = products
           // For websites filter, show only restaurant website (specific product)
           shouldShow = productSlug === 'restaurant-website';
         } else if (filter === 'restaurant') {
-          // For restaurant solutions filter, show only restaurant menu system (exclude restaurant website)
-          shouldShow = cardCategory === filter && productSlug !== 'restaurant-website';
+          // For restaurant solutions filter, show only restaurant menu system (exclude restaurant website and order menu system)
+          shouldShow = cardCategory === filter && productSlug !== 'restaurant-website' && productSlug !== 'order-menu-system';
+        } else if (filter === 'order-menu-system') {
+          // For order menu system filter, show only the Order Menu System product
+          shouldShow = productSlug === 'order-menu-system';
         } else {
           shouldShow = cardCategory === filter;
         }
@@ -320,6 +311,7 @@ const processedProducts = products
     const productButtons = document.querySelectorAll('.product-view-btn');
     
     // List of blocked/disabled products that show dialog instead of login
+    // Android TV App is now accessible - removed from blocked list
     const blockedProducts = [
       'restaurant-menu-system',
       'streaming-mobile-app',
@@ -334,9 +326,6 @@ const processedProducts = products
         const productName = this.getAttribute('data-product-name');
         
         console.log('Product clicked:', productSlug);
-        
-        // Check if this is Android TV App - allow access for all logged-in users
-        const isAndroidTVApp = productSlug === 'android-tv-app';
         
         // FIRST: Check if product is blocked/disabled - show dialog immediately without login
         const isBlockedProduct = blockedProducts.includes(productSlug);
@@ -353,7 +342,7 @@ const processedProducts = products
         }
         
         // ALL products require authentication - no exceptions
-        // Authentication check is required for ALL products
+        // Authentication check is required for ALL products including order-menu-system
         // First check admin status
         const isAdmin = checkIfUserIsAdmin();
         console.log('Is admin:', isAdmin);
@@ -384,14 +373,18 @@ const processedProducts = products
           return;
         }
         
-        // Check if this is Android TV App - allow access for all logged-in users
-        if (isAndroidTVApp) {
-          console.log('✅ Android TV App - allowing access for logged-in user');
+        // Check if this is the Order Menu System or Android TV App - these should work for all logged-in users
+        const isOrderMenuSystem = productSlug === 'order-menu-system';
+        const isAndroidTVApp = productSlug === 'android-tv-app';
+        
+        if (isOrderMenuSystem || isAndroidTVApp) {
+          // Order Menu System and Android TV App - allow access for all logged-in users
+          console.log(`${productName} - allowing access for logged-in user`);
           window.location.href = `/products/${productSlug}`;
           return;
         }
         
-        // Logged in but not admin - show dialog or redirect to contact (for other products)
+        // Logged in but not admin - show dialog or redirect to contact (except for OMS and Android TV App)
         console.log('Non-admin user - showing dialog');
         if (window.showProductDialog) {
           window.showProductDialog();
@@ -599,273 +592,6 @@ const processedProducts = products
           });
         }
       });
-    });
-
-    // Setup real-time subscriptions for products
-    setupProductsRealtime();
-  });
-
-  // Real-time subscriptions storage
-  let productsRealtimeSubscriptions = [];
-
-  // Fetch products from Supabase and update prices dynamically
-  async function updateProductsPrices() {
-    try {
-      // Wait for Supabase to be available
-      let supabaseClient = null;
-      if (window.supabase && window.supabase.auth) {
-        supabaseClient = window.supabase;
-      } else {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        if (window.supabase && window.supabase.auth) {
-          supabaseClient = window.supabase;
-        }
-      }
-
-      if (!supabaseClient) {
-        console.warn('⚠️ Supabase not available for fetching products');
-        return;
-      }
-
-      console.log('🔄 Fetching latest products from Supabase...');
-      
-      // Fetch products from Supabase
-      const { data: products, error } = await supabaseClient
-        .from('products')
-        .select('*')
-        .eq('is_active', true)
-        .order('sort_order');
-
-      if (error) {
-        console.error('❌ Error fetching products:', error);
-        return;
-      }
-
-      if (!products || products.length === 0) {
-        console.warn('⚠️ No products found in Supabase');
-        return;
-      }
-
-      console.log('✅ Fetched', products.length, 'products from Supabase');
-      console.log('📊 Products data:', products.map(p => ({ name: p.name, price: p.base_price, id: p.id, slug: p.slug })));
-
-      // Update prices on the page
-      products.forEach(product => {
-        // Try multiple selectors to find the product card
-        let productCard = document.querySelector(`[data-product-id="${product.id}"]`);
-        if (!productCard) {
-          productCard = document.querySelector(`[data-product-slug="${product.slug}"]`);
-        }
-        if (!productCard) {
-          // Try finding by product name in the card
-          const allCards = document.querySelectorAll('.product-card');
-          allCards.forEach(card => {
-            const nameElement = card.querySelector('h3');
-            if (nameElement && nameElement.textContent.trim() === product.name) {
-              productCard = card;
-            }
-          });
-        }
-
-        if (productCard) {
-          // Find the price element - try multiple selectors
-          let priceContainer = productCard.querySelector('.text-2xl.font-bold.text-primary-600');
-          if (!priceContainer) {
-            // Try alternative selector
-            priceContainer = productCard.querySelector('[class*="text-2xl"][class*="font-bold"]');
-          }
-          if (!priceContainer) {
-            // Try finding by text pattern
-            const allElements = productCard.querySelectorAll('*');
-            allElements.forEach(el => {
-              if (el.textContent && el.textContent.includes('₹') && el.textContent.includes(',')) {
-                priceContainer = el;
-              }
-            });
-          }
-
-          if (priceContainer) {
-            const oldPrice = priceContainer.textContent.trim();
-            const isAndroidTVApp = product.slug === 'android-tv-app';
-            const newPrice = isAndroidTVApp ? '£99.00' : `₹${Number(product.base_price).toLocaleString('en-IN')}`;
-            
-            // Only update if price actually changed
-            if (oldPrice !== newPrice) {
-              priceContainer.textContent = newPrice;
-              console.log(`✅ Updated price for ${product.name}: ${oldPrice} → ${newPrice}`);
-              
-              // Add a subtle animation to show the update
-              priceContainer.style.transition = 'all 0.3s ease';
-              priceContainer.style.transform = 'scale(1.1)';
-              priceContainer.style.color = '#10b981'; // Green color
-              setTimeout(() => {
-                priceContainer.style.transform = 'scale(1)';
-                priceContainer.style.color = ''; // Reset to original color
-              }, 300);
-            } else {
-              console.log(`ℹ️ Price for ${product.name} unchanged: ${newPrice}`);
-            }
-          } else {
-            console.warn(`⚠️ Could not find price element for ${product.name}`);
-          }
-        } else {
-          console.warn(`⚠️ Could not find product card for ${product.name} (id: ${product.id}, slug: ${product.slug})`);
-        }
-      });
-
-      console.log('✅ Product prices updated successfully');
-    } catch (error) {
-      console.error('❌ Error updating product prices:', error);
-    }
-  }
-
-  // Setup real-time subscriptions for products
-  async function setupProductsRealtime() {
-    try {
-      // Wait for Supabase to be available
-      let supabaseClient = null;
-      if (window.supabase && window.supabase.auth) {
-        supabaseClient = window.supabase;
-      } else {
-        // Wait a bit for Supabase to load
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        if (window.supabase && window.supabase.auth) {
-          supabaseClient = window.supabase;
-        }
-      }
-
-      if (!supabaseClient) {
-        console.warn('⚠️ Supabase not available for real-time subscriptions');
-        return;
-      }
-
-      // Import real-time utility
-      const { subscribeToTable } = await import('../../lib/realtime');
-      
-      // Subscribe to products table changes
-      const productsSub = subscribeToTable('products', (payload) => {
-        console.log('🔄 Real-time update received for products:', payload.eventType);
-        // Update prices dynamically without reloading page
-        if (window.productsUpdateTimeout) {
-          clearTimeout(window.productsUpdateTimeout);
-        }
-        window.productsUpdateTimeout = setTimeout(() => {
-          console.log('🔄 Updating product prices from Supabase...');
-          updateProductsPrices();
-        }, 500); // Small delay to batch multiple updates
-      });
-
-      productsRealtimeSubscriptions.push(productsSub);
-
-      // Subscribe to product_plans table changes
-      const plansSub = subscribeToTable('product_plans', (payload) => {
-        console.log('🔄 Real-time update received for product_plans:', payload.eventType);
-        // Update prices dynamically
-        if (window.productsUpdateTimeout) {
-          clearTimeout(window.productsUpdateTimeout);
-        }
-        window.productsUpdateTimeout = setTimeout(() => {
-          console.log('🔄 Updating product prices from Supabase...');
-          updateProductsPrices();
-        }, 500);
-      });
-
-      productsRealtimeSubscriptions.push(plansSub);
-
-      // Also fetch and update prices on page load to ensure latest data
-      updateProductsPrices();
-
-      // Set up polling as fallback (check every 10 seconds if real-time fails)
-      let pollCount = 0;
-      const maxPolls = 3; // Check 3 times, then stop
-      const pollInterval = setInterval(async () => {
-        pollCount++;
-        console.log(`🔄 Polling for price updates (${pollCount}/${maxPolls})...`);
-        await updateProductsPrices();
-        if (pollCount >= maxPolls) {
-          clearInterval(pollInterval);
-          console.log('✅ Polling complete, real-time should be active now');
-        }
-      }, 10000); // Poll every 10 seconds
-
-      // Store interval for cleanup
-      window.productsPollInterval = pollInterval;
-
-      console.log('✅ Real-time subscriptions setup complete for products');
-      
-      // Add test function to window for debugging
-      window.testPriceUpdate = async function() {
-        console.log('🧪 Testing price update...');
-        await updateProductsPrices();
-        console.log('✅ Test complete - check if prices updated');
-      };
-      
-      console.log('💡 Tip: Run window.testPriceUpdate() in console to manually refresh prices');
-    } catch (error) {
-      console.error('❌ Error setting up real-time subscriptions for products:', error);
-      // If real-time fails, use polling as fallback
-      console.log('🔄 Real-time failed, using polling fallback...');
-      const pollInterval = setInterval(async () => {
-        await updateProductsPrices();
-      }, 5000); // Poll every 5 seconds as fallback
-      window.productsPollInterval = pollInterval;
-    }
-  }
-
-  // Cleanup subscriptions on page unload
-  window.addEventListener('beforeunload', () => {
-    if (productsRealtimeSubscriptions.length > 0) {
-      productsRealtimeSubscriptions.forEach(sub => {
-        if (sub && sub.unsubscribe) {
-          sub.unsubscribe();
-        }
-      });
-    }
-    if (window.productsUpdateTimeout) {
-      clearTimeout(window.productsUpdateTimeout);
-    }
-    if (window.productsPollInterval) {
-      clearInterval(window.productsPollInterval);
-    }
-  });
-
-  // Handle product image errors with fallback
-  document.addEventListener('DOMContentLoaded', function() {
-    const fallbackImages: Record<string, string> = {
-      'restaurant-menu-system': 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop&crop=center',
-      'android-tv-app': 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=300&fit=crop&crop=center',
-      'streaming-mobile-app': 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=300&fit=crop&crop=center',
-      'restaurant-website': 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop&crop=center',
-    };
-
-    const defaultFallback = 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&h=300&fit=crop&crop=center';
-
-    // Set up error handlers for all product images
-    document.querySelectorAll('.product-card img').forEach((img: HTMLImageElement) => {
-      // Only set up handler if not already set
-      if (!img.hasAttribute('data-error-handled')) {
-        img.setAttribute('data-error-handled', 'true');
-        
-        img.addEventListener('error', function() {
-          // Try to get fallback from product slug
-          const productCard = this.closest('.product-card');
-          if (productCard) {
-            const productSlug = productCard.getAttribute('data-product-slug');
-            if (productSlug && fallbackImages[productSlug]) {
-              this.src = fallbackImages[productSlug];
-            } else {
-              this.src = defaultFallback;
-            }
-          } else {
-            this.src = defaultFallback;
-          }
-        });
-
-        // Also check if image failed to load initially
-        if (!img.complete || img.naturalHeight === 0) {
-          img.dispatchEvent(new Event('error'));
-        }
-      }
     });
   });
 </script>

@@ -132,8 +132,9 @@ import Layout from '../layouts/Layout.astro';
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
               >
                 <option value="" disabled selected>Select a project type</option>
+                <option value="order-menu-system">Order Menu System</option>
                 <option value="restaurant-menu" disabled>Restaurant Menu System</option>
-                <option value="android-tv">Android TV App</option>
+                <option value="android-tv" disabled>Android TV App</option>
                 <option value="streaming-app" disabled>Streaming Mobile App</option>
                 <option value="restaurant-website" disabled>Restaurant Website</option>
                 <option value="custom-app">Custom Application</option>
@@ -398,31 +399,151 @@ import Layout from '../layouts/Layout.astro';
     return null;
   };
 
-  // Initialize Supabase client
-  const initSupabase = () => {
+  // Show error message helper function - must be defined early and accessible everywhere
+  function showError(message: string) {
+    try {
+      const errText = document.getElementById('error-text') as HTMLElement;
+      const errMsg = document.getElementById('error-message') as HTMLElement;
+      const succMsg = document.getElementById('success-message') as HTMLElement;
+      
+      if (errText) {
+        errText.textContent = message;
+      }
+      if (errMsg) {
+        errMsg.classList.remove('hidden');
+      }
+      if (succMsg) {
+        succMsg.classList.add('hidden');
+      }
+    } catch (e) {
+      console.error('Error showing error message:', e);
+      // Fallback: use alert if DOM elements not available
+      alert(message);
+    }
+  }
+
+  // Initialize Supabase client with proper waiting
+  async function initSupabase() {
     const supabaseUrl = 'https://tguopyxmlfxcalhfitob.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRndW9weXhtbGZ4Y2FsaGZpdG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMTk3NDQsImV4cCI6MjA3OTc5NTc0NH0.GUtJWVu8i6NWoleXI_Fd-ePM4vOFQtulyk1kqZgPgRM';
     
-    if (window.supabase && typeof window.supabase.createClient === 'function') {
-      supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-      console.log('✅ Supabase client initialized directly');
-      return true;
-    } else if (window.supabase) {
-      supabase = window.supabase;
+    // If already initialized and valid, return it
+    if (supabase && supabase.from && typeof supabase.from === 'function') {
       console.log('✅ Using existing Supabase client');
-      return true;
-    } else {
-      console.error('❌ Supabase library not available');
-      return false;
+      return supabase;
     }
-  };
-
-  // Try to initialize Supabase
-  if (!initSupabase()) {
-    console.error('❌ Failed to initialize Supabase client');
-  } else {
-    console.log('✅ Supabase client ready:', !!supabase);
+    
+    // Try to use window.supabase if it's already a client instance
+    if (window.supabase && window.supabase.from && typeof window.supabase.from === 'function') {
+      supabase = window.supabase;
+      console.log('✅ Using window.supabase client instance');
+      return supabase;
+    }
+    
+    // Try to use window.supabaseClient if available
+    if (window.supabaseClient && window.supabaseClient.from && typeof window.supabaseClient.from === 'function') {
+      supabase = window.supabaseClient;
+      console.log('✅ Using window.supabaseClient');
+      return supabase;
+    }
+    
+    // Wait for Supabase library to load from CDN
+    let attempts = 0;
+    const maxAttempts = 100; // 10 seconds max wait
+    
+    while (attempts < maxAttempts) {
+      // Check for global supabase object from CDN (the library itself)
+      // The CDN script creates a global 'supabase' variable with createClient method
+      const globalSupabaseLib = (typeof supabase !== 'undefined' ? supabase : null) || 
+                                 (window as any).supabaseLibrary ||
+                                 ((window as any).supabase && typeof (window as any).supabase.createClient === 'function' ? (window as any).supabase : null);
+      
+      // Check if global supabase library is available and has createClient
+      if (globalSupabaseLib && typeof globalSupabaseLib.createClient === 'function') {
+        try {
+          console.log('🔧 Creating Supabase client from CDN library...');
+          const supabaseClient = globalSupabaseLib.createClient(supabaseUrl, supabaseKey, {
+            auth: {
+              persistSession: true,
+              autoRefreshToken: true,
+              detectSessionInUrl: false
+            }
+          });
+          
+          // Verify the client was created correctly
+          if (!supabaseClient || typeof supabaseClient.from !== 'function') {
+            throw new Error('Supabase client created but missing required methods');
+          }
+          
+          supabase = supabaseClient;
+          window.supabase = supabaseClient;
+          window.supabaseClient = supabaseClient;
+          console.log('✅ Created Supabase client from global supabase library');
+          return supabase;
+        } catch (e) {
+          console.error('Error creating client from global supabase library:', e);
+        }
+      }
+      
+      // Check if window.supabase is already a client instance (from Layout.astro)
+      if (window.supabase && window.supabase.from && typeof window.supabase.from === 'function') {
+        supabase = window.supabase;
+        console.log('✅ Using window.supabase client instance from Layout.astro');
+        return supabase;
+      }
+      
+      // Check if window.supabaseClient is available (from Layout.astro)
+      if (window.supabaseClient && window.supabaseClient.from && typeof window.supabaseClient.from === 'function') {
+        supabase = window.supabaseClient;
+        console.log('✅ Using window.supabaseClient from Layout.astro');
+        return supabase;
+      }
+      
+      // Log progress every 10 attempts
+      if (attempts % 10 === 0 && attempts > 0) {
+        console.log(`⏳ Waiting for Supabase library... (${attempts}/${maxAttempts})`);
+        console.log('Debug info:', {
+          hasGlobalSupabase: typeof supabase !== 'undefined',
+          hasWindowSupabase: !!window.supabase,
+          hasWindowSupabaseClient: !!window.supabaseClient,
+          hasWindowSupabaseLibrary: !!(window as any).supabaseLibrary,
+          windowSupabaseType: window.supabase ? (window.supabase.from ? 'client' : 'library') : 'undefined'
+        });
+      }
+      
+      // Wait a bit before retrying
+      await new Promise(resolve => setTimeout(resolve, 100));
+      attempts++;
+    }
+    
+    // If we get here, Supabase library didn't load
+    console.error('❌ Supabase library not available after waiting');
+    throw new Error('Supabase library failed to load. Please refresh the page.');
   }
+
+  // Initialize Supabase on page load
+  let supabaseInitPromise: Promise<any> | null = null;
+  
+  function ensureSupabaseReady() {
+    if (!supabaseInitPromise) {
+      supabaseInitPromise = initSupabase().catch(err => {
+        console.error('Error initializing Supabase:', err);
+        return null;
+      });
+    }
+    return supabaseInitPromise;
+  }
+  
+  // Start initialization
+  ensureSupabaseReady();
+  
+  // Also listen for supabase-ready event from Layout.astro
+  window.addEventListener('supabase-ready', (event: any) => {
+    if (event.detail && event.detail.from) {
+      supabase = event.detail;
+      console.log('✅ Supabase ready event received in contact form');
+    }
+  });
 
   // Get URL parameters
   function getUrlParams() {
@@ -859,21 +980,36 @@ import Layout from '../layouts/Layout.astro';
     `;
 
     try {
-      // Ensure Supabase is available
-      if (!supabase) {
-        console.log('🔄 Supabase not available, trying to reinitialize...');
-        if (!initSupabase()) {
-          console.error('❌ Failed to initialize Supabase client');
-          throw new Error('Database connection not available. Please refresh the page and try again.');
+      // CRITICAL: Ensure Supabase is ready before proceeding
+      console.log('🔄 Form submission started - checking Supabase availability...');
+      
+      // First, try to ensure Supabase is ready
+      if (!supabase || !supabase.from || typeof supabase.from !== 'function') {
+        console.log('⏳ Supabase not ready, initializing...');
+        try {
+          supabase = await ensureSupabaseReady();
+          
+          // Double check after initialization
+          if (!supabase || !supabase.from || typeof supabase.from !== 'function') {
+            console.error('❌ Supabase still not ready after initialization attempt');
+            showError('Database connection is not ready. Please wait a moment and try again, or refresh the page.');
+            return;
+          }
+          console.log('✅ Supabase initialized successfully');
+        } catch (initError) {
+          console.error('❌ Failed to initialize Supabase:', initError);
+          showError('Unable to connect to database. Please refresh the page and try again.');
+          return;
         }
       }
 
-      // Verify Supabase client has the required methods
+      // Final verification - Supabase client has the required methods
       if (!supabase || typeof supabase.from !== 'function') {
         console.error('❌ Supabase client is not properly initialized');
         console.log('Supabase object:', supabase);
         console.log('Available methods:', supabase ? Object.keys(supabase) : 'No supabase object');
-        throw new Error('Database connection not properly initialized. Please refresh the page and try again.');
+        showError('Database connection not properly initialized. Please refresh the page and try again.');
+        return;
       }
 
       console.log('✅ Supabase client verified and ready');

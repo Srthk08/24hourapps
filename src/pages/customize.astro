@@ -234,11 +234,14 @@ import Layout from '../layouts/Layout.astro';
 <script>
   // Get plan data from URL parameters
   const urlParams = new URLSearchParams(window.location.search);
-  const productId = urlParams.get('productId');
+  // Support both 'product' and 'productId' for backward compatibility
+  const productId = urlParams.get('product') || urlParams.get('productId');
   let productName = urlParams.get('productName') || '';
   const price = urlParams.get('price');
-  const planName = urlParams.get('planName');
-  const planId = urlParams.get('planId');
+  // Support both 'planName' from URL and 'plan' parameter
+  const planName = urlParams.get('planName') || urlParams.get('plan');
+  // Support both 'plan' and 'planId' for plan ID
+  const planId = urlParams.get('plan') || urlParams.get('planId');
   const featuresJson = urlParams.get('features');
   let description = urlParams.get('description') || '';
   const deliveryDays = urlParams.get('deliveryDays');
@@ -310,10 +313,11 @@ import Layout from '../layouts/Layout.astro';
                           productName.toLowerCase().includes('android tv') ||
                           productName === 'Android TV App';
     
+    // Android TV App prices in GBP (£)
     const displayPrice = isAndroidTVApp && planName === 'Standard' ? '£99.00' : 
                         isAndroidTVApp && planName === 'Pro' ? '£299.00' :
                         isAndroidTVApp && planName === 'Pro Gold' ? '£449.00' :
-                        `₹${parseFloat(price).toLocaleString()}`;
+                        `₹${parseFloat(price).toLocaleString('en-IN')}`;
     
     const paymentTerm = 'Lifetime';
     

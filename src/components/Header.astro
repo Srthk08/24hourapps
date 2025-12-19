@@ -156,7 +156,7 @@
     </div>
 
     <!-- Mobile Menu - Enhanced with all navigation options -->
-    <div id="mobile-menu" class="hidden lg:hidden" style="display: none;">
+    <div id="mobile-menu" class="hidden lg:hidden">
       <div class="pt-8 pb-8 px-0">
         <!-- Main Navigation Links - Clean layout without icons for non-logged users -->
         <div id="mobile-nav-links" class="space-y-8 mb-20" style="display: block !important; visibility: visible !important; opacity: 1 !important; height: auto !important; overflow: visible !important;">
@@ -255,12 +255,12 @@
             <!-- Sign Out Button -->
             <button
               onclick="signOut()"
-              class="flex items-center w-full px-6 py-4 text-2xl font-light text-red-400 hover:text-red-300 hover:bg-red-500 hover:bg-opacity-20 transition-colors duration-300 text-left"
+              class="w-full flex items-center px-6 py-4 text-2xl font-light text-red-400 hover:text-red-300 hover:bg-red-500 hover:bg-opacity-20 transition-colors duration-300"
             >
               <svg class="w-5 h-5 mr-4 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
               </svg>
-              <span class="flex-1">Sign Out</span>
+              <span class="flex-1 text-left">Sign Out</span>
             </button>
           </div>
         </div>
@@ -281,28 +281,21 @@
   
   /* Mobile responsive fixes */
   @media (max-width: 1024px) {
-    /* Mobile menu container - Full width dropdown below navbar - Absolute position to push content down */
+    /* Mobile menu container - Full width dropdown below navbar */
     #mobile-menu {
       position: absolute !important;
-      top: 100% !important; /* Below navbar */
+      top: 100% !important;
       left: 0 !important;
       right: 0 !important;
       width: 100% !important;
       background-color: rgb(37, 99, 235) !important; /* blue-600 */
-      z-index: 1 !important; /* Very low z-index so content is visible */
+      z-index: 50 !important;
       min-height: auto !important;
       max-height: none !important;
       height: auto !important;
+      overflow: visible !important;
       overflow-y: visible !important;
-      overflow-x: hidden !important;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
-    }
-    
-    /* Ensure content below menu is visible */
-    #mobile-menu:not(.hidden) ~ *,
-    body > *:not(header) {
-      position: relative !important;
-      z-index: 2 !important; /* Higher than menu so content is visible */
     }
     
     /* Show mobile menu when not hidden */
@@ -522,35 +515,10 @@
     overflow: visible !important; /* Allow mobile menu to show */
   }
   
-  /* Ensure header container allows overflow and menu pushes content */
+  /* Ensure header container allows overflow */
   header > div {
     position: relative;
     overflow: visible !important;
-  }
-  
-  /* Ensure mobile menu pushes content down when open and content is visible */
-  @media (max-width: 1024px) {
-    header {
-      position: relative !important;
-      overflow: visible !important;
-      z-index: 1 !important; /* Lower z-index so content is visible */
-    }
-    
-    /* Ensure body content is visible below menu */
-    body {
-      overflow-x: hidden !important;
-      overflow-y: auto !important;
-      position: relative !important;
-    }
-    
-    /* Ensure main content and all page content is visible above menu */
-    main,
-    body > *:not(header),
-    [role="main"],
-    .main-content {
-      position: relative !important;
-      z-index: 2 !important; /* Higher than menu */
-    }
   }
   
   header > div > div {
@@ -1480,10 +1448,7 @@
     const mobileMenuIcon = document.getElementById('mobile-menu-icon');
 
     if (mobileMenuButton && mobileMenu && mobileMenuIcon) {
-      mobileMenuButton.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('Mobile menu button clicked');
+      mobileMenuButton.addEventListener('click', () => {
         toggleMobileMenu();
       });
 
@@ -1518,37 +1483,20 @@
     const mobileMenu = document.getElementById('mobile-menu');
     const mobileMenuIcon = document.getElementById('mobile-menu-icon');
 
-    console.log('toggleMobileMenu called', { mobileMenu, mobileMenuIcon, isMobileMenuOpen });
-
     if (mobileMenu && mobileMenuIcon) {
       isMobileMenuOpen = !isMobileMenuOpen;
-      console.log('Menu state:', isMobileMenuOpen);
 
       if (isMobileMenuOpen) {
-        // Show mobile menu - pushes content down
+        // Show mobile menu
         mobileMenu.classList.remove('hidden');
         mobileMenu.style.display = 'block';
         mobileMenu.style.visibility = 'visible';
         mobileMenu.style.opacity = '1';
-        mobileMenu.style.position = 'absolute';
-        mobileMenu.style.top = '100%';
-        mobileMenu.style.left = '0';
-        mobileMenu.style.right = '0';
-        mobileMenu.style.width = '100%';
         mobileMenu.style.height = 'auto';
         mobileMenu.style.minHeight = 'auto';
         mobileMenu.style.maxHeight = 'none';
+        mobileMenu.style.overflow = 'visible';
         mobileMenu.style.overflowY = 'visible';
-        mobileMenu.style.overflowX = 'hidden';
-        mobileMenu.style.zIndex = '1'; /* Very low z-index so content is visible */
-        mobileMenu.style.backgroundColor = 'rgb(37, 99, 235)';
-        
-        // Ensure all page content is visible above menu
-        const mainContent = document.querySelector('main') || document.body.children[1];
-        if (mainContent && mainContent !== mobileMenu.parentElement) {
-          mainContent.style.position = 'relative';
-          mainContent.style.zIndex = '2';
-        }
         
         // Ensure menu container is visible
         const menuContainer = mobileMenu.querySelector('div.pt-8');
@@ -1620,8 +1568,6 @@
         // Hide mobile menu
         mobileMenu.classList.add('hidden');
         mobileMenu.style.display = 'none';
-        mobileMenu.style.visibility = 'hidden';
-        isMobileMenuOpen = false;
         mobileMenuIcon.style.transform = 'rotate(0deg)';
         // Change icon back to hamburger
         mobileMenuIcon.innerHTML = `
@@ -1637,18 +1583,13 @@
 
     if (mobileMenu && mobileMenuIcon) {
       mobileMenu.classList.add('hidden');
-      mobileMenu.style.display = 'none';
-      mobileMenu.style.visibility = 'hidden';
-      isMobileMenuOpen = false;
       mobileMenuIcon.style.transform = 'rotate(0deg)';
       mobileMenuIcon.innerHTML = `
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
       `;
+      isMobileMenuOpen = false;
     }
   }
-  
-  // Make closeMobileMenu available globally
-  window.closeMobileMenu = closeMobileMenu;
 
   // Function to preserve URL parameters when navigating to profile
   function initDashboardLinks() {

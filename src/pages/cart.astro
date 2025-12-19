@@ -233,6 +233,89 @@ import { sharedDataStore } from '../lib/shared-data-store';
               </div>
             </div>
 
+            <!-- Order Menu System Specific Fields -->
+            <div id="order-menu-fields" class="hidden">
+              <h4 class="text-xl font-semibold text-white mb-6">Order Menu System Details</h4>
+              
+              <!-- Restaurant Information -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <label class="block text-lg font-semibold text-white mb-3">
+                    Restaurant Name <span class="text-red-500">*</span>
+                  </label>
+                  <input type="text" name="orderMenuRestaurantName" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-lg" placeholder="Enter restaurant name">
+                </div>
+                
+              </div>
+              
+              <!-- Professional Address -->
+              <div class="mb-6">
+                <h4 class="text-lg font-semibold text-white mb-4">Restaurant Address <span class="text-red-500">*</span></h4>
+                
+                <!-- House/Flat Number -->
+                <div class="mb-4">
+                  <label class="block text-sm font-medium text-white mb-2">
+                    House/Flat Number <span class="text-red-500">*</span>
+                  </label>
+                  <input type="text" name="houseNumber" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-lg" placeholder="e.g., 123, Flat 4B">
+                </div>
+
+                <!-- Address Line 1 -->
+                <div class="mb-4">
+                  <label class="block text-sm font-medium text-white mb-2">
+                    Address Line 1 <span class="text-red-500">*</span>
+                  </label>
+                  <input type="text" name="addressLine1" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-lg" placeholder="e.g., Main Street, Sector 15">
+              </div>
+              
+                <!-- City and State Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div class="relative">
+                    <label class="block text-sm font-medium text-white mb-2">
+                      City <span class="text-red-500">*</span>
+                </label>
+                    <input type="text" name="city" id="cart-city-input" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-lg" placeholder="e.g., Mumbai" autocomplete="off">
+                    <div id="cart-city-suggestions" class="hidden absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto"></div>
+                  </div>
+                  <div class="relative">
+                    <label class="block text-sm font-medium text-white mb-2">
+                      State <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="state" id="cart-state-input" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-lg" placeholder="e.g., Maharashtra" autocomplete="off">
+                    <div id="cart-state-suggestions" class="hidden absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto"></div>
+                  </div>
+                </div>
+
+                <!-- Pincode and Country Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-white mb-2">
+                      Pincode <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="pincode" id="cart-pincode-input" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-lg" placeholder="e.g., 400001" maxlength="6">
+                  </div>
+                <div>
+                  <label class="block text-sm font-medium text-white mb-2">
+                    Country <span class="text-red-500">*</span>
+                  </label>
+                  <select name="country" id="cart-country-select" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-lg" required>
+                    <option value="India" selected>India</option>
+                    <option value="United States">United States</option>
+                    <option value="United Kingdom">United Kingdom</option>
+                    <option value="Canada">Canada</option>
+                    <option value="Australia">Australia</option>
+                    <option value="Germany">Germany</option>
+                    <option value="France">France</option>
+                    <option value="Japan">Japan</option>
+                    <option value="Singapore">Singapore</option>
+                    <option value="UAE">UAE</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                </div>
+              </div>
+
+            </div>
 
 
             <!-- Contact Information Section -->
@@ -308,6 +391,40 @@ import { sharedDataStore } from '../lib/shared-data-store';
                 </div>
               </div>
               
+              <!-- Order Menu System specific review elements -->
+              <div id="review-order-menu-info" class="hidden">
+                <h4 class="text-lg font-semibold text-gray-800 mb-4">Restaurant Information</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p class="text-sm text-gray-200">Restaurant Name:</p>
+                    <p class="font-medium" id="review-restaurant-name">-</p>
+                  </div>
+                  <div>
+                    <p class="text-sm text-gray-200">Owner Name:</p>
+                    <p class="font-medium" id="review-owner-name">-</p>
+                  </div>
+                  <div class="md:col-span-2">
+                    <p class="text-sm text-gray-200">Restaurant Address:</p>
+                    <p class="font-medium" id="review-restaurant-address">-</p>
+                  </div>
+                  <div>
+                    <p class="text-sm text-gray-200">Contact Email:</p>
+                    <p class="font-medium" id="review-contact-email">-</p>
+                  </div>
+                  <div>
+                    <p class="text-sm text-gray-200">Contact Phone:</p>
+                    <p class="font-medium" id="review-contact-phone">-</p>
+                  </div>
+                </div>
+                
+                <!-- Menu Items Review -->
+                <div class="mt-6">
+                  <h5 class="text-md font-semibold text-gray-800 mb-3">Menu Items</h5>
+                  <div id="review-menu-items" class="space-y-2">
+                    <!-- Menu items will be populated here -->
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Customization Summary -->
@@ -1134,6 +1251,9 @@ import { sharedDataStore } from '../lib/shared-data-store';
       if (item.id === 'restaurant-menu' || item.id === 'restaurant-menu-system' || item.id === 'restaurant-website' || item.id === '1' || item.id === '4') {
         productTypeText.textContent = 'Restaurant Solution';
         productTypeBadge.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium product-type-badge bg-green-100 text-green-800';
+      } else if (item.id === 'order-menu-system' || item.id === '5') {
+        productTypeText.textContent = 'Order Menu System';
+        productTypeBadge.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium product-type-badge bg-blue-100 text-blue-800';
       } else if (item.id === 'android-tv' || item.id === 'android-tv-app' || item.id === '2') {
         productTypeText.textContent = 'Android TV App';
         productTypeBadge.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium product-type-badge bg-purple-100 text-purple-800';
@@ -1402,9 +1522,43 @@ import { sharedDataStore } from '../lib/shared-data-store';
         
         // Validate requirements form - only check visible required fields
         const form = document.getElementById('requirements-form');
+        const isOrderMenuSystem = this.items[0] && (this.items[0].id === 'order-menu-system' || this.items[0].id === '5');
         
-        // For other products, temporarily remove required from hidden fields before validation
-        const hiddenRequiredFields = form.querySelectorAll('#restaurant-fields [required], #restaurant-cuisine-fields [required]');
+        if (isOrderMenuSystem) {
+          // For Order Menu System, check Order Menu System fields plus Project Name and Contact Person
+          const requiredFields = [
+            'projectName',
+            'contactPerson',
+            'orderMenuRestaurantName',
+            'orderMenuHouseNumber',
+            'orderMenuAddressLine1',
+            'orderMenuCity',
+            'orderMenuState',
+            'orderMenuPincode',
+            'email',
+            'phone'
+          ];
+          
+          let isValid = true;
+          for (const fieldName of requiredFields) {
+            const field = form.querySelector(`[name="${fieldName}"]`) as HTMLInputElement | HTMLTextAreaElement;
+            if (field && !field.value.trim()) {
+              field.focus();
+              field.reportValidity();
+              isValid = false;
+              break;
+            }
+          }
+          
+
+          
+          if (!isValid) {
+            console.log('❌ Order Menu System form validation failed');
+            return;
+          }
+        } else {
+          // For other products, temporarily remove required from hidden fields before validation
+          const hiddenRequiredFields = form.querySelectorAll('#order-menu-fields [required], #restaurant-fields [required], #restaurant-cuisine-fields [required]');
           const originalRequiredStates = [];
           
           // Store original required states and remove required from hidden fields
@@ -1446,7 +1600,30 @@ import { sharedDataStore } from '../lib/shared-data-store';
         // Collect form data based on product type
         const currentItem = this.items[0];
         
-        // Collect standard form data for products
+        if (isOrderMenuSystem) {
+          // Collect menu items first
+          const collectedMenuItems = this.collectMenuItems();
+          console.log('🍽️ Collected menu items for Order Menu System:', collectedMenuItems);
+          
+          // Collect Order Menu System specific data
+          this.requirements = {
+            // Order Menu System fields
+            restaurantName: (form.querySelector('[name="orderMenuRestaurantName"]') as HTMLInputElement)?.value || '',
+            houseNumber: (form.querySelector('[name="houseNumber"]') as HTMLInputElement)?.value || '',
+            addressLine1: (form.querySelector('[name="addressLine1"]') as HTMLInputElement)?.value || '',
+            city: (form.querySelector('[name="city"]') as HTMLInputElement)?.value || '',
+            state: (form.querySelector('[name="state"]') as HTMLInputElement)?.value || '',
+            pincode: (form.querySelector('[name="pincode"]') as HTMLInputElement)?.value || '',
+            country: (form.querySelector('[name="country"]') as HTMLInputElement)?.value || 'India',
+            email: (form.querySelector('[name="email"]') as HTMLInputElement)?.value || '',
+            phone: (form.querySelector('[name="phone"]') as HTMLInputElement)?.value || '',
+            additionalRequirements: (form.querySelector('[name="additionalRequirements"]') as HTMLTextAreaElement)?.value || '',
+            
+            
+            
+          };
+        } else {
+          // Collect standard form data for other products
         this.requirements = {
           projectName: (form.querySelector('[name="projectName"]') as HTMLInputElement)?.value || '',
           contactPerson: (form.querySelector('[name="contactPerson"]') as HTMLInputElement)?.value || '',
@@ -1559,9 +1736,15 @@ import { sharedDataStore } from '../lib/shared-data-store';
               paymentContent.style.display = 'block';
             }
             
-            // Scroll to payment section
-            paymentSection.scrollIntoView({ behavior: 'smooth' });
-            console.log('✅ Scrolled to payment page');
+            // For OMS, payment link removed; just show payment section
+            if (isOrderMenuSystem) {
+              console.log('🍽️ Order Menu System detected - payment link removed, showing payment section only.');
+              paymentSection.scrollIntoView({ behavior: 'smooth' });
+            } else {
+              // Scroll to payment section for other products
+              paymentSection.scrollIntoView({ behavior: 'smooth' });
+              console.log('✅ Scrolled to payment page');
+            }
           }, 500);
           
         } else {
@@ -1750,6 +1933,95 @@ import { sharedDataStore } from '../lib/shared-data-store';
         if (uploadText) uploadText.textContent = 'Upload logo or drag and drop';
         if (photosLabel) photosLabel.textContent = 'Menu Photos (Required)';
         if (photosText) photosText.textContent = 'Upload menu photos or drag and drop';
+      } else if (item.id === 'order-menu-system' || item.id === '5') {
+        console.log('🍽️ Showing Order Menu System fields for product:', item.id);
+        
+        // Show Order Menu System specific fields
+        const orderMenuFields = document.getElementById('order-menu-fields');
+        if (orderMenuFields) {
+          orderMenuFields.classList.remove('hidden');
+          orderMenuFields.style.display = 'block';
+        }
+        
+        // Hide regular restaurant fields for Order Menu System
+        if (restaurantFields) {
+          restaurantFields.classList.add('hidden');
+          restaurantFields.style.display = 'none';
+        }
+        if (restaurantCuisineFields) {
+          restaurantCuisineFields.classList.add('hidden');
+          restaurantCuisineFields.style.display = 'none';
+        }
+        
+        // Hide upload sections for Order Menu System
+        const logoUploadSection = document.getElementById('logo-upload-section');
+        const photosUploadSection = document.getElementById('photos-upload-section');
+        if (logoUploadSection) {
+          logoUploadSection.classList.add('hidden');
+          logoUploadSection.style.display = 'none';
+        }
+        if (photosUploadSection) {
+          photosUploadSection.classList.add('hidden');
+          photosUploadSection.style.display = 'none';
+        }
+        
+        // Make Order Menu System fields required
+        const orderMenuRestaurantName = document.querySelector('input[name="orderMenuRestaurantName"]');
+        const orderMenuOwnerName = document.querySelector('input[name="orderMenuOwnerName"]');
+        const orderMenuAddress = document.querySelector('textarea[name="orderMenuAddress"]');
+        
+        if (orderMenuRestaurantName) orderMenuRestaurantName.required = true;
+        if (orderMenuOwnerName) orderMenuOwnerName.required = true;
+        if (orderMenuAddress) orderMenuAddress.required = true;
+        
+        // Hide unwanted fields for Order Menu System
+        const projectNameField = document.querySelector('input[name="projectName"]');
+        const contactPersonField = document.querySelector('input[name="contactPerson"]');
+        const appNameField = document.querySelector('input[name="appName"]');
+        const productDescriptionField = document.querySelector('textarea[name="productDescription"]');
+        
+        // Keep Project Name and Contact Person fields visible for Order Menu System
+        // These fields are needed for the database schema
+        if (projectNameField) {
+          projectNameField.required = true;
+        }
+        
+        if (contactPersonField) {
+          contactPersonField.required = true;
+        }
+        
+        // Hide App Name field
+        if (appNameField) {
+          appNameField.closest('div').classList.add('hidden');
+          appNameField.required = false;
+        }
+        
+        // Hide Product Description field
+        if (productDescriptionField) {
+          productDescriptionField.closest('div').classList.add('hidden');
+          productDescriptionField.required = false;
+        }
+        
+        // Hide App Screenshots and App Icon sections for Order Menu System
+        const nonOrderMenuFields = document.querySelectorAll('.non-order-menu-fields');
+        nonOrderMenuFields.forEach(field => {
+          field.classList.add('hidden');
+          field.style.display = 'none';
+        });
+        
+        // Also hide restaurant fields for Order Menu System
+        const restaurantFields = document.getElementById('restaurant-fields');
+        const restaurantCuisineFields = document.getElementById('restaurant-cuisine-fields');
+        if (restaurantFields) restaurantFields.classList.add('hidden');
+        if (restaurantCuisineFields) restaurantCuisineFields.classList.add('hidden');
+        
+        // Show App Screenshots and App Icon sections for other products
+        const nonOrderMenuFieldsForOther = document.querySelectorAll('.non-order-menu-fields');
+        nonOrderMenuFieldsForOther.forEach(field => {
+          field.classList.remove('hidden');
+          field.style.display = 'block';
+        });
+        
       } else {
         console.log('📱 Showing non-restaurant fields for product:', item.id);
         
@@ -2013,10 +2285,12 @@ import { sharedDataStore } from '../lib/shared-data-store';
         // Get form data from requirements form based on product type
         const form = document.getElementById('requirements-form');
         let formData = {};
+        const isOrderMenuSystem = item && (item.id === 'order-menu-system' || item.id === '5');
         
         if (form) {
-          // Standard form data for products
-          formData = {
+          if (isOrderMenuSystem) {
+            // Order Menu System specific form data - Updated to include all required fields
+            formData = {
               // 1. Project Name
               projectName: form.querySelector('[name="projectName"]')?.value || '',
               
@@ -2051,7 +2325,9 @@ import { sharedDataStore } from '../lib/shared-data-store';
               
             };
             
-            // Standard form data for products
+            console.log('🍽️ Form data collected for Order Menu System:', formData);
+          } else {
+            // Standard form data for other products
           formData = {
             projectName: form.querySelector('[name="projectName"]')?.value || '',
             contactPerson: form.querySelector('[name="contactPerson"]')?.value || '',
@@ -2123,11 +2399,78 @@ import { sharedDataStore } from '../lib/shared-data-store';
           });
         }
 
-        // Prepare cart data for Supabase
+        // Prepare cart data for Supabase based on product type
         let cartData;
         
-        // Standard cart data for products
-        cartData = {
+        if (isOrderMenuSystem) {
+          // Order Menu System data structure - Updated to match new database schema
+          cartData = {
+            user_email: currentUser.email,
+            user_id: currentUser.id || null,
+            product_id: 'order-menu-system',
+            product_name: 'Order Menu System',
+            base_price: item.price,
+            total_amount: totalAmount,
+            
+            // 1. Project Name
+            project_name: formData.projectName || '',
+            
+            // 2. Contact Person
+            contact_person: formData.contactPerson || '',
+            
+            // 3. Restaurant Name
+            restaurant_name: formData.restaurantName || '',
+            
+            // 4. Owner Name
+            owner_name: formData.ownerName || '',
+            
+            // 5. App Icon (for non-Order Menu System products - empty for Order Menu System)
+            app_icon_url: null,
+            app_icon_filename: null,
+            app_icon_size: null,
+            app_icon_type: null,
+            
+            // 6. Professional Address
+            house_flat_number: formData.houseNumber || '',
+            address_line_1: formData.addressLine1 || '',
+            city: formData.city || '',
+            state: formData.state || '',
+            pincode: formData.pincode || '',
+            country: formData.country || 'India',
+            
+            // 7. Restaurant Logo
+            restaurant_logo_url: restaurantLogoUrl,
+            restaurant_logo_filename: restaurantLogoFilename,
+            restaurant_logo_size: restaurantLogoSize,
+            restaurant_logo_type: restaurantLogoType,
+            
+            // 8. Menu Photos
+            menu_photos_urls: menuPhotosUrls || [],
+            
+            // 9. Contact Information
+            // 9.1. Email
+            contact_email: formData.email || currentUser.email,
+            // 9.2. Phone Number
+            contact_phone: formData.phone || currentUser.phone || '',
+            
+            // 10. Pricing
+            base_package_cost: 999.00,
+            gst_amount: 180.00,
+            total_amount: 1179.00,
+            
+            // 10. App Screenshots (for non-Order Menu System products - empty for Order Menu System)
+            app_screenshots: [],
+            
+            
+            // 12. Additional Requirements
+            additional_requirements: formData.additionalRequirements || '',
+            
+            
+            cart_status: 'pending'
+          };
+        } else {
+          // Standard cart data for other products
+          cartData = {
           user_email: currentUser.email,
           user_id: currentUser.id || null,
           product_id: item.id,
@@ -2165,13 +2508,88 @@ import { sharedDataStore } from '../lib/shared-data-store';
             cart_status: 'pending',
           is_checkout_initiated: false
         };
+        }
 
         console.log('🔍 Debug - Cart data being sent to Supabase:', cartData);
         console.log('🔍 Debug - Form data collected:', formData);
         console.log('🔍 Debug - Current user:', currentUser);
 
-        // Save standard cart data to existing table
-        console.log('🔍 Testing Supabase connection for standard cart...');
+        // Save to appropriate table based on product type
+        if (isOrderMenuSystem) {
+          // Save Order Menu System data to order_customizations table
+          console.log('🍽️ Saving Order Menu System data to order_customizations table...');
+          console.log('🔍 Cart data being inserted:', cartData);
+          
+          // Prepare data for insertion with fallbacks
+          const insertData = {
+            project_name: cartData.project_name || formData.projectName || 'Default Project',
+            restaurant_name: cartData.restaurant_name || formData.restaurantName || 'Default Restaurant',
+            owner_name: cartData.owner_name || formData.ownerName || 'Default Owner',
+            contact_person: cartData.contact_person || formData.contactPerson || 'Default Contact',
+            email: cartData.contact_email || formData.email || currentUser.email,
+            phone_number: cartData.contact_phone || formData.phone || '',
+            house_flat_number: cartData.house_flat_number || formData.houseNumber || '',
+            address_line_1: cartData.address_line_1 || formData.addressLine1 || '',
+            city: cartData.city || formData.city || '',
+            state: cartData.state || formData.state || '',
+            pincode: cartData.pincode || formData.pincode || '',
+            country: cartData.country || formData.country || 'India',
+            restaurant_logo_url: cartData.restaurant_logo_url || null,
+            menu_photos_urls: cartData.menu_photos_urls || [],
+            additional_requirements: cartData.additional_requirements || formData.additionalRequirements || '',
+            base_package_cost: cartData.base_package_cost || 999.00,
+            gst_amount: cartData.gst_amount || 180.00,
+            total_amount: cartData.total_amount || 1179.00,
+            status: 'completed' // Set status to completed when order is placed
+          };
+          
+          console.log('🔍 Debug - Final insert data:', insertData);
+          console.log('✅ Status being set to:', insertData.status);
+          
+          // Insert directly into the table
+          const { data: customizationData, error: customizationError } = await supabase
+            .from('order_customizations')
+            .insert(insertData)
+            .select();
+            
+          if (customizationError) {
+            console.error('❌ Error saving Order Menu System customization:', customizationError);
+            console.error('❌ Error details:', JSON.stringify(customizationError, null, 2));
+            console.error('❌ Cart data that failed:', JSON.stringify(cartData, null, 2));
+            console.error('❌ Insert data that failed:', JSON.stringify(insertData, null, 2));
+            return null;
+          }
+          
+          // Handle the insert response
+          if (customizationData && customizationData.length > 0) {
+            console.log('✅ Order customization saved successfully:', customizationData[0]);
+            console.log('✅ Status saved in database:', customizationData[0].status);
+            
+            // Verify status was saved correctly
+            if (customizationData[0].status !== 'completed') {
+              console.warn('⚠️ WARNING: Status was not saved as "completed". Actual status:', customizationData[0].status);
+              // Try to update it to completed
+              const { error: updateError } = await supabase
+                .from('order_customizations')
+                .update({ status: 'completed' })
+                .eq('id', customizationData[0].id);
+              
+              if (updateError) {
+                console.error('❌ Failed to update status to completed:', updateError);
+              } else {
+                console.log('✅ Status updated to completed after insert');
+              }
+            }
+            
+            // Update the cart data with the new ID
+            cartData.customization_id = customizationData[0].id;
+          } else {
+            console.error('❌ No data returned from insert operation');
+            return null;
+          }
+        } else {
+          // Save standard cart data to existing table
+          console.log('🔍 Testing Supabase connection for standard cart...');
         const { data: testData, error: testError } = await supabase
           .from('cart_customizations')
           .select('*')
@@ -2839,9 +3257,11 @@ import { sharedDataStore } from '../lib/shared-data-store';
       // Get form data based on product type
       const form = document.getElementById('requirements-form');
       let formData = {};
+      const isOrderMenuSystem = item && (item.id === 'order-menu-system' || item.id === '5');
       
               if (form) {
-          // Standard form data for products
+        if (isOrderMenuSystem) {
+          // Order Menu System specific form data - Updated to include all required fields
           formData = {
             // 1. Project Name
             projectName: form.querySelector('[name="projectName"]')?.value || '',

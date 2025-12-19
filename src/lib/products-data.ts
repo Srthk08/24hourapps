@@ -43,7 +43,7 @@ const mockProducts: Product[] = [
     description: 'Custom Android TV applications with beautiful UI, content management, and remote control support. Perfect for streaming services and media companies.',
     short_description: 'Custom Android TV applications with content management',
     category: 'tv',
-    base_price: 55000,
+    base_price: 9900,
     featured_image: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=300&fit=crop&crop=center',
     gallery: [],
     features: ['Custom Design', 'Content Management', 'Remote Control Support', 'User Authentication', 'Analytics'],

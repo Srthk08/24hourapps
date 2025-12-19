@@ -578,8 +578,12 @@ const { title, description = "DevExpress - 24 Hour Delivery" } = Astro.props;
       (function() {
         const pathname = window.location.pathname;
         
-        // Check for menu operator panel
-        if (pathname.startsWith('/menu-operator')) {
+        // Check for admin panel
+        if (pathname.startsWith('/admin')) {
+          // Add admin panel classes immediately
+          document.documentElement.classList.add('admin-panel-active');
+          document.body.classList.add('admin-panel-active');
+          
           // Hide navbar immediately
           function hideNavbarImmediately() {
             const header = document.querySelector('header:not(.menu-operator-header)');
@@ -715,22 +719,327 @@ const { title, description = "DevExpress - 24 Hour Delivery" } = Astro.props;
     <!-- EmailJS for email notifications -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
-    <!-- Supabase Client -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <!-- Supabase Client - Direct initialization without CDN dependency -->
     <script>
-      // Initialize Supabase client
+      // Initialize Supabase client directly using fetch API (no CDN dependency)
       const supabaseUrl = 'https://tguopyxmlfxcalhfitob.supabase.co';
       const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRndW9weXhtbGZ4Y2FsaGZpdG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMTk3NDQsImV4cCI6MjA3OTc5NTc0NH0.GUtJWVu8i6NWoleXI_Fd-ePM4vOFQtulyk1kqZgPgRM';
       
-      // Wait for Supabase to load, then initialize
-      function initSupabase() {
-        if (typeof supabase !== 'undefined') {
-          window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
-          console.log('✅ Supabase client initialized globally');
-        } else {
-          console.log('⏳ Supabase library not loaded yet, retrying...');
-          setTimeout(initSupabase, 100);
+      // Try to load Supabase from CDN first, but have a direct client as fallback
+      function createSupabaseClientDirect() {
+        // Create a minimal Supabase client using fetch API
+        const client = {
+          url: supabaseUrl,
+          key: supabaseKey,
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json'
+          },
+          from: function(table) {
+            return {
+              select: function(columns = '*') {
+                return {
+                  then: async function(resolve, reject) {
+                    try {
+                      const url = `${supabaseUrl}/rest/v1/${table}?select=${columns}`;
+                      const response = await fetch(url, {
+                        headers: client.headers
+                      });
+                      const data = await response.json();
+                      if (!response.ok) {
+                        reject({ error: data, data: null });
+                      } else {
+                        resolve({ data, error: null });
+                      }
+                    } catch (error) {
+                      reject({ error, data: null });
+                    }
+                  }
+                };
+              },
+              insert: function(values) {
+                return {
+                  select: function(columns = '*') {
+                    return {
+                      then: async function(resolve, reject) {
+                        try {
+                          const url = `${supabaseUrl}/rest/v1/${table}`;
+                          const response = await fetch(url, {
+                            method: 'POST',
+                            headers: {
+                              ...client.headers,
+                              'Prefer': `return=representation;columns=${columns}`
+                            },
+                            body: JSON.stringify(Array.isArray(values) ? values : [values])
+                          });
+                          const data = await response.json();
+                          if (!response.ok) {
+                            reject({ error: data, data: null });
+                          } else {
+                            resolve({ data: Array.isArray(data) ? data : [data], error: null });
+                          }
+                        } catch (error) {
+                          reject({ error, data: null });
+                        }
+                      }
+                    };
+                  }
+                };
+              }
+            };
+          },
+          auth: {
+            getUser: async function() {
+              const sessionData = sessionStorage.getItem('simple-auth-session') || localStorage.getItem('simple-auth-session');
+              if (sessionData) {
+                try {
+                  const session = JSON.parse(sessionData);
+                  return { data: { user: session.user || null }, error: null };
+                } catch (e) {
+                  return { data: { user: null }, error: null };
+                }
+              }
+              return { data: { user: null }, error: null };
+            },
+            setSession: async function(session) {
+              // Store session
+              const sessionData = JSON.stringify({
+                access_token: session.access_token,
+                refresh_token: session.refresh_token,
+                user: session.user || {}
+              });
+              sessionStorage.setItem('simple-auth-session', sessionData);
+              localStorage.setItem('simple-auth-session', sessionData);
+              return { data: { session }, error: null };
+            }
+          },
+          storage: {
+            from: function(bucket) {
+              return {
+                upload: async function(path, file) {
+                  try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    const url = `${supabaseUrl}/storage/v1/object/${bucket}/${path}`;
+                    const response = await fetch(url, {
+                      method: 'POST',
+                      headers: {
+                        'Authorization': `Bearer ${supabaseKey}`
+                      },
+                      body: formData
+                    });
+                    const data = await response.json();
+                    if (!response.ok) {
+                      return { data: null, error: data };
+                    }
+                    return { data: { path }, error: null };
+                  } catch (error) {
+                    return { data: null, error };
+                  }
+                },
+                getPublicUrl: function(path) {
+                  return `${supabaseUrl}/storage/v1/object/public/${bucket}/${path}`;
+                }
+              };
+            }
+          }
+        };
+        
+        // Add Promise support
+        client.from = function(table) {
+          const base = {
+            select: function(columns = '*') {
+              return Promise.resolve({
+                then: async function(resolve, reject) {
+                  try {
+                    const url = `${supabaseUrl}/rest/v1/${table}?select=${columns}`;
+                    const response = await fetch(url, {
+                      headers: client.headers
+                    });
+                    const data = await response.json();
+                    if (!response.ok) {
+                      reject({ error: data, data: null });
+                    } else {
+                      resolve({ data, error: null });
+                    }
+                  } catch (error) {
+                    reject({ error, data: null });
+                  }
+                }
+              });
+            },
+            insert: function(values) {
+              return {
+                select: function(columns = '*') {
+                  return Promise.resolve({
+                    then: async function(resolve, reject) {
+                      try {
+                        const url = `${supabaseUrl}/rest/v1/${table}`;
+                        const response = await fetch(url, {
+                          method: 'POST',
+                          headers: {
+                            ...client.headers,
+                            'Prefer': `return=representation;columns=${columns}`
+                          },
+                          body: JSON.stringify(Array.isArray(values) ? values : [values])
+                        });
+                        const data = await response.json();
+                        if (!response.ok) {
+                          reject({ error: data, data: null });
+                        } else {
+                          resolve({ data: Array.isArray(data) ? data : [data], error: null });
+                        }
+                      } catch (error) {
+                        reject({ error, data: null });
+                      }
+                    }
+                  });
+                }
+              };
+            }
+          };
+          
+          // Make it chainable
+          base.select = function(columns = '*') {
+            return new Promise(async (resolve, reject) => {
+              try {
+                const url = `${supabaseUrl}/rest/v1/${table}?select=${columns}`;
+                const response = await fetch(url, {
+                  headers: client.headers
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                  reject({ error: data, data: null });
+                } else {
+                  resolve({ data, error: null });
+                }
+              } catch (error) {
+                reject({ error, data: null });
+              }
+            });
+          };
+          
+          base.insert = function(values) {
+            return {
+              select: function(columns = '*') {
+                return new Promise(async (resolve, reject) => {
+                  try {
+                    const url = `${supabaseUrl}/rest/v1/${table}`;
+                    const payload = Array.isArray(values) ? values : [values];
+                    
+                    const response = await fetch(url, {
+                      method: 'POST',
+                      headers: {
+                        ...client.headers,
+                        'Prefer': `return=representation`
+                      },
+                      body: JSON.stringify(payload)
+                    });
+                    
+                    const data = await response.json();
+                    if (!response.ok) {
+                      const error = Array.isArray(data) ? data[0] : data;
+                      reject({ error, data: null });
+                    } else {
+                      // Return data in the format Supabase expects
+                      const result = Array.isArray(data) ? data : [data];
+                      resolve({ data: result, error: null });
+                    }
+                  } catch (error) {
+                    reject({ error, data: null });
+                  }
+                });
+              }
+            };
+          };
+          
+          return base;
+        };
+        
+        return client;
+      }
+      
+      // Try to load from CDN, fallback to direct client
+      async function initSupabase() {
+        // First, try CDN
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+        
+        script.onload = function() {
+          try {
+            // Check if supabase is available
+            const supabaseLib = window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
+            
+            if (supabaseLib && typeof supabaseLib.createClient === 'function') {
+              const supabaseClient = supabaseLib.createClient(supabaseUrl, supabaseKey, {
+                auth: {
+                  persistSession: true,
+                  autoRefreshToken: true,
+                  detectSessionInUrl: false
+                }
+              });
+              
+              window.supabase = supabaseClient;
+              window.supabaseClient = supabaseClient;
+              window.supabaseLibrary = supabaseLib;
+              window.supabase.createClient = supabaseLib.createClient;
+              
+              console.log('✅ Supabase client initialized from CDN');
+              window.dispatchEvent(new CustomEvent('supabase-ready', { detail: supabaseClient }));
+            } else {
+              throw new Error('CDN loaded but createClient not available');
+            }
+          } catch (error) {
+            console.warn('⚠️ CDN loaded but failed to create client, using direct client:', error);
+            initDirectClient();
+          }
+        };
+        
+        script.onerror = function() {
+          console.warn('⚠️ CDN failed to load, using direct client');
+          initDirectClient();
+        };
+        
+        document.head.appendChild(script);
+        
+        // Also set a timeout to use direct client if CDN takes too long
+        setTimeout(() => {
+          if (!window.supabase || !window.supabase.from) {
+            console.log('⏳ CDN taking too long, initializing direct client...');
+            initDirectClient();
+          }
+        }, 2000);
+      }
+      
+      function initDirectClient() {
+        if (window.supabase && window.supabase.from) {
+          return; // Already initialized
         }
+        
+        const supabaseClient = createSupabaseClientDirect();
+        
+        // Restore session
+        const sessionData = sessionStorage.getItem('simple-auth-session') || localStorage.getItem('simple-auth-session');
+        if (sessionData) {
+          try {
+            const session = JSON.parse(sessionData);
+            if (session && session.access_token) {
+              supabaseClient.auth.setSession({
+                access_token: session.access_token,
+                refresh_token: session.refresh_token || session.access_token
+              });
+            }
+          } catch (e) {
+            console.log('Could not restore session:', e);
+          }
+        }
+        
+        window.supabase = supabaseClient;
+        window.supabaseClient = supabaseClient;
+        
+        console.log('✅ Supabase direct client initialized (no CDN)');
+        window.dispatchEvent(new CustomEvent('supabase-ready', { detail: supabaseClient }));
       }
       
       // Start initialization
@@ -1383,6 +1692,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const userMenu = document.getElementById('user-menu');
           const mobileAuthButtons = document.getElementById('mobile-auth-buttons');
           const mobileUserMenu = document.getElementById('mobile-user-menu');
+          const adminPanelLink = document.getElementById('admin-panel-link');
+          const mobileAdminPanelLink = document.getElementById('mobile-admin-panel-link');
 
           // Always show auth buttons and hide user menu during navigation
           if (authButtons) authButtons.classList.remove('hidden');
@@ -1390,6 +1701,13 @@ document.addEventListener('DOMContentLoaded', () => {
           if (mobileAuthButtons) mobileAuthButtons.classList.remove('hidden');
           if (mobileUserMenu) mobileUserMenu.classList.add('hidden');
           
+          // Hide admin panel links during navigation
+          if (adminPanelLink) {
+            adminPanelLink.classList.add('hidden');
+          }
+          if (mobileAdminPanelLink) {
+            mobileAdminPanelLink.classList.add('hidden');
+          }
 
           // Only show user menu if user is actually logged in (removed isNavigating check to prevent fluctuation)
           if (this.isAuthenticated && this.currentUser) {
@@ -1398,7 +1716,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (mobileAuthButtons) mobileAuthButtons.classList.add('hidden');
             if (mobileUserMenu) mobileUserMenu.classList.remove('hidden');
 
-            // Admin panel removed - no longer showing admin links
+            // Show admin panel links if user has admin role
+            const isAdmin = this.currentUser.role === 'admin' || this.currentUser.role === 'developer' || this.currentUser.role === 'support';
+            
+            if (adminPanelLink && isAdmin) {
+              adminPanelLink.classList.remove('hidden');
+            }
+            
+            if (mobileAdminPanelLink && isAdmin) {
+              mobileAdminPanelLink.classList.remove('hidden');
+            }
 
             // Update user info
             this.updateHeaderUserInfo();
@@ -1512,8 +1839,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Global navbar visibility functions - simplified to prevent fluctuation
       window.hideUserNavbar = function() {
-        // Only hide if in menu operator panel
-        if (window.location.pathname.startsWith('/menu-operator')) {
+        // Only hide if in admin panel or menu operator panel
+        if (window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/menu-operator')) {
           const header = document.querySelector('header:not(.menu-operator-header)');
           if (header) {
             header.classList.add('admin-hidden');
@@ -1523,8 +1850,8 @@ document.addEventListener('DOMContentLoaded', () => {
       };
       
       window.showUserNavbar = function() {
-        // Only show if not in menu operator panel
-        if (!window.location.pathname.startsWith('/menu-operator')) {
+        // Only show if not in admin panel or menu operator panel
+        if (!window.location.pathname.startsWith('/admin') && !window.location.pathname.startsWith('/menu-operator')) {
           const header = document.querySelector('header:not(.menu-operator-header)');
           if (header) {
             header.classList.remove('admin-hidden');
@@ -1535,17 +1862,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       };
       
-      // Check if we're in menu operator panel and hide navbar accordingly
+      // Check if we're in admin panel or menu operator panel and hide navbar accordingly
       function checkAdminPanelNavbar() {
         const pathname = window.location.pathname;
         
-        if (pathname.startsWith('/menu-operator')) {
+        if (pathname.startsWith('/admin')) {
+          document.body.classList.add('admin-panel-active');
+          window.hideUserNavbar();
+        } else if (pathname.startsWith('/menu-operator')) {
           document.body.classList.add('menu-operator-panel-active');
           document.documentElement.classList.add('menu-operator-panel-active');
           window.hideUserNavbar();
         } else {
-          // Only remove menu operator classes and show navbar if we're NOT in menu operator panel
+          // Only remove admin/menu operator classes and show navbar if we're NOT in admin/menu operator panel
+          document.body.classList.remove('admin-panel-active');
           document.body.classList.remove('menu-operator-panel-active');
+          document.documentElement.classList.remove('admin-panel-active');
           document.documentElement.classList.remove('menu-operator-panel-active');
           window.showUserNavbar();
         }
@@ -1555,10 +1887,11 @@ document.addEventListener('DOMContentLoaded', () => {
       function handleNavigation() {
         const pathname = window.location.pathname;
         
-        // Remove any menu operator classes when navigating away from menu operator
-        if (!pathname.startsWith('/menu-operator')) {
+        // Remove any admin/menu operator classes when navigating away from admin/menu operator
+        if (!pathname.startsWith('/admin') && !pathname.startsWith('/menu-operator')) {
+          document.documentElement.classList.remove('admin-panel-active');
           document.documentElement.classList.remove('menu-operator-panel-active');
-          document.body.classList.remove('menu-operator-panel-active');
+          document.body.classList.remove('admin-panel-active');
           document.body.classList.remove('menu-operator-panel-active');
           
           // No need to manipulate header styles - it should be visible by default
@@ -1601,11 +1934,11 @@ document.addEventListener('DOMContentLoaded', () => {
       function handlePageTransition() {
         const pathname = window.location.pathname;
         
-        // Ensure navbar is always visible on non-menu-operator pages
-        if (!pathname.startsWith('/menu-operator')) {
+        // Ensure navbar is always visible on non-admin and non-menu-operator pages
+        if (!pathname.startsWith('/admin') && !pathname.startsWith('/menu-operator')) {
           const header = document.querySelector('header:not(.menu-operator-header)');
           if (header) {
-            // Reset any menu operator hiding styles immediately without delay
+            // Reset any admin/menu operator hiding styles immediately without delay
             header.style.display = 'block';
             header.style.visibility = 'visible';
             header.style.opacity = '1';

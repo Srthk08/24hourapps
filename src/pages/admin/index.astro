@@ -2,833 +2,393 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 ---
 
-<AdminLayout title="Rebranded Apps Panel">
-  <div class="min-h-screen bg-gray-50">
-    <!-- Page Header with Title -->
-    <div class="bg-white border-b border-gray-200 shadow-sm">
-      <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6">
-        <div>
-          <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Rebranded Apps Panel</h1>
-          <p class="mt-1 text-xs sm:text-sm text-gray-500">Manage and monitor all app builds and requests</p>
-        </div>
+<AdminLayout title="Admin Dashboard">
+  <div class="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+      <!-- Header -->
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+        <p class="mt-2 text-gray-600">Manage orders, tickets, users, and contacts</p>
       </div>
-    </div>
 
-    <!-- Navigation Buttons: Tickets, Users, Contacts, Orders -->
-    <div class="bg-white border-b border-gray-200 shadow-sm">
-      <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-5">
-        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-3 sm:gap-4">
-          <a href="/admin/tickets" class="group flex items-center space-x-2 sm:space-x-3 px-5 sm:px-6 py-2.5 sm:py-3 bg-white border-2 border-blue-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 shadow-sm hover:shadow-md">
-            <div class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-              <svg class="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
-              </svg>
+      <!-- Navigation Buttons -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <button id="orders-btn" class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow text-left border-2 border-transparent hover:border-blue-500">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">Orders</h3>
+              <p class="text-sm text-gray-600 mt-1">View all orders</p>
             </div>
-            <span class="text-sm sm:text-base font-semibold text-gray-700 group-hover:text-blue-700">Tickets</span>
-          </a>
-          
-          <a href="/admin/users" class="group flex items-center space-x-2 sm:space-x-3 px-5 sm:px-6 py-2.5 sm:py-3 bg-white border-2 border-indigo-200 rounded-xl hover:border-indigo-400 hover:bg-indigo-50 transition-all duration-200 shadow-sm hover:shadow-md">
-            <div class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
-              <svg class="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-              </svg>
-            </div>
-            <span class="text-sm sm:text-base font-semibold text-gray-700 group-hover:text-indigo-700">Users</span>
-          </a>
-          
-          <a href="/admin/contacts" class="group flex items-center space-x-2 sm:space-x-3 px-5 sm:px-6 py-2.5 sm:py-3 bg-white border-2 border-green-200 rounded-xl hover:border-green-400 hover:bg-green-50 transition-all duration-200 shadow-sm hover:shadow-md">
-            <div class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
-              <svg class="w-5 h-5 sm:w-6 sm:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-              </svg>
-            </div>
-            <span class="text-sm sm:text-base font-semibold text-gray-700 group-hover:text-green-700">Contacts</span>
-          </a>
-          
-          <button onclick="loadOrders()" class="group flex items-center space-x-2 sm:space-x-3 px-5 sm:px-6 py-2.5 sm:py-3 bg-white border-2 border-purple-200 rounded-xl hover:border-purple-400 hover:bg-purple-50 transition-all duration-200 shadow-sm hover:shadow-md">
-            <div class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-              <svg class="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-              </svg>
-            </div>
-            <span class="text-sm sm:text-base font-semibold text-gray-700 group-hover:text-purple-700">Orders</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Main Content Area -->
-    <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
-      <!-- Apps List -->
-      <div id="apps-list" class="space-y-3">
-        <!-- Empty state - Click Orders button to load -->
-        <div class="text-center py-20">
-          <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-4">
-            <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
             </svg>
           </div>
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">No data loaded</h3>
-          <p class="text-gray-500 text-sm">Click the Orders button to view orders</p>
-        </div>
+        </button>
+
+        <a href="/admin/tickets" class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow text-left border-2 border-transparent hover:border-blue-500">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">Tickets</h3>
+              <p class="text-sm text-gray-600 mt-1">Manage support tickets</p>
+            </div>
+            <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+        </a>
+
+        <a href="/admin/users" class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow text-left border-2 border-transparent hover:border-blue-500">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">Users</h3>
+              <p class="text-sm text-gray-600 mt-1">Manage users</p>
+            </div>
+            <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+          </div>
+        </a>
+
+        <a href="/admin/contacts" class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow text-left border-2 border-transparent hover:border-blue-500">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">Contacts</h3>
+              <p class="text-sm text-gray-600 mt-1">View contact submissions</p>
+            </div>
+            <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+        </a>
       </div>
-    </div>
 
-
-    <!-- App Details Modal -->
-    <div id="app-details-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50 backdrop-blur-sm">
-      <div class="flex items-center justify-center min-h-screen p-2 sm:p-4">
-        <div class="bg-white rounded-xl sm:rounded-2xl shadow-2xl max-w-3xl w-full p-4 sm:p-6 lg:p-8 transform transition-all max-h-[95vh] overflow-y-auto">
-          <!-- Modal Header -->
-          <div class="mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-gray-200">
-            <div class="flex items-start justify-between gap-3">
-              <div class="flex-1 min-w-0">
-                <h2 id="modal-app-name" class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2 sm:mb-3 break-words"></h2>
-                <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
-                  <div class="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-blue-50 rounded-lg">
-                    <span id="modal-app-version" class="text-blue-700 font-semibold"></span>
-                  </div>
-                  <div class="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-gray-50 rounded-lg min-w-0">
-                    <svg class="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                    </svg>
-                    <span id="modal-app-email" class="text-gray-700 font-medium truncate"></span>
-                    <button onclick="copyToClipboard(document.getElementById('modal-app-email').textContent)" class="ml-1 sm:ml-2 p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors flex-shrink-0" title="Copy email">
-                      <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <button onclick="closeAppDetailsModal()" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0">
-                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
-            </div>
-          </div>
-
-
-          <!-- Notes Input -->
-          <div class="mb-6">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Notes & Information</label>
-            <textarea 
-              id="modal-notes-input" 
-              placeholder="Add notes or information here..." 
-              class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
-              rows="4"
-            ></textarea>
-          </div>
-
-          <!-- Add Info Link -->
-          <div class="mb-6">
-            <a href="#" id="add-info-link" class="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors">
-              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-              </svg>
-              Add Info
-            </a>
-          </div>
-
-          <!-- IDs Section -->
-          <div class="bg-gray-50 rounded-xl p-5 mb-6">
-            <div class="space-y-4">
-              <div class="flex items-center justify-between py-2 border-b border-gray-200 last:border-0">
-                <span class="text-sm font-semibold text-gray-600">UID:</span>
-                <div class="flex items-center space-x-2">
-                  <span id="modal-app-uid" class="text-gray-900 font-mono text-sm bg-white px-3 py-1.5 rounded-lg border border-gray-300"></span>
-                  <button onclick="copyToClipboard(document.getElementById('modal-app-uid').textContent)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" title="Copy UID">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <div class="flex items-center justify-between py-2">
-                <span class="text-sm font-semibold text-gray-600">APP ID:</span>
-                <div class="flex items-center space-x-2">
-                  <span id="modal-app-id" class="text-gray-900 font-mono text-sm bg-white px-3 py-1.5 rounded-lg border border-gray-300"></span>
-                  <button onclick="copyToClipboard(document.getElementById('modal-app-id').textContent)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" title="Copy APP ID">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Modal Footer -->
-          <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-            <button onclick="closeAppDetailsModal()" class="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all duration-200 font-semibold text-sm">
-              Close
-            </button>
-          </div>
+      <!-- Content Area -->
+      <div id="content-area" class="bg-white rounded-lg shadow-md p-6">
+        <div id="no-data-message" class="text-center py-12">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">No data loaded</h3>
+          <p class="mt-1 text-sm text-gray-500">Click on a section above to view data</p>
         </div>
-      </div>
-    </div>
 
-    <!-- Order Details Modal -->
-    <div id="order-details-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50 backdrop-blur-sm">
-      <div class="flex items-center justify-center min-h-screen p-2 sm:p-4">
-        <div class="bg-white rounded-xl sm:rounded-2xl shadow-2xl max-w-4xl w-full p-4 sm:p-6 lg:p-8 transform transition-all max-h-[95vh] overflow-y-auto">
-          <!-- Modal Header -->
-          <div class="mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-gray-200">
-            <div class="flex items-start justify-between gap-3">
-              <div class="flex-1 min-w-0">
-                <h2 id="order-modal-title" class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2 sm:mb-3 break-words"></h2>
-                <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
-                  <div class="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-blue-50 rounded-lg">
-                    <span id="order-modal-status" class="text-blue-700 font-semibold"></span>
-                  </div>
-                  <div class="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-gray-50 rounded-lg min-w-0">
-                    <svg class="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                    </svg>
-                    <span id="order-modal-email" class="text-gray-700 font-medium truncate"></span>
-                    <button onclick="copyToClipboard(document.getElementById('order-modal-email').textContent)" class="ml-1 sm:ml-2 p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors flex-shrink-0" title="Copy email">
-                      <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <button onclick="closeOrderDetailsModal()" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0">
-                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
+        <!-- Orders List (hidden by default) -->
+        <div id="orders-container" class="hidden">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">Orders</h2>
+            <div id="orders-loading" class="hidden">
+              <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
             </div>
           </div>
-
-          <!-- Order Details Content -->
-          <div class="space-y-6">
-            <!-- Customer Information -->
-            <div class="bg-gray-50 rounded-xl p-5">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">Customer Information</h3>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <p class="text-sm font-medium text-gray-600">Customer Name</p>
-                  <p id="order-customer-name" class="text-base text-gray-900 mt-1"></p>
-                </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-600">Email</p>
-                  <p id="order-customer-email" class="text-base text-gray-900 mt-1"></p>
-                </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-600">Phone</p>
-                  <p id="order-customer-phone" class="text-base text-gray-900 mt-1"></p>
-                </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-600">Contact Person</p>
-                  <p id="order-contact-person" class="text-base text-gray-900 mt-1"></p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Product & Plan Information -->
-            <div class="bg-gray-50 rounded-xl p-5">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">Product & Plan Details</h3>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <p class="text-sm font-medium text-gray-600">Product Name</p>
-                  <p id="order-product-name" class="text-base text-gray-900 mt-1"></p>
-                </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-600">Plan Name</p>
-                  <p id="order-plan-name" class="text-base text-gray-900 mt-1"></p>
-                </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-600">Price</p>
-                  <p id="order-price" class="text-base text-gray-900 mt-1"></p>
-                </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-600">Product Type</p>
-                  <p id="order-product-type" class="text-base text-gray-900 mt-1"></p>
-                </div>
-              </div>
-            </div>
-
-            <!-- File Uploads -->
-            <div class="bg-gray-50 rounded-xl p-5">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">Uploaded Files</h3>
-              <div class="space-y-6">
-                <!-- Logo -->
-                <div id="order-logo-section" class="hidden">
-                  <p class="text-sm font-medium text-gray-600 mb-2">Logo</p>
-                  <div class="bg-white rounded-lg p-4 border border-gray-200">
-                    <img id="order-logo-image" src="" alt="Logo" class="max-w-full h-auto max-h-48 mx-auto rounded-lg shadow-sm" onerror="this.style.display='none'; document.getElementById('order-logo-fallback').style.display='block';">
-                    <div id="order-logo-fallback" class="hidden text-center py-4">
-                      <p class="text-sm text-gray-500">Image not available</p>
-                      <a id="order-logo-link" href="#" target="_blank" class="text-blue-600 hover:text-blue-700 text-sm break-all">View Logo</a>
-                    </div>
-                  </div>
-                </div>
-                
-                <!-- Background -->
-                <div id="order-background-section" class="hidden">
-                  <p class="text-sm font-medium text-gray-600 mb-2">Background</p>
-                  <div class="bg-white rounded-lg p-4 border border-gray-200">
-                    <img id="order-background-image" src="" alt="Background" class="max-w-full h-auto max-h-48 mx-auto rounded-lg shadow-sm" onerror="this.style.display='none'; document.getElementById('order-background-fallback').style.display='block';">
-                    <div id="order-background-fallback" class="hidden text-center py-4">
-                      <p class="text-sm text-gray-500">Image not available</p>
-                      <a id="order-background-link" href="#" target="_blank" class="text-blue-600 hover:text-blue-700 text-sm break-all">View Background</a>
-                    </div>
-                  </div>
-                </div>
-                
-                <!-- Intro Video -->
-                <div id="order-video-section" class="hidden">
-                  <p class="text-sm font-medium text-gray-600 mb-2">Intro Video</p>
-                  <div class="bg-white rounded-lg p-4 border border-gray-200">
-                    <video id="order-video-player" src="" controls class="max-w-full h-auto max-h-64 mx-auto rounded-lg shadow-sm" onerror="this.style.display='none'; document.getElementById('order-video-fallback').style.display='block';">
-                      Your browser does not support the video tag.
-                    </video>
-                    <div id="order-video-fallback" class="hidden text-center py-4">
-                      <p class="text-sm text-gray-500 mb-2">Video not available</p>
-                      <a id="order-video-link" href="#" target="_blank" class="text-blue-600 hover:text-blue-700 text-sm break-all">View Video</a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Additional Information -->
-            <div class="bg-gray-50 rounded-xl p-5">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">Additional Information</h3>
-              <div class="space-y-3">
-                <div>
-                  <p class="text-sm font-medium text-gray-600">Project Name</p>
-                  <p id="order-project-name" class="text-base text-gray-900 mt-1"></p>
-                </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-600">Order ID</p>
-                  <div class="flex items-center space-x-2 mt-1">
-                    <p id="order-id" class="text-base text-gray-900 font-mono"></p>
-                    <button onclick="copyToClipboard(document.getElementById('order-id').textContent)" class="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors" title="Copy Order ID">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-600">Created At</p>
-                  <p id="order-created-at" class="text-base text-gray-900 mt-1"></p>
-                </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-600">Updated At</p>
-                  <p id="order-updated-at" class="text-base text-gray-900 mt-1"></p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Modal Footer -->
-          <div class="flex justify-end space-x-3 pt-4 mt-6 border-t border-gray-200">
-            <button onclick="closeOrderDetailsModal()" class="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all duration-200 font-semibold text-sm">
-              Close
-            </button>
-          </div>
+          <div id="orders-list" class="space-y-4"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <script>
-    const SUPABASE_URL = 'https://tguopyxmlfxcalhfitob.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRndW9weXhtbGZ4Y2FsaGZpdG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMTk3NDQsImV4cCI6MjA3OTc5NTc0NH0.GUtJWVu8i6NWoleXI_Fd-ePM4vOFQtulyk1kqZgPgRM';
-    
-    let supabase = null;
-    let currentFilter = 'all';
-    let currentApps = [];
-    let currentAppDetails = null;
-    let currentOrders = [];
-    let currentOrderDetails = null;
-    
-    function waitForSupabase() {
-      return new Promise((resolve) => {
-        if (window.supabase && window.supabase.auth && typeof window.supabase.auth.getUser === 'function') {
-          supabase = window.supabase;
-          resolve(supabase);
-        } 
-        else if (window.supabase && typeof window.supabase.createClient === 'function') {
-          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-          resolve(supabase);
-        } 
-        else {
-          setTimeout(() => waitForSupabase().then(resolve), 100);
-        }
-      });
-    }
-    
-    async function loadOrders() {
-      try {
-        if (!supabase) {
-          await waitForSupabase();
-        }
-        
-        const appsList = document.getElementById('apps-list');
-        appsList.innerHTML = `
-          <div class="text-center py-16">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
-              <svg class="w-8 h-8 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-              </svg>
-            </div>
-            <p class="text-gray-500 font-medium">Loading orders...</p>
-          </div>
-        `;
-        
-        // Load orders from customization_forms table
-        const { data: orders, error: ordersError } = await supabase
-          .from('customization_forms')
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        if (ordersError) {
-          console.error('Error loading orders:', ordersError);
-          appsList.innerHTML = '<div class="text-center py-12 text-red-500"><p>Error loading orders. Please try again.</p></div>';
-          return;
-        }
-        
-        currentOrders = orders || [];
-        currentApps = orders || [];
-        renderOrders(orders || []);
-        
-      } catch (error) {
-        console.error('Error loading orders:', error);
-        document.getElementById('apps-list').innerHTML = '<div class="text-center py-12 text-red-500"><p>Error loading orders. Please try again.</p></div>';
-      }
-    }
-    
-    async function loadApps(filter = 'all') {
-      try {
-        if (!supabase) {
-          await waitForSupabase();
-        }
-        
-        const appsList = document.getElementById('apps-list');
-        appsList.innerHTML = `
-          <div class="text-center py-16">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
-              <svg class="w-8 h-8 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-              </svg>
-            </div>
-            <p class="text-gray-500 font-medium">Loading apps...</p>
-          </div>
-        `;
-        
-        // Load from customization_forms and android_tv_app_forms tables
-        let query = supabase
-          .from('customization_forms')
-          .select('*, profiles(full_name, email)')
-          .order('created_at', { ascending: false });
-        
-        const { data: customizations, error: customError } = await query;
-        
-        if (customError) {
-          console.error('Error loading customizations:', customError);
-        }
-        
-        // Also load from android_tv_app_forms
-        let androidQuery = supabase
-          .from('android_tv_app_forms')
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        const { data: androidApps, error: androidError } = await androidQuery;
-        
-        if (androidError) {
-          console.error('Error loading Android TV apps:', androidError);
-        }
-        
-        // Combine and format apps
-        let allApps = [];
-        
-        if (customizations) {
-          customizations.forEach(custom => {
-            allApps.push({
-              id: custom.id,
-              name: custom.app_name || custom.project_name || custom.product_name || 'N/A',
-              email: custom.customer_email || custom.contact_email || 'N/A',
-              version: custom.status === 'completed' ? '7.0.1467.50' : null,
-              status: custom.status,
-              type: 'customization',
-              created_at: custom.created_at,
-              uid: custom.user_id || 'N/A',
-              app_id: custom.id.substring(0, 20)
-            });
-          });
-        }
-        
-        if (androidApps) {
-          androidApps.forEach(app => {
-            allApps.push({
-              id: app.id,
-              name: app.name || 'N/A',
-              email: app.email || 'N/A',
-              version: app.status === 'completed' ? '7.0.504.29' : null,
-              status: app.status,
-              type: 'android_tv',
-              created_at: app.created_at,
-              uid: app.id.substring(0, 20),
-              app_id: app.id.substring(0, 20)
-            });
-          });
-        }
-        
-        // Apply filter
-        if (filter === 'real-requested') {
-          allApps = allApps.filter(app => app.status === 'pending' && app.type === 'customization');
-        } else if (filter === 'real-building') {
-          allApps = allApps.filter(app => app.status === 'in_progress' && app.type === 'customization');
-        } else if (filter === 'demo-failed') {
-          allApps = allApps.filter(app => app.status === 'rejected' || app.status === 'cancelled');
-        } else if (filter === 'demo-building') {
-          allApps = allApps.filter(app => app.status === 'in_progress' && app.type === 'android_tv');
-        } else if (filter === 'demo-builded') {
-          allApps = allApps.filter(app => app.status === 'completed');
-        }
-        
-        currentApps = allApps;
-        renderApps(allApps);
-        
-      } catch (error) {
-        console.error('Error loading apps:', error);
-        document.getElementById('apps-list').innerHTML = '<div class="text-center py-12 text-red-500"><p>Error loading apps. Please try again.</p></div>';
-      }
-    }
-    
-    function renderOrders(orders) {
-      const appsList = document.getElementById('apps-list');
-      
-      if (orders.length === 0) {
-        appsList.innerHTML = `
-          <div class="text-center py-20">
-            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-4">
-              <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-              </svg>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">No orders found</h3>
-            <p class="text-gray-500 text-sm">No orders have been placed yet</p>
-          </div>
-        `;
+  <!-- Order Details Modal -->
+  <div id="order-details-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <h3 class="text-xl font-bold text-gray-900">Order Details</h3>
+        <button id="close-order-modal" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div id="order-details-content" class="p-6"></div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  const SUPABASE_URL = 'https://tguopyxmlfxcalhfitob.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_PGmzE71Xivse5zGMGbtQXQ_QBjLTr-A';
+
+  let supabaseClient = null;
+
+  // Initialize Supabase
+  async function initSupabase() {
+    try {
+      // Try to use existing client
+      if (window.supabaseClient && window.supabaseClient.from) {
+        supabaseClient = window.supabaseClient;
+        console.log('✅ Using existing Supabase client');
         return;
       }
-      
-      appsList.innerHTML = orders.map(order => {
-        const statusColors = {
-          'pending': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-          'in_progress': 'bg-blue-100 text-blue-800 border-blue-200',
-          'completed': 'bg-green-100 text-green-800 border-green-200',
-          'cancelled': 'bg-red-100 text-red-800 border-red-200',
-          'rejected': 'bg-red-100 text-red-800 border-red-200'
-        };
-        
-        const statusColor = statusColors[order.status] || 'bg-gray-100 text-gray-800 border-gray-200';
-        const orderName = order.product_name || order.project_name || order.app_name || 'N/A';
-        const customerEmail = order.customer_email || order.contact_email || 'N/A';
-        const customerName = order.customer_name || order.contact_person || 'N/A';
-        const price = order.price ? `${order.price_currency || 'GBP'} ${order.price}` : 'N/A';
-        
-        return `
-          <div class="bg-white border-2 border-gray-200 rounded-lg sm:rounded-xl p-4 sm:p-5 hover:border-blue-300 hover:shadow-lg transition-all duration-200 cursor-pointer group" onclick="openOrderDetails('${order.id}')">
-            <div class="flex items-start justify-between gap-3">
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-3">
-                  <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-4 h-4 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-1 truncate group-hover:text-blue-600 transition-colors">${orderName}</h3>
-                    <p class="text-xs sm:text-sm text-gray-500 truncate">${customerName} - ${customerEmail}</p>
-                  </div>
-                </div>
-                <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-                  <span class="px-2 sm:px-3 py-1 text-xs font-medium rounded-full border ${statusColor} whitespace-nowrap">${order.status || 'pending'}</span>
-                  ${order.plan_name ? `<span class="px-2 sm:px-3 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">${order.plan_name}</span>` : ''}
-                  ${price !== 'N/A' ? `<span class="px-2 sm:px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">${price}</span>` : ''}
-                </div>
-                <div class="flex items-center text-xs text-gray-400">
-                  <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                  <span class="truncate">${order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</span>
-                </div>
-              </div>
-              <div class="flex-shrink-0">
-                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                </svg>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
+
+      if (window.supabase && window.supabase.createClient) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('✅ Created Supabase client from window.supabase');
+      } else if (typeof createClient !== 'undefined') {
+        supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('✅ Created Supabase client from global createClient');
+      } else {
+        // Wait for Supabase to load
+        let attempts = 0;
+        while (attempts < 50 && !window.supabase) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+
+        if (window.supabase && window.supabase.createClient) {
+          supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          console.log('✅ Created Supabase client after waiting');
+        } else {
+          throw new Error('Supabase library not available');
+        }
+      }
+
+      // Restore session
+      const sessionData = sessionStorage.getItem('simple-auth-session');
+      if (sessionData && sessionData !== 'null' && sessionData !== '{}') {
+        try {
+          const session = JSON.parse(sessionData);
+          if (session.access_token) {
+            await supabaseClient.auth.setSession({
+              access_token: session.access_token,
+              refresh_token: session.refresh_token || ''
+            });
+            console.log('✅ Session restored');
+          }
+        } catch (e) {
+          console.warn('Failed to restore session:', e);
+        }
+      }
+
+      window.supabaseClient = supabaseClient;
+    } catch (error) {
+      console.error('❌ Failed to initialize Supabase:', error);
+      document.getElementById('content-area').innerHTML = `
+        <div class="text-center py-12">
+          <p class="text-red-600 mb-4">Failed to initialize database connection</p>
+          <button onclick="location.reload()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+            Refresh Page
+          </button>
+        </div>
+      `;
     }
-    
-    function renderApps(apps) {
-      const appsList = document.getElementById('apps-list');
-      
-      if (apps.length === 0) {
-        appsList.innerHTML = `
-          <div class="text-center py-20">
-            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-4">
-              <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-              </svg>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">No apps found</h3>
-            <p class="text-gray-500 text-sm">Try adjusting your filters or search criteria</p>
-          </div>
-        `;
+  }
+
+  // Load orders from Supabase
+  async function loadOrders() {
+    if (!supabaseClient) {
+      await initSupabase();
+    }
+
+    if (!supabaseClient) {
+      console.error('❌ Supabase client not available');
+      return;
+    }
+
+    const ordersList = document.getElementById('orders-list');
+    const ordersLoading = document.getElementById('orders-loading');
+    const noDataMessage = document.getElementById('no-data-message');
+
+    ordersLoading.classList.remove('hidden');
+    ordersList.innerHTML = '';
+
+    try {
+      const { data, error } = await supabaseClient
+        .from('customization_forms')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('❌ Error loading orders:', error);
+        ordersList.innerHTML = `<p class="text-red-600">Error loading orders: ${error.message}</p>`;
         return;
       }
-      
-      appsList.innerHTML = apps.map(app => {
-        const statusBadge = app.status === 'completed' ? 
-          `<span class="px-3 py-1 text-xs font-semibold text-white bg-green-600 rounded-full shadow-sm">real_app_builded</span>` :
-          `<span class="px-3 py-1 text-xs font-semibold text-white bg-gray-700 rounded-full shadow-sm">N/A</span>`;
-        
-        const emptyBadge = `<span class="px-3 py-1 text-xs font-semibold text-white bg-gray-700 rounded-full shadow-sm">empty</span>`;
-        
-        const versionBadge = app.version ? 
-          `<span class="px-3 py-1 text-xs font-semibold text-white bg-gray-700 rounded-full shadow-sm">${app.version}</span>` : 
-          '';
-        
-        const statusColors = {
-          'pending': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-          'in_progress': 'bg-blue-100 text-blue-800 border-blue-200',
-          'completed': 'bg-green-100 text-green-800 border-green-200',
-          'cancelled': 'bg-red-100 text-red-800 border-red-200',
-          'rejected': 'bg-red-100 text-red-800 border-red-200'
-        };
-        
-        const statusColor = statusColors[app.status] || 'bg-gray-100 text-gray-800 border-gray-200';
-        
-        return `
-          <div class="bg-white border-2 border-gray-200 rounded-lg sm:rounded-xl p-4 sm:p-5 hover:border-blue-300 hover:shadow-lg transition-all duration-200 cursor-pointer group" onclick="openAppDetails('${app.id}')">
-            <div class="flex items-start justify-between gap-3">
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-3">
-                  <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-4 h-4 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                    </svg>
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-1 truncate group-hover:text-blue-600 transition-colors">${app.name}</h3>
-                    <p class="text-xs sm:text-sm text-gray-500 truncate">${app.email}</p>
-                  </div>
-                </div>
-                <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-                  ${statusBadge}
-                  ${app.version ? versionBadge : emptyBadge}
-                  ${app.status === 'cancelled' ? '<span class="px-2 sm:px-3 py-1 text-xs font-semibold text-white bg-red-600 rounded-full shadow-sm whitespace-nowrap">CANCELLED</span>' : ''}
-                  <span class="px-2 sm:px-3 py-1 text-xs font-medium rounded-full border ${statusColor} whitespace-nowrap">${app.status || 'N/A'}</span>
-                </div>
-                <div class="flex items-center text-xs text-gray-400">
-                  <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                  <span class="truncate">${app.created_at ? new Date(app.created_at).toLocaleDateString() : 'N/A'}</span>
-                </div>
-              </div>
-              <div class="flex-shrink-0">
-                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                </svg>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
+
+      ordersLoading.classList.add('hidden');
+      noDataMessage.classList.add('hidden');
+      document.getElementById('orders-container').classList.remove('hidden');
+
+      if (!data || data.length === 0) {
+        ordersList.innerHTML = '<p class="text-gray-500 text-center py-8">No orders found</p>';
+        return;
+      }
+
+      renderOrders(data);
+    } catch (error) {
+      console.error('❌ Error in loadOrders:', error);
+      ordersList.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`;
+      ordersLoading.classList.add('hidden');
     }
-    
-    function openAppDetails(appId) {
-      const app = currentApps.find(a => a.id === appId);
-      if (!app) return;
-      
-      currentAppDetails = app;
-      
-      document.getElementById('modal-app-name').textContent = app.name;
-      document.getElementById('modal-app-email').textContent = app.email;
-      document.getElementById('modal-app-version').textContent = app.version ? `V: ${app.version}` : 'V: N/A';
-      document.getElementById('modal-app-uid').textContent = app.uid;
-      document.getElementById('modal-app-id').textContent = app.app_id;
-      document.getElementById('modal-notes-input').value = '';
-      
-      document.getElementById('app-details-modal').classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-    }
-    
-    function closeAppDetailsModal() {
-      document.getElementById('app-details-modal').classList.add('hidden');
-      document.body.style.overflow = '';
-      currentAppDetails = null;
-    }
-    
-    function openOrderDetails(orderId) {
-      const order = currentOrders.find(o => o.id === orderId);
-      if (!order) return;
-      
-      currentOrderDetails = order;
-      
-      // Set order title
-      const orderName = order.product_name || order.project_name || order.app_name || 'N/A';
-      document.getElementById('order-modal-title').textContent = orderName;
-      
-      // Set status
+  }
+
+  // Render orders list
+  function renderOrders(orders) {
+    const ordersList = document.getElementById('orders-list');
+    ordersList.innerHTML = '';
+
+    orders.forEach((order) => {
+      const orderCard = document.createElement('div');
+      orderCard.className = 'border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer';
+      orderCard.onclick = () => openOrderDetails(order.id);
+
       const statusColors = {
         'pending': 'bg-yellow-100 text-yellow-800',
         'in_progress': 'bg-blue-100 text-blue-800',
         'completed': 'bg-green-100 text-green-800',
-        'cancelled': 'bg-red-100 text-red-800',
-        'rejected': 'bg-red-100 text-red-800'
+        'cancelled': 'bg-red-100 text-red-800'
       };
-      const statusColor = statusColors[order.status] || 'bg-gray-100 text-gray-800';
-      const statusEl = document.getElementById('order-modal-status');
-      statusEl.textContent = order.status || 'pending';
-      statusEl.className = `text-sm font-semibold px-2 py-1 rounded ${statusColor}`;
-      
-      // Set email
-      document.getElementById('order-modal-email').textContent = order.customer_email || order.contact_email || 'N/A';
-      
-      // Customer Information
-      document.getElementById('order-customer-name').textContent = order.customer_name || order.contact_person || 'N/A';
-      document.getElementById('order-customer-email').textContent = order.customer_email || order.contact_email || 'N/A';
-      document.getElementById('order-customer-phone').textContent = order.contact_phone || order.phone || 'N/A';
-      document.getElementById('order-contact-person').textContent = order.contact_person || order.customer_name || 'N/A';
-      
-      // Product & Plan Information
-      document.getElementById('order-product-name').textContent = order.product_name || 'N/A';
-      document.getElementById('order-plan-name').textContent = order.plan_name || 'N/A';
-      const price = order.price ? `${order.price_currency || 'GBP'} ${order.price}` : 'N/A';
-      document.getElementById('order-price').textContent = price;
-      document.getElementById('order-product-type').textContent = order.product_type || 'N/A';
-      
-      // File Uploads - Show actual images and video
-      if (order.logo_url) {
-        document.getElementById('order-logo-section').classList.remove('hidden');
-        const logoImage = document.getElementById('order-logo-image');
-        const logoFallback = document.getElementById('order-logo-fallback');
-        const logoLink = document.getElementById('order-logo-link');
-        logoImage.src = order.logo_url;
-        logoImage.style.display = 'block';
-        logoFallback.classList.add('hidden');
-        logoLink.href = order.logo_url;
-        logoLink.textContent = order.logo_filename || 'View Logo';
-      } else {
-        document.getElementById('order-logo-section').classList.add('hidden');
-      }
-      
-      if (order.background_url) {
-        document.getElementById('order-background-section').classList.remove('hidden');
-        const bgImage = document.getElementById('order-background-image');
-        const bgFallback = document.getElementById('order-background-fallback');
-        const bgLink = document.getElementById('order-background-link');
-        bgImage.src = order.background_url;
-        bgImage.style.display = 'block';
-        bgFallback.classList.add('hidden');
-        bgLink.href = order.background_url;
-        bgLink.textContent = order.background_filename || 'View Background';
-      } else {
-        document.getElementById('order-background-section').classList.add('hidden');
-      }
-      
-      if (order.intro_video_url) {
-        document.getElementById('order-video-section').classList.remove('hidden');
-        const videoPlayer = document.getElementById('order-video-player');
-        const videoFallback = document.getElementById('order-video-fallback');
-        const videoLink = document.getElementById('order-video-link');
-        videoPlayer.src = order.intro_video_url;
-        videoPlayer.style.display = 'block';
-        videoFallback.classList.add('hidden');
-        videoLink.href = order.intro_video_url;
-        videoLink.textContent = order.intro_video_filename || 'View Video';
-      } else {
-        document.getElementById('order-video-section').classList.add('hidden');
-      }
-      
-      // Additional Information
-      document.getElementById('order-project-name').textContent = order.project_name || 'N/A';
-      document.getElementById('order-id').textContent = order.id;
-      document.getElementById('order-created-at').textContent = order.created_at ? new Date(order.created_at).toLocaleString() : 'N/A';
-      document.getElementById('order-updated-at').textContent = order.updated_at ? new Date(order.updated_at).toLocaleString() : 'N/A';
-      
-      // Show modal
-      document.getElementById('order-details-modal').classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
+
+      const status = order.status || 'pending';
+      const statusColor = statusColors[status] || 'bg-gray-100 text-gray-800';
+
+      orderCard.innerHTML = `
+        <div class="flex items-center justify-between">
+          <div class="flex-1">
+            <h4 class="font-semibold text-gray-900">${order.product_name || 'N/A'}</h4>
+            <p class="text-sm text-gray-600 mt-1">${order.customer_name || 'N/A'} - ${order.customer_email || 'N/A'}</p>
+            <div class="flex items-center gap-4 mt-2">
+              <span class="px-2 py-1 rounded text-xs font-medium ${statusColor}">${status}</span>
+              <span class="text-sm text-gray-600">${order.plan_name || 'N/A'}</span>
+              <span class="text-sm font-semibold text-gray-900">₹${(order.price || 0).toLocaleString('en-IN')}</span>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-sm text-gray-500">${new Date(order.created_at).toLocaleDateString()}</p>
+            <button class="mt-2 text-blue-600 hover:text-blue-800 text-sm font-medium">View Details</button>
+          </div>
+        </div>
+      `;
+
+      ordersList.appendChild(orderCard);
+    });
+  }
+
+  // Open order details modal
+  function openOrderDetails(orderId) {
+    if (!supabaseClient) {
+      console.error('❌ Supabase client not available');
+      return;
     }
-    
-    function closeOrderDetailsModal() {
-      document.getElementById('order-details-modal').classList.add('hidden');
-      document.body.style.overflow = '';
-      currentOrderDetails = null;
-    }
-    
-    function copyToClipboard(text) {
-      navigator.clipboard.writeText(text).then(() => {
-        // Show toast notification
-        showToast('Copied to clipboard!', 'success');
-      }).catch(err => {
-        console.error('Failed to copy:', err);
-        showToast('Failed to copy', 'error');
+
+    const modal = document.getElementById('order-details-modal');
+    const content = document.getElementById('order-details-content');
+    modal.classList.remove('hidden');
+
+    content.innerHTML = '<div class="text-center py-8"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div><p class="mt-4 text-gray-600">Loading order details...</p></div>';
+
+    supabaseClient
+      .from('customization_forms')
+      .select('*')
+      .eq('id', orderId)
+      .single()
+      .then(({ data, error }) => {
+        if (error) {
+          content.innerHTML = `<p class="text-red-600">Error loading order: ${error.message}</p>`;
+          return;
+        }
+
+        const order = data;
+        const logoUrl = order.logo_url ? (order.logo_url.startsWith('http') ? order.logo_url : `https://tguopyxmlfxcalhfitob.supabase.co/storage/v1/object/public/customization-files/${order.logo_url}`) : null;
+        const backgroundUrl = order.background_url ? (order.background_url.startsWith('http') ? order.background_url : `https://tguopyxmlfxcalhfitob.supabase.co/storage/v1/object/public/customization-files/${order.background_url}`) : null;
+        const videoUrl = order.intro_video_url ? (order.intro_video_url.startsWith('http') ? order.intro_video_url : `https://tguopyxmlfxcalhfitob.supabase.co/storage/v1/object/public/customization-files/${order.intro_video_url}`) : null;
+
+        content.innerHTML = `
+          <div class="space-y-6">
+            <!-- Customer Details -->
+            <div>
+              <h4 class="font-semibold text-gray-900 mb-3">Customer Details</h4>
+              <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+                <p><span class="font-medium">Name:</span> ${order.customer_name || 'N/A'}</p>
+                <p><span class="font-medium">Email:</span> ${order.customer_email || 'N/A'}</p>
+                <p><span class="font-medium">Phone:</span> ${order.contact_phone || 'N/A'}</p>
+                ${order.contact_person ? `<p><span class="font-medium">Contact Person:</span> ${order.contact_person}</p>` : ''}
+              </div>
+            </div>
+
+            <!-- Product/Plan Details -->
+            <div>
+              <h4 class="font-semibold text-gray-900 mb-3">Product/Plan Details</h4>
+              <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+                <p><span class="font-medium">Product:</span> ${order.product_name || 'N/A'}</p>
+                <p><span class="font-medium">Plan:</span> ${order.plan_name || 'N/A'}</p>
+                <p><span class="font-medium">Price:</span> ₹${(order.price || 0).toLocaleString('en-IN')}</p>
+                <p><span class="font-medium">Product Type:</span> ${order.product_type || 'N/A'}</p>
+              </div>
+            </div>
+
+            <!-- Uploaded Files -->
+            <div>
+              <h4 class="font-semibold text-gray-900 mb-3">Uploaded Files</h4>
+              <div class="bg-gray-50 rounded-lg p-4 space-y-4">
+                ${logoUrl ? `
+                  <div>
+                    <p class="font-medium mb-2">Logo:</p>
+                    <img src="${logoUrl}" alt="Logo" class="max-w-xs h-auto rounded border border-gray-200" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect fill=\'%23ddd\' width=\'200\' height=\'200\'/%3E%3Ctext fill=\'%23999\' font-family=\'sans-serif\' font-size=\'14\' dy=\'10.5\' x=\'50%\' y=\'50%\' text-anchor=\'middle\'%3ELogo%3C/text%3E%3C/svg%3E'; this.onerror=null;">
+                    <a href="${logoUrl}" target="_blank" class="text-blue-600 hover:underline text-sm mt-1 block">View Full Size</a>
+                  </div>
+                ` : '<p class="text-gray-500">No logo uploaded</p>'}
+                
+                ${backgroundUrl ? `
+                  <div>
+                    <p class="font-medium mb-2">Background/Wallpaper:</p>
+                    <img src="${backgroundUrl}" alt="Background" class="max-w-xs h-auto rounded border border-gray-200" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect fill=\'%23ddd\' width=\'200\' height=\'200\'/%3E%3Ctext fill=\'%23999\' font-family=\'sans-serif\' font-size=\'14\' dy=\'10.5\' x=\'50%\' y=\'50%\' text-anchor=\'middle\'%3EBackground%3C/text%3E%3C/svg%3E'; this.onerror=null;">
+                    <a href="${backgroundUrl}" target="_blank" class="text-blue-600 hover:underline text-sm mt-1 block">View Full Size</a>
+                  </div>
+                ` : '<p class="text-gray-500">No background uploaded</p>'}
+                
+                ${videoUrl ? `
+                  <div>
+                    <p class="font-medium mb-2">Intro Video:</p>
+                    <video src="${videoUrl}" controls class="max-w-xs rounded border border-gray-200" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                      Your browser does not support the video tag.
+                    </video>
+                    <a href="${videoUrl}" target="_blank" class="text-blue-600 hover:underline text-sm mt-1 block" style="display:none;">View Video</a>
+                    <a href="${videoUrl}" target="_blank" class="text-blue-600 hover:underline text-sm mt-1">Download Video</a>
+                  </div>
+                ` : '<p class="text-gray-500">No intro video uploaded</p>'}
+              </div>
+            </div>
+
+            <!-- Additional Info -->
+            <div>
+              <h4 class="font-semibold text-gray-900 mb-3">Additional Information</h4>
+              <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+                ${order.project_name ? `<p><span class="font-medium">Project Name:</span> ${order.project_name}</p>` : ''}
+                <p><span class="font-medium">Order ID:</span> 
+                  <span class="font-mono">${order.id}</span>
+                  <button onclick="navigator.clipboard.writeText('${order.id}')" class="ml-2 text-blue-600 hover:text-blue-800 text-sm">Copy</button>
+                </p>
+                <p><span class="font-medium">Created:</span> ${new Date(order.created_at).toLocaleString()}</p>
+                <p><span class="font-medium">Updated:</span> ${new Date(order.updated_at).toLocaleString()}</p>
+              </div>
+            </div>
+          </div>
+        `;
       });
-    }
-    
-    function showToast(message, type = 'success') {
-      const toast = document.createElement('div');
-      toast.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-medium text-sm transform transition-all duration-300 ${
-        type === 'success' ? 'bg-green-500' : 'bg-red-500'
-      }`;
-      toast.textContent = message;
-      document.body.appendChild(toast);
-      
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(-20px)';
-        setTimeout(() => toast.remove(), 300);
-      }, 2000);
-    }
-    
-    
-    
-    // Make functions globally available
-    window.openAppDetails = openAppDetails;
-    window.closeAppDetailsModal = closeAppDetailsModal;
-    window.openOrderDetails = openOrderDetails;
-    window.closeOrderDetailsModal = closeOrderDetailsModal;
-    window.copyToClipboard = copyToClipboard;
-    window.loadOrders = loadOrders;
-    window.showToast = showToast;
-    
-    // Initialize - Do not load anything by default
-    document.addEventListener('DOMContentLoaded', async () => {
-      await waitForSupabase();
-      // Do not load anything until ORDER button is clicked
+  }
+
+  // Close order details modal
+  function closeOrderDetailsModal() {
+    document.getElementById('order-details-modal').classList.add('hidden');
+  }
+
+  // Event listeners
+  document.addEventListener('DOMContentLoaded', async () => {
+    await initSupabase();
+
+    // Orders button
+    document.getElementById('orders-btn').addEventListener('click', () => {
+      loadOrders();
     });
-    
-    // Close modal on backdrop click
-    document.getElementById('app-details-modal').addEventListener('click', (e) => {
-      if (e.target.id === 'app-details-modal') {
-        closeAppDetailsModal();
-      }
-    });
-    
-    // Close order modal on backdrop click
+
+    // Close modal
+    document.getElementById('close-order-modal').addEventListener('click', closeOrderDetailsModal);
     document.getElementById('order-details-modal').addEventListener('click', (e) => {
       if (e.target.id === 'order-details-modal') {
         closeOrderDetailsModal();
       }
     });
-  </script>
-</AdminLayout>
+  });
 
+  // Listen for supabase-ready event
+  window.addEventListener('supabase-ready', async () => {
+    await initSupabase();
+  });
+</script>

@@ -604,29 +604,6 @@ import AuthGuard from '../components/AuthGuard.astro';
 
       console.log(' Tickets loaded:', tickets?.length || 0);
 
-      // Fetch replies for all tickets
-      const ticketIds = tickets?.map(t => t.id) || [];
-      let allReplies = {};
-      
-      if (ticketIds.length > 0) {
-        const { data: replies, error: repliesError } = await supabase
-          .from('support_ticket_replies')
-          .select('*')
-          .in('ticket_id', ticketIds)
-          .eq('is_admin_reply', true)
-          .order('created_at', { ascending: true });
-        
-        if (!repliesError && replies) {
-          // Group replies by ticket_id
-          replies.forEach(reply => {
-            if (!allReplies[reply.ticket_id]) {
-              allReplies[reply.ticket_id] = [];
-            }
-            allReplies[reply.ticket_id].push(reply);
-          });
-        }
-      }
-
       const ticketsList = document.getElementById('my-tickets-list');
       const noTickets = document.getElementById('no-tickets');
 
@@ -640,29 +617,52 @@ import AuthGuard from '../components/AuthGuard.astro';
       ticketsList.classList.remove('hidden');
 
       ticketsList.innerHTML = tickets.map(ticket => {
-        // Get admin replies from support_ticket_replies table
-        const ticketReplies = allReplies[ticket.id] || [];
+        // Parse admin replies
         let adminRepliesHtml = '';
-        
-        if (ticketReplies.length > 0) {
-          adminRepliesHtml = `
-            <div class="mt-4 p-2 sm:p-3 bg-blue-50 rounded-lg overflow-hidden">
-              <h5 class="font-semibold text-blue-900 mb-2 text-sm sm:text-base">Admin Replies (${ticketReplies.length}):</h5>
-              ${ticketReplies.map((reply) => `
-                <div class="mb-2 sm:mb-3 p-2 sm:p-3 bg-white rounded border-l-4 border-blue-500 overflow-hidden">
-                  <div class="flex items-start justify-between">
-                    <div class="flex-1 min-w-0">
-                      <p class="text-xs sm:text-sm text-gray-700 break-words overflow-wrap-anywhere whitespace-pre-wrap break-all">${reply.reply_text || 'No message'}</p>
-                      <p class="text-xs text-blue-600 mt-1 break-words overflow-wrap-anywhere">By: Admin</p>
+        if (ticket.admin_replies) {
+          let replies = [];
+          
+          // Handle different data structures
+          if (Array.isArray(ticket.admin_replies)) {
+            replies = ticket.admin_replies;
+          } else if (typeof ticket.admin_replies === 'string') {
+            try {
+              replies = JSON.parse(ticket.admin_replies);
+            } catch (e) {
+              replies = [{ message: ticket.admin_replies, timestamp: new Date().toISOString() }];
+            }
+          } else if (typeof ticket.admin_replies === 'object') {
+            replies = [ticket.admin_replies];
+          }
+          
+          if (replies && replies.length > 0) {
+            adminRepliesHtml = `
+              <div class="mt-4 p-2 sm:p-3 bg-blue-50 rounded-lg overflow-hidden">
+                <h5 class="font-semibold text-blue-900 mb-2 text-sm sm:text-base">Admin Replies (${replies.length}):</h5>
+                ${replies.map((reply, index) => `
+                  <div class="mb-2 sm:mb-3 p-2 sm:p-3 bg-white rounded border-l-4 border-blue-500 overflow-hidden">
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1 min-w-0">
+                        <p class="text-xs sm:text-sm text-gray-700 break-words overflow-wrap-anywhere whitespace-pre-wrap break-all">${reply.message || reply.reply || reply || 'No message'}</p>
+                        ${reply.admin_name ? `<p class="text-xs text-blue-600 mt-1 break-words overflow-wrap-anywhere">By: ${reply.admin_name}</p>` : ''}
+                      </div>
                     </div>
+                    <p class="text-xs text-gray-500 mt-2 break-words overflow-wrap-anywhere">
+                      ${reply.timestamp ? new Date(reply.timestamp).toLocaleString() : 
+                        reply.created_at ? new Date(reply.created_at).toLocaleString() : 
+                        'Recently'}
+                    </p>
                   </div>
-                  <p class="text-xs text-gray-500 mt-2 break-words overflow-wrap-anywhere">
-                    ${reply.created_at ? new Date(reply.created_at).toLocaleString() : 'Recently'}
-                  </p>
-                </div>
-              `).join('')}
-            </div>
-          `;
+                `).join('')}
+              </div>
+            `;
+          } else {
+            adminRepliesHtml = `
+              <div class="mt-4 p-2 sm:p-3 bg-gray-50 rounded-lg">
+                <p class="text-xs sm:text-sm text-gray-500">No admin replies yet</p>
+              </div>
+            `;
+          }
         } else {
           adminRepliesHtml = `
             <div class="mt-4 p-2 sm:p-3 bg-gray-50 rounded-lg">
@@ -698,9 +698,26 @@ import AuthGuard from '../components/AuthGuard.astro';
                 View Details
               </button>
               <span class="text-xs text-gray-400">
-                ${ticketReplies.length > 0 ? 
-                  `${ticketReplies.length} admin ${ticketReplies.length === 1 ? 'reply' : 'replies'}` : 
-                  'No admin replies yet'}
+                ${(() => {
+                  let replyCount = 0;
+                  if (ticket.admin_replies) {
+                    if (Array.isArray(ticket.admin_replies)) {
+                      replyCount = ticket.admin_replies.length;
+                    } else if (typeof ticket.admin_replies === 'string') {
+                      try {
+                        const parsed = JSON.parse(ticket.admin_replies);
+                        replyCount = Array.isArray(parsed) ? parsed.length : 1;
+                      } catch (e) {
+                        replyCount = 1;
+                      }
+                    } else if (typeof ticket.admin_replies === 'object') {
+                      replyCount = 1;
+                    }
+                  }
+                  return replyCount > 0 ? 
+                    `${replyCount} admin ${replyCount === 1 ? 'reply' : 'replies'}` : 
+                    'No admin replies yet';
+                })()}
               </span>
             </div>
             
