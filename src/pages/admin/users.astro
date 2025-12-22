@@ -3,16 +3,46 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 ---
 
 <AdminLayout title="Users - Admin Panel">
-  <div class="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-7xl mx-auto">
+  <div class="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 overflow-x-hidden">
+    <div class="max-w-7xl mx-auto w-full">
       <!-- Header -->
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Users</h1>
-        <p class="mt-2 text-gray-600">Manage user accounts and permissions</p>
+      <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="min-w-0 flex-1">
+          <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Users</h1>
+          <p class="mt-2 text-sm sm:text-base text-gray-600">Manage user accounts and permissions</p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-2 flex-shrink-0">
+          <a 
+            href="/admin" 
+            class="bg-primary-600 hover:bg-primary-700 text-white px-4 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors text-center whitespace-nowrap"
+          >
+            Back to Dashboard
+          </a>
+          <a 
+            href="/" 
+            class="bg-gray-600 hover:bg-gray-700 text-white px-4 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors text-center whitespace-nowrap"
+          >
+            Back to Site
+          </a>
+        </div>
       </div>
 
       <!-- Content Area -->
       <div class="bg-white rounded-lg shadow-md p-6">
+        <!-- Search Bar -->
+        <div class="mb-6">
+          <div class="relative">
+            <input 
+              type="text" 
+              id="email-search-input"
+              placeholder="Search by email..."
+              class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            />
+            <svg class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+        </div>
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-2xl font-bold text-gray-900">All Users</h2>
           <div id="users-loading" class="hidden">
@@ -31,7 +61,69 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       </div>
     </div>
   </div>
+
+  <!-- User Details Modal -->
+  <div id="user-details-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div class="flex items-center justify-between p-4 md:p-5 border-b flex-shrink-0">
+        <h3 class="text-xl md:text-2xl font-bold text-gray-900 break-words">User Details</h3>
+        <button 
+          id="close-user-modal"
+          class="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0 ml-2"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div id="user-details-content" class="overflow-y-auto p-4 md:p-5 space-y-4 flex-1 min-w-0">
+        <!-- Details will be populated here -->
+      </div>
+    </div>
+  </div>
 </AdminLayout>
+
+<style>
+  #user-details-modal .bg-white {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  #user-details-content * {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  #user-details-content p,
+  #user-details-content span,
+  #user-details-content div {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  #user-details-content .bg-gray-50 {
+    overflow: hidden;
+  }
+  
+  /* Users table - prevent overflow */
+  #users-container table {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  #users-container td {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 200px;
+  }
+  
+  #users-container td * {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+</style>
 
 <script>
   const SUPABASE_URL = 'https://tguopyxmlfxcalhfitob.supabase.co';
@@ -85,6 +177,8 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     }
   }
 
+  let allUsers = [];
+
   // Load users from Supabase
   async function loadUsers() {
     if (!supabaseClient) {
@@ -127,15 +221,33 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
             <p class="mt-1 text-sm text-gray-500">No users have been registered yet.</p>
           </div>
         `;
+        allUsers = [];
         return;
       }
 
+      allUsers = data;
       renderUsers(data);
     } catch (error) {
       console.error('❌ Error in loadUsers:', error);
       usersContainer.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`;
       usersLoading.classList.add('hidden');
     }
+  }
+
+  // Filter users by email
+  function filterUsersByEmail(searchTerm) {
+    if (!searchTerm || searchTerm.trim() === '') {
+      renderUsers(allUsers);
+      return;
+    }
+
+    const term = searchTerm.toLowerCase().trim();
+    const filtered = allUsers.filter(user => {
+      const email = (user.email || '').toLowerCase();
+      return email.includes(term);
+    });
+
+    renderUsers(filtered);
   }
 
   // Render users list
@@ -151,18 +263,19 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     table.className = 'min-w-full divide-y divide-gray-200';
     
     // Table header
-    const thead = document.createElement('thead');
-    thead.className = 'bg-gray-50';
-    thead.innerHTML = `
-      <tr>
-        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-      </tr>
-    `;
+      const thead = document.createElement('thead');
+      thead.className = 'bg-gray-50';
+      thead.innerHTML = `
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+        </tr>
+      `;
     
     // Table body
     const tbody = document.createElement('tbody');
@@ -198,8 +311,8 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       const createdDate = user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A';
       
       row.innerHTML = `
-        <td class="px-6 py-4 whitespace-nowrap">
-          <div class="flex items-center">
+        <td class="px-6 py-4">
+          <div class="flex items-center min-w-0">
             <div class="flex-shrink-0 h-10 w-10">
               ${user.avatar_url ? 
                 `<img class="h-10 w-10 rounded-full" src="${user.avatar_url}" alt="${fullName}">` :
@@ -208,14 +321,14 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
                 </div>`
               }
             </div>
-            <div class="ml-4">
-              <div class="text-sm font-medium text-gray-900">${fullName}</div>
-              ${user.username ? `<div class="text-sm text-gray-500">@${user.username}</div>` : ''}
+            <div class="ml-4 min-w-0 flex-1">
+              <div class="text-sm font-medium text-gray-900 break-words overflow-wrap-anywhere">${fullName}</div>
+              ${user.username ? `<div class="text-sm text-gray-500 break-words overflow-wrap-anywhere">@${user.username}</div>` : ''}
             </div>
           </div>
         </td>
-        <td class="px-6 py-4 whitespace-nowrap">
-          <div class="text-sm text-gray-900">${email}</div>
+        <td class="px-6 py-4">
+          <div class="text-sm text-gray-900 break-words overflow-wrap-anywhere">${email}</div>
         </td>
         <td class="px-6 py-4 whitespace-nowrap">
           <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${roleColor}">
@@ -227,11 +340,19 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
             ${status.replace('_', ' ')}
           </span>
         </td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-          ${phone}
+        <td class="px-6 py-4 text-sm text-gray-500">
+          <div class="break-words overflow-wrap-anywhere">${phone}</div>
         </td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
           ${createdDate}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm">
+          <button 
+            onclick="openUserDetails('${user.id}')"
+            class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
+          >
+            View
+          </button>
         </td>
       `;
       
@@ -244,15 +365,198 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     usersContainer.appendChild(tableWrapper);
   }
 
+  // Store users globally for access
+  if (!window.usersData) {
+    window.usersData = {};
+  }
+
+  // Open user details modal
+  window.openUserDetails = function(userId) {
+    const user = allUsers.find(u => u.id === userId);
+    if (!user) {
+      console.error('User not found:', userId);
+      return;
+    }
+    openUserDetailsModal(user);
+  };
+
+  // Lock body scroll when modal is open
+  function lockBodyScroll() {
+    document.body.style.overflow = 'hidden';
+  }
+
+  // Unlock body scroll when modal is closed
+  function unlockBodyScroll() {
+    document.body.style.overflow = '';
+  }
+
+  // Open user details modal
+  function openUserDetailsModal(user) {
+    const modal = document.getElementById('user-details-modal');
+    const content = document.getElementById('user-details-content');
+    
+    if (!modal || !content) return;
+    
+    const escapeHtml = (text) => {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    };
+    
+    const formatDate = (dateString) => {
+      if (!dateString) return 'N/A';
+      const date = new Date(dateString);
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    };
+    
+    const statusColors = {
+      'active': 'bg-green-100 text-green-800',
+      'inactive': 'bg-gray-100 text-gray-800',
+      'suspended': 'bg-red-100 text-red-800',
+      'pending_verification': 'bg-yellow-100 text-yellow-800'
+    };
+    
+    const roleColors = {
+      'admin': 'bg-purple-100 text-purple-800',
+      'customer': 'bg-blue-100 text-blue-800',
+      'developer': 'bg-indigo-100 text-indigo-800',
+      'support': 'bg-teal-100 text-teal-800',
+      'menu_operator': 'bg-orange-100 text-orange-800'
+    };
+    
+    const status = user.status || 'pending_verification';
+    const role = user.role || 'customer';
+    const statusColor = statusColors[status] || 'bg-gray-100 text-gray-800';
+    const roleColor = roleColors[role] || 'bg-gray-100 text-gray-800';
+    const fullName = user.full_name || user.username || 'N/A';
+    
+    content.innerHTML = `
+      <div class="space-y-4">
+        <!-- User Information -->
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <h4 class="text-lg font-semibold text-gray-900 mb-3">User Information</h4>
+          <div class="space-y-2">
+            <div class="flex items-center gap-4">
+              ${user.avatar_url ? 
+                `<img class="h-16 w-16 rounded-full" src="${escapeHtml(user.avatar_url)}" alt="${escapeHtml(fullName)}">` :
+                `<div class="h-16 w-16 rounded-full bg-gray-300 flex items-center justify-center">
+                  <span class="text-gray-600 font-medium text-xl">${fullName.charAt(0).toUpperCase()}</span>
+                </div>`
+              }
+              <div class="min-w-0 flex-1">
+                <h5 class="text-lg font-semibold text-gray-900 break-words overflow-wrap-anywhere">${escapeHtml(fullName)}</h5>
+                ${user.username ? `<p class="text-sm text-gray-600 break-words overflow-wrap-anywhere">@${escapeHtml(user.username)}</p>` : ''}
+              </div>
+            </div>
+            <div class="mt-4 space-y-2">
+              <div>
+                <span class="text-sm font-medium text-gray-600">Email:</span>
+                <p class="text-gray-900 break-words overflow-wrap-anywhere">${escapeHtml(user.email || 'N/A')}</p>
+              </div>
+              ${user.phone ? `
+                <div>
+                  <span class="text-sm font-medium text-gray-600">Phone:</span>
+                  <p class="text-gray-900 break-words overflow-wrap-anywhere">${escapeHtml(user.phone)}</p>
+                </div>
+              ` : ''}
+              <div class="flex gap-2">
+                <div>
+                  <span class="text-sm font-medium text-gray-600">Role:</span>
+                  <span class="px-2 py-1 rounded text-xs font-medium ${roleColor} ml-2">${escapeHtml(role)}</span>
+                </div>
+                <div>
+                  <span class="text-sm font-medium text-gray-600">Status:</span>
+                  <span class="px-2 py-1 rounded text-xs font-medium ${statusColor} ml-2">${escapeHtml(status.replace('_', ' '))}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional Information -->
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <h4 class="text-lg font-semibold text-gray-900 mb-3">Additional Information</h4>
+          <div class="space-y-2">
+            <div>
+              <span class="text-sm font-medium text-gray-600">User ID:</span>
+              <p class="text-gray-900 font-mono text-xs break-all">${escapeHtml(user.id || 'N/A')}</p>
+            </div>
+            <div>
+              <span class="text-sm font-medium text-gray-600">Created:</span>
+              <p class="text-gray-900">${formatDate(user.created_at)}</p>
+            </div>
+            ${user.updated_at && user.updated_at !== user.created_at ? `
+              <div>
+                <span class="text-sm font-medium text-gray-600">Last Updated:</span>
+                <p class="text-gray-900">${formatDate(user.updated_at)}</p>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+    
+    modal.classList.remove('hidden');
+    lockBodyScroll();
+  }
+
+  // Close user details modal
+  function closeUserModal() {
+    const modal = document.getElementById('user-details-modal');
+    if (modal) {
+      modal.classList.add('hidden');
+      unlockBodyScroll();
+    }
+  }
+
+  // Close modal when clicking outside
+  document.addEventListener('click', (e) => {
+    const modal = document.getElementById('user-details-modal');
+    if (modal && e.target === modal) {
+      closeUserModal();
+    }
+  });
+
+  // Close modal button
+  document.addEventListener('DOMContentLoaded', () => {
+    const closeBtn = document.getElementById('close-user-modal');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeUserModal);
+    }
+  });
+
   // Event listeners
   document.addEventListener('DOMContentLoaded', async () => {
     await initSupabase();
     loadUsers();
+
+    // Search input listener
+    const searchInput = document.getElementById('email-search-input');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        filterUsersByEmail(e.target.value);
+      });
+    }
   });
 
   window.addEventListener('supabase-ready', async () => {
     await initSupabase();
     loadUsers();
+
+    // Search input listener
+    const searchInput = document.getElementById('email-search-input');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        filterUsersByEmail(e.target.value);
+      });
+    }
   });
 </script>
 

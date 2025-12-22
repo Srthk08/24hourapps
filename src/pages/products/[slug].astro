@@ -392,7 +392,13 @@ const style = categoryStyles[product.category];
           </div>
         </div>
         <div class="relative">
-          <img src={product.featured_image} alt={product.name} class="rounded-lg shadow-2xl" />
+          <img 
+            src={product.featured_image || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop&crop=center'} 
+            alt={product.name} 
+            class="rounded-lg shadow-2xl w-full h-auto"
+            onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop&crop=center';"
+            loading="eager"
+          />
           <div class="absolute -bottom-6 -right-6 bg-white p-4 rounded-lg shadow-lg">
             <div class="text-2xl font-bold text-gray-900">{product.slug === 'android-tv-app' ? '£99.00' : `₹${product.base_price.toLocaleString('en-IN')}`}</div>
             <div class="text-sm text-gray-600">Starting Price</div>
@@ -580,7 +586,7 @@ const style = categoryStyles[product.category];
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {productPlans.map((plan) => (
-            <div class={`${isRestaurantMenuSystem ? 'bg-white/90 backdrop-blur-sm border border-blue-200' : isAndroidTVApp ? 'bg-white/90 backdrop-blur-sm border border-purple-200' : isStreamingMobileApp ? 'bg-white/90 backdrop-blur-sm border border-pink-200' : isRestaurantWebsite ? 'bg-white/90 backdrop-blur-sm border border-emerald-200' : 'bg-white'} rounded-xl shadow-lg p-8 ${plan.is_popular ? 'ring-2 ring-primary-500 relative' : ''}`}>
+            <div class={`${isRestaurantMenuSystem ? 'bg-white/90 backdrop-blur-sm border border-blue-200' : isAndroidTVApp ? 'bg-white/90 backdrop-blur-sm border border-purple-200' : isStreamingMobileApp ? 'bg-white/90 backdrop-blur-sm border border-pink-200' : isRestaurantWebsite ? 'bg-white/90 backdrop-blur-sm border border-emerald-200' : 'bg-white'} rounded-xl shadow-lg p-8 flex flex-col ${plan.is_popular ? 'ring-2 ring-primary-500 relative' : ''}`}>
               {plan.is_popular && (
                 <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
                   <span class="bg-primary-500 text-white px-4 py-2 rounded-full text-sm font-medium">Most Popular</span>
@@ -601,7 +607,7 @@ const style = categoryStyles[product.category];
                   <div class={`text-sm ${isRestaurantMenuSystem ? 'text-blue-700' : isAndroidTVApp ? 'text-purple-700' : isStreamingMobileApp ? 'text-pink-700' : isRestaurantWebsite ? 'text-emerald-700' : 'text-gray-500'}`}>Delivery in {plan.delivery_days} day{plan.delivery_days > 1 ? 's' : ''}</div>
               </div>
               
-              <ul class="space-y-3 mb-8">
+              <ul class="space-y-3 mb-8 flex-grow">
                 {plan.features.map((feature) => (
                   <li class="flex items-center">
                     <svg class="w-5 h-5 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -613,21 +619,30 @@ const style = categoryStyles[product.category];
               </ul>
               
               <button 
-                onclick={`redirectToCustomize('${product.id}', '${plan.id}', '${plan.name}', ${plan.price})`}
-                class={`w-full py-3 px-6 rounded-lg font-medium transition-all ${
-                  plan.is_popular 
-                    ? 'bg-primary-600 hover:bg-primary-700 text-white' 
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                data-product-id={product.id}
+                data-plan-id={plan.id}
+                data-plan-name={plan.name}
+                data-price={plan.price}
+                data-product-name={product.name}
+                data-delivery-days={plan.delivery_days || 0}
+                data-features={JSON.stringify(plan.features || [])}
+                data-description={plan.description || ''}
+                data-product-slug={product.slug || ''}
+                onclick="handlePlanSelection(this)"
+                class={`w-full py-3 px-6 rounded-lg font-medium transition-all mt-auto ${
+                  isAndroidTVApp
+                    ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                    : isRestaurantMenuSystem
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                    : isStreamingMobileApp
+                    ? 'bg-pink-600 hover:bg-pink-700 text-white'
+                    : isRestaurantWebsite
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    : 'bg-primary-600 hover:bg-primary-700 text-white'
                 }`}
               >
                 Choose {plan.name}
               </button>
-              <p class="text-xs text-gray-500 mt-2 text-center">
-                <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                </svg>
-                Login required to select
-              </p>
             </div>
           ))}
         </div>
@@ -744,9 +759,24 @@ const style = categoryStyles[product.category];
     });
   });
 
+  // Handle plan selection from button data attributes
+  window.handlePlanSelection = function(button: HTMLElement) {
+    const productId = button.getAttribute('data-product-id') || '';
+    const planId = button.getAttribute('data-plan-id') || '';
+    const planName = button.getAttribute('data-plan-name') || '';
+    const price = parseFloat(button.getAttribute('data-price') || '0');
+    const productName = button.getAttribute('data-product-name') || '';
+    const deliveryDays = parseInt(button.getAttribute('data-delivery-days') || '0');
+    const featuresJson = button.getAttribute('data-features') || '[]';
+    const description = button.getAttribute('data-description') || '';
+    const productSlug = button.getAttribute('data-product-slug') || '';
+    
+    window.redirectToCustomize(productId, planId, planName, price, productName, deliveryDays, featuresJson, description, productSlug);
+  };
+
   // Redirect to customization form functionality
-  window.redirectToCustomize = function(productId: string, planId: string, planName: string, price: number) {
-    console.log('🛒 redirectToCustomize called with:', { productId, planId, planName, price });
+  window.redirectToCustomize = function(productId: string, planId: string, planName: string, price: number, productName?: string, deliveryDays?: number, featuresJson?: string, description?: string, productSlug?: string) {
+    console.log('🛒 redirectToCustomize called with:', { productId, planId, planName, price, productName, deliveryDays, featuresJson, description, productSlug });
     
     // Check authentication using multiple methods for reliability
     const authManager = window.globalAuthManager || window.simpleAuthManager;
@@ -777,16 +807,28 @@ const style = categoryStyles[product.category];
       isAuthenticated
     });
     
+    // Build URL parameters
+    const params = new URLSearchParams();
+    params.set('product', productId);
+    params.set('plan', planId);
+    params.set('planName', planName);
+    params.set('price', price.toString());
+    if (productName) params.set('productName', productName);
+    if (deliveryDays) params.set('deliveryDays', deliveryDays.toString());
+    if (featuresJson) params.set('features', featuresJson);
+    if (description) params.set('description', description);
+    if (productSlug) params.set('productSlug', productSlug);
+    
+    const customizeUrl = `/customize?${params.toString()}`;
+    
     if (isAuthenticated) {
       // User is authenticated, redirect to customization form with product and plan info
       console.log('✅ User authenticated, redirecting to customization form');
-      const customizeUrl = `/customize?product=${productId}&plan=${planId}&planName=${encodeURIComponent(planName)}&price=${price}`;
       console.log('🔗 Redirecting to:', customizeUrl);
       window.location.href = customizeUrl;
     } else {
       // User is not authenticated, redirect to login with return URL
       console.log('❌ User not authenticated, redirecting to login');
-      const customizeUrl = `/customize?product=${productId}&plan=${planId}&planName=${encodeURIComponent(planName)}&price=${price}`;
       const loginUrl = `/login?redirect=${encodeURIComponent(customizeUrl)}`;
       console.log('🔗 Redirecting to:', loginUrl);
       window.location.href = loginUrl;

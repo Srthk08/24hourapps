@@ -306,41 +306,86 @@ import Layout from '../layouts/Layout.astro';
   }
 
   // Populate plan details on right side
+  async function populatePlanDetails() {
   const planDetailsContainer = document.getElementById('selected-plan-details');
-  if (planDetailsContainer && productName && planName && price) {
+    if (!planDetailsContainer) return;
+
+    // Escape HTML to prevent XSS
+    const escapeHtml = (text: string) => {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    };
+
+    // If we have planName and price from URL, use them (even without productName)
+    if (planName && price) {
+      displayPlanFromURL(planDetailsContainer, escapeHtml);
+      return;
+    }
+
+    // Otherwise, try to fetch from Supabase
+    if (productId && planId) {
+      await fetchAndDisplayPlan(planDetailsContainer, escapeHtml);
+      return;
+    }
+
+    // If we have at least planName, show what we can
+    if (planName) {
+      const isAndroidTVApp = productSlug === 'android-tv-app';
+      const displayPrice = isAndroidTVApp && planName === 'Standard' ? '£99.00' : 
+                          isAndroidTVApp && planName === 'Pro' ? '£299.00' :
+                          isAndroidTVApp && planName === 'Pro Gold' ? '£449.00' :
+                          price ? `₹${parseFloat(price).toLocaleString('en-IN')}` : 'Price not available';
+      
+      planDetailsContainer.innerHTML = `
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <h4 class="text-lg font-semibold text-gray-900 mb-2">${escapeHtml(productName || 'Product')}</h4>
+          <p class="text-gray-600 text-sm mb-4">${escapeHtml(planName)} Plan</p>
+          <div class="text-2xl font-bold text-primary-600 mb-2">${displayPrice}</div>
+          <p class="text-gray-500 text-sm mb-2">Lifetime</p>
+        </div>
+      `;
+      return;
+    }
+
+    // Fallback: show loading or empty state
+    planDetailsContainer.innerHTML = `
+      <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <p class="text-gray-500 text-sm">Loading plan details...</p>
+      </div>
+    `;
+  }
+
+  function displayPlanFromURL(container: HTMLElement, escapeHtml: (text: string) => string) {
     // Check if it's Android TV App by slug or product name
     const isAndroidTVApp = productSlug === 'android-tv-app' || 
-                          productName.toLowerCase().includes('android tv') ||
+                          (productName && productName.toLowerCase().includes('android tv')) ||
                           productName === 'Android TV App';
     
     // Android TV App prices in GBP (£)
     const displayPrice = isAndroidTVApp && planName === 'Standard' ? '£99.00' : 
                         isAndroidTVApp && planName === 'Pro' ? '£299.00' :
                         isAndroidTVApp && planName === 'Pro Gold' ? '£449.00' :
-                        `₹${parseFloat(price).toLocaleString('en-IN')}`;
+                        `₹${parseFloat(price || '0').toLocaleString('en-IN')}`;
     
     const paymentTerm = 'Lifetime';
+    const planDeliveryDays = planData.delivery_days || (deliveryDays ? parseInt(deliveryDays) : 0);
+    const features = planData.features || [];
     
-    // Escape HTML to prevent XSS and fix encoding issues
-    const escapeHtml = (text: string) => {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    };
-    
-    planDetailsContainer.innerHTML = `
+    container.innerHTML = `
       <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-        <h4 class="text-lg font-semibold text-gray-900 mb-2">${escapeHtml(productName)}</h4>
+        <h4 class="text-lg font-semibold text-gray-900 mb-2">${escapeHtml(productName || 'Product')}</h4>
         <p class="text-gray-600 text-sm mb-4">${escapeHtml(planName)} Plan</p>
         <div class="text-2xl font-bold text-primary-600 mb-2">${displayPrice}</div>
         <p class="text-gray-500 text-sm mb-2">${paymentTerm}</p>
-        ${planData.delivery_days && planData.delivery_days > 0 ? `<p class="text-gray-500 text-sm">Delivery in ${planData.delivery_days} day${planData.delivery_days > 1 ? 's' : ''}</p>` : ''}
+        ${planDeliveryDays > 0 ? `<p class="text-gray-500 text-sm">Delivery in ${planDeliveryDays} day${planDeliveryDays > 1 ? 's' : ''}</p>` : ''}
       </div>
-      ${planData.features && planData.features.length > 0 ? `
-        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+      ${features.length > 0 ? `
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 mt-4">
           <h5 class="text-gray-900 font-medium mb-3">Features:</h5>
           <ul class="space-y-2">
-            ${planData.features.map((feature: string) => `
+            ${features.map((feature: string) => `
               <li class="flex items-start text-gray-700 text-sm">
                 <svg class="w-4 h-4 text-primary-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -352,6 +397,99 @@ import Layout from '../layouts/Layout.astro';
         </div>
       ` : ''}
     `;
+  }
+
+  async function fetchAndDisplayPlan(container: HTMLElement, escapeHtml: (text: string) => string) {
+    try {
+      // Wait for Supabase to be ready
+      const supabase = await waitForSupabase();
+      if (!supabase) {
+        container.innerHTML = `
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <p class="text-gray-500 text-sm">Unable to load plan details. Please refresh the page.</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Fetch product details
+      const { data: productData } = await supabase
+        .from('products')
+        .select('name, slug')
+        .eq('id', productId)
+        .single();
+
+      // Fetch plan details
+      const { data: planDataFromDB } = await supabase
+        .from('product_plans')
+        .select('*')
+        .eq('id', planId)
+        .single();
+
+      if (!planDataFromDB) {
+        container.innerHTML = `
+          <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <p class="text-gray-500 text-sm">Plan not found.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const productNameFromDB = productData?.name || productName || 'Product';
+      const productSlugFromDB = productData?.slug || productSlug || '';
+      const isAndroidTVApp = productSlugFromDB === 'android-tv-app';
+
+      // Android TV App prices in GBP (£)
+      const displayPrice = isAndroidTVApp && planDataFromDB.name === 'Standard' ? '£99.00' : 
+                          isAndroidTVApp && planDataFromDB.name === 'Pro' ? '£299.00' :
+                          isAndroidTVApp && planDataFromDB.name === 'Pro Gold' ? '£449.00' :
+                          `₹${parseFloat(planDataFromDB.price || 0).toLocaleString('en-IN')}`;
+
+      const features = planDataFromDB.features || [];
+      const deliveryDays = planDataFromDB.delivery_days || 0;
+
+      container.innerHTML = `
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <h4 class="text-lg font-semibold text-gray-900 mb-2">${escapeHtml(productNameFromDB)}</h4>
+          <p class="text-gray-600 text-sm mb-4">${escapeHtml(planDataFromDB.name)} Plan</p>
+          <div class="text-2xl font-bold text-primary-600 mb-2">${displayPrice}</div>
+          <p class="text-gray-500 text-sm mb-2">Lifetime</p>
+          ${deliveryDays > 0 ? `<p class="text-gray-500 text-sm">Delivery in ${deliveryDays} day${deliveryDays > 1 ? 's' : ''}</p>` : ''}
+        </div>
+        ${features.length > 0 ? `
+          <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 mt-4">
+          <h5 class="text-gray-900 font-medium mb-3">Features:</h5>
+          <ul class="space-y-2">
+              ${features.map((feature: string) => `
+              <li class="flex items-start text-gray-700 text-sm">
+                <svg class="w-4 h-4 text-primary-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span>${escapeHtml(feature)}</span>
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+      ` : ''}
+    `;
+    } catch (error) {
+      console.error('Error fetching plan details:', error);
+      container.innerHTML = `
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <p class="text-gray-500 text-sm">Error loading plan details.</p>
+        </div>
+      `;
+    }
+  }
+
+  // Call populatePlanDetails when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      populatePlanDetails();
+    });
+  } else {
+    // DOM is already ready
+    populatePlanDetails();
   }
 
   // Wait for Supabase to be ready

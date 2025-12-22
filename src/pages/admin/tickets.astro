@@ -3,16 +3,46 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 ---
 
 <AdminLayout title="Tickets - Admin Panel">
-  <div class="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-7xl mx-auto">
+  <div class="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 overflow-x-hidden">
+    <div class="max-w-7xl mx-auto w-full">
       <!-- Header -->
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Support Tickets</h1>
-        <p class="mt-2 text-gray-600">Manage and respond to customer support tickets</p>
+      <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="min-w-0 flex-1">
+          <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Support Tickets</h1>
+          <p class="mt-2 text-sm sm:text-base text-gray-600">Manage and respond to customer support tickets</p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-2 flex-shrink-0">
+          <a 
+            href="/admin" 
+            class="bg-primary-600 hover:bg-primary-700 text-white px-4 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors text-center whitespace-nowrap"
+          >
+            Back to Dashboard
+          </a>
+          <a 
+            href="/" 
+            class="bg-gray-600 hover:bg-gray-700 text-white px-4 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors text-center whitespace-nowrap"
+          >
+            Back to Site
+          </a>
+        </div>
       </div>
 
       <!-- Content Area -->
       <div class="bg-white rounded-lg shadow-md p-6">
+        <!-- Search Bar -->
+        <div class="mb-6">
+          <div class="relative">
+            <input 
+              type="text" 
+              id="email-search-input"
+              placeholder="Search by email..."
+              class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            />
+            <svg class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+        </div>
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-2xl font-bold text-gray-900">Support Tickets</h2>
           <div id="tickets-loading" class="hidden">
@@ -31,7 +61,125 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       </div>
     </div>
   </div>
+
+  <!-- Ticket Details Modal -->
+  <div id="ticket-details-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div class="flex items-center justify-between p-4 md:p-5 border-b flex-shrink-0">
+        <h3 class="text-xl md:text-2xl font-bold text-gray-900 break-words">Ticket Details</h3>
+        <button 
+          id="close-ticket-modal"
+          class="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0 ml-2"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div id="ticket-details-content" class="overflow-y-auto p-4 md:p-5 space-y-4 flex-1 min-w-0">
+        <!-- Details will be populated here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Ticket Reply Modal -->
+  <div id="ticket-reply-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div class="flex items-center justify-between p-4 md:p-5 border-b flex-shrink-0">
+        <h3 class="text-xl md:text-2xl font-bold text-gray-900 break-words">Reply to Ticket</h3>
+        <button 
+          id="close-reply-modal"
+          class="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0 ml-2"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="overflow-y-auto p-4 md:p-5 space-y-4 flex-1 min-w-0">
+        <div id="reply-ticket-info" class="bg-gray-50 rounded-lg p-4 border border-gray-200 min-w-0">
+          <!-- Ticket info will be populated here -->
+        </div>
+        <div class="min-w-0">
+          <label for="reply-text" class="block text-sm font-medium text-gray-700 mb-2">Your Reply</label>
+          <textarea 
+            id="reply-text"
+            rows="6"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 min-w-0"
+            placeholder="Type your reply here..."
+          ></textarea>
+        </div>
+        <div id="reply-error" class="hidden text-red-600 text-sm"></div>
+        <div id="reply-success" class="hidden text-green-600 text-sm"></div>
+        <div class="flex gap-2 justify-end">
+          <button 
+            id="cancel-reply"
+            class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button 
+            id="submit-reply"
+            class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
+          >
+            Send Reply
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </AdminLayout>
+
+<style>
+  #ticket-details-modal .bg-white,
+  #ticket-reply-modal .bg-white {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  #ticket-details-content *,
+  #ticket-reply-modal * {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  #ticket-details-content p,
+  #ticket-details-content span,
+  #ticket-details-content div,
+  #ticket-reply-modal p,
+  #ticket-reply-modal span,
+  #ticket-reply-modal div {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  #ticket-details-content .bg-gray-50,
+  #ticket-replies-container .bg-white {
+    overflow: hidden;
+  }
+  
+  /* Ticket list cards - prevent overflow */
+  #tickets-container .border {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  #tickets-container * {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  #tickets-container p,
+  #tickets-container h4,
+  #tickets-container h5 {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+</style>
 
 <script>
   const SUPABASE_URL = 'https://tguopyxmlfxcalhfitob.supabase.co';
@@ -85,6 +233,8 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     }
   }
 
+  let allTickets = [];
+
   // Load tickets from Supabase
   async function loadTickets() {
     if (!supabaseClient) {
@@ -125,15 +275,33 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
             <p class="mt-1 text-sm text-gray-500">Tickets will appear here when customers submit support requests.</p>
           </div>
         `;
+        allTickets = [];
         return;
       }
 
+      allTickets = data;
       renderTickets(data);
     } catch (error) {
       console.error('❌ Error in loadTickets:', error);
       ticketsContainer.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`;
       ticketsLoading.classList.add('hidden');
     }
+  }
+
+  // Filter tickets by email
+  function filterTicketsByEmail(searchTerm) {
+    if (!searchTerm || searchTerm.trim() === '') {
+      renderTickets(allTickets);
+      return;
+    }
+
+    const term = searchTerm.toLowerCase().trim();
+    const filtered = allTickets.filter(ticket => {
+      const email = (ticket.customer_email || ticket.email || ticket.user_email || '').toLowerCase();
+      return email.includes(term);
+    });
+
+    renderTickets(filtered);
   }
 
   // Render tickets list
@@ -144,9 +312,21 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     const ticketsList = document.createElement('div');
     ticketsList.className = 'space-y-4';
 
+    // Store tickets globally for access
+    if (!window.ticketsData) {
+      window.ticketsData = {};
+    }
+
     tickets.forEach((ticket) => {
       const ticketCard = document.createElement('div');
-      ticketCard.className = 'border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow';
+      ticketCard.className = 'border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow overflow-hidden';
+      
+      const escapeHtml = (text) => {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      };
       
       const statusColors = {
         'open': 'bg-yellow-100 text-yellow-800',
@@ -167,20 +347,38 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       const statusColor = statusColors[status] || 'bg-gray-100 text-gray-800';
       const priorityColor = priorityColors[priority] || 'bg-gray-100 text-gray-800';
 
+      // Store ticket data by ID
+      const ticketId = ticket.id || `ticket-${Date.now()}-${Math.random()}`;
+      window.ticketsData[ticketId] = ticket;
+
       ticketCard.innerHTML = `
-        <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <div class="flex items-center gap-2 mb-2">
-              <h4 class="font-semibold text-gray-900">${ticket.ticket_number || 'N/A'}</h4>
-              <span class="px-2 py-1 rounded text-xs font-medium ${statusColor}">${status}</span>
-              <span class="px-2 py-1 rounded text-xs font-medium ${priorityColor}">${priority}</span>
+        <div class="flex flex-col sm:flex-row items-start justify-between gap-4">
+          <div class="flex-1 min-w-0">
+            <div class="flex flex-wrap items-center gap-2 mb-2">
+              <h4 class="font-semibold text-gray-900 break-words overflow-wrap-anywhere">${escapeHtml(ticket.ticket_number || 'N/A')}</h4>
+              <span class="px-2 py-1 rounded text-xs font-medium ${statusColor} whitespace-nowrap">${status}</span>
+              <span class="px-2 py-1 rounded text-xs font-medium ${priorityColor} whitespace-nowrap">${priority}</span>
             </div>
-            <h5 class="font-medium text-gray-900 mb-1">${ticket.subject || 'No Subject'}</h5>
-            <p class="text-sm text-gray-600">${ticket.customer_email || ticket.email || 'N/A'}</p>
-            ${ticket.description ? `<p class="text-sm text-gray-700 mt-2">${ticket.description.substring(0, 150)}${ticket.description.length > 150 ? '...' : ''}</p>` : ''}
+            <h5 class="font-medium text-gray-900 mb-1 break-words overflow-wrap-anywhere word-break-break-word">${escapeHtml(ticket.subject || 'No Subject')}</h5>
+            <p class="text-sm text-gray-600 break-words overflow-wrap-anywhere">${escapeHtml(ticket.customer_email || ticket.email || 'N/A')}</p>
+            ${ticket.description ? `<p class="text-sm text-gray-700 mt-2 break-words overflow-wrap-anywhere word-break-break-word">${escapeHtml(ticket.description.substring(0, 150))}${ticket.description.length > 150 ? '...' : ''}</p>` : ''}
           </div>
-          <div class="text-right ml-4">
-            <p class="text-sm text-gray-500">${new Date(ticket.created_at).toLocaleDateString()}</p>
+          <div class="flex flex-col items-end gap-2 flex-shrink-0">
+            <p class="text-sm text-gray-500 whitespace-nowrap">${new Date(ticket.created_at).toLocaleDateString()}</p>
+            <div class="flex gap-2">
+              <button 
+                onclick="openTicketDetailsById('${ticketId}')"
+                class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
+              >
+                View
+              </button>
+              <button 
+                onclick="openTicketReply('${ticketId}')"
+                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
+              >
+                Reply
+              </button>
+            </div>
           </div>
         </div>
       `;
@@ -191,10 +389,417 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     ticketsContainer.appendChild(ticketsList);
   }
 
+  // Open ticket details modal by ID
+  window.openTicketDetailsById = function(ticketId) {
+    if (!window.ticketsData || !window.ticketsData[ticketId]) {
+      console.error('Ticket not found:', ticketId);
+      return;
+    }
+    openTicketDetails(window.ticketsData[ticketId]);
+  };
+
+  // Store current ticket for reply
+  let currentReplyTicket = null;
+
+  // Open ticket reply
+  window.openTicketReply = function(ticketId) {
+    if (!window.ticketsData || !window.ticketsData[ticketId]) {
+      console.error('Ticket not found:', ticketId);
+      return;
+    }
+    const ticket = window.ticketsData[ticketId];
+    currentReplyTicket = ticket;
+    openReplyModal(ticket);
+  };
+
+  // Lock body scroll when modal is open
+  function lockBodyScroll() {
+    document.body.style.overflow = 'hidden';
+  }
+
+  // Unlock body scroll when modal is closed
+  function unlockBodyScroll() {
+    document.body.style.overflow = '';
+  }
+
+  // Open reply modal
+  function openReplyModal(ticket) {
+    const modal = document.getElementById('ticket-reply-modal');
+    const ticketInfo = document.getElementById('reply-ticket-info');
+    const replyText = document.getElementById('reply-text');
+    const replyError = document.getElementById('reply-error');
+    const replySuccess = document.getElementById('reply-success');
+    
+    if (!modal || !ticketInfo || !replyText) return;
+    
+    const escapeHtml = (text) => {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    };
+    
+    ticketInfo.innerHTML = `
+      <div class="space-y-2 min-w-0">
+        <div>
+          <span class="text-sm font-medium text-gray-600">Ticket Number:</span>
+          <p class="text-gray-900 font-semibold break-words overflow-wrap-anywhere">${escapeHtml(ticket.ticket_number || 'N/A')}</p>
+        </div>
+        <div>
+          <span class="text-sm font-medium text-gray-600">Subject:</span>
+          <p class="text-gray-900 break-words overflow-wrap-anywhere">${escapeHtml(ticket.subject || 'No Subject')}</p>
+        </div>
+        <div>
+          <span class="text-sm font-medium text-gray-600">Customer Email:</span>
+          <p class="text-gray-900 break-words overflow-wrap-anywhere">${escapeHtml(ticket.customer_email || ticket.email || 'N/A')}</p>
+        </div>
+      </div>
+    `;
+    
+    replyText.value = '';
+    replyError.classList.add('hidden');
+    replySuccess.classList.add('hidden');
+    modal.classList.remove('hidden');
+    lockBodyScroll();
+  }
+
+  // Close reply modal
+  function closeReplyModal() {
+    const modal = document.getElementById('ticket-reply-modal');
+    if (modal) {
+      modal.classList.add('hidden');
+      currentReplyTicket = null;
+      unlockBodyScroll();
+    }
+  }
+
+  // Submit reply
+  async function submitReply() {
+    if (!currentReplyTicket || !supabaseClient) {
+      console.error('Ticket or Supabase client not available');
+      return;
+    }
+
+    const replyText = document.getElementById('reply-text');
+    const replyError = document.getElementById('reply-error');
+    const replySuccess = document.getElementById('reply-success');
+    const submitBtn = document.getElementById('submit-reply');
+
+    if (!replyText || !replyError || !replySuccess || !submitBtn) return;
+
+    const replyMessage = replyText.value.trim();
+    if (!replyMessage) {
+      replyError.textContent = 'Please enter a reply message.';
+      replyError.classList.remove('hidden');
+      return;
+    }
+
+    // Disable submit button
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+    replyError.classList.add('hidden');
+    replySuccess.classList.add('hidden');
+
+    try {
+      // Get current user
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Insert reply
+      const { data, error } = await supabaseClient
+        .from('support_ticket_replies')
+        .insert({
+          ticket_id: currentReplyTicket.id,
+          reply_text: replyMessage,
+          replied_by: user.id,
+          is_admin_reply: true
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      // Update ticket status to in_progress if it's open
+      if (currentReplyTicket.status === 'open') {
+        await supabaseClient
+          .from('support_tickets')
+          .update({ status: 'in_progress' })
+          .eq('id', currentReplyTicket.id);
+      }
+
+      replySuccess.textContent = 'Reply sent successfully!';
+      replySuccess.classList.remove('hidden');
+      
+      // Clear textarea
+      replyText.value = '';
+      
+      // Reload tickets after a short delay
+      setTimeout(() => {
+        closeReplyModal();
+        loadTickets();
+      }, 1500);
+
+    } catch (error) {
+      console.error('Error submitting reply:', error);
+      replyError.textContent = error.message || 'Failed to send reply. Please try again.';
+      replyError.classList.remove('hidden');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send Reply';
+    }
+  }
+
+  // Load and display replies for a ticket
+  async function loadTicketReplies(ticketId) {
+    if (!supabaseClient) return [];
+
+    try {
+      const { data, error } = await supabaseClient
+        .from('support_ticket_replies')
+        .select('*, profiles:replied_by(full_name, email)')
+        .eq('ticket_id', ticketId)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Error loading replies:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error loading replies:', error);
+      return [];
+    }
+  }
+
+  // Open ticket details modal
+  function openTicketDetails(ticket) {
+    const modal = document.getElementById('ticket-details-modal');
+    const content = document.getElementById('ticket-details-content');
+    
+    if (!modal || !content) return;
+    
+    const escapeHtml = (text) => {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    };
+    
+    const formatDate = (dateString) => {
+      if (!dateString) return 'N/A';
+      const date = new Date(dateString);
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    };
+    
+    const statusColors = {
+      'open': 'bg-yellow-100 text-yellow-800',
+      'in_progress': 'bg-blue-100 text-blue-800',
+      'resolved': 'bg-green-100 text-green-800',
+      'closed': 'bg-gray-100 text-gray-800'
+    };
+
+    const priorityColors = {
+      'low': 'bg-gray-100 text-gray-800',
+      'medium': 'bg-blue-100 text-blue-800',
+      'high': 'bg-orange-100 text-orange-800',
+      'urgent': 'bg-red-100 text-red-800'
+    };
+
+    const status = ticket.status || 'open';
+    const priority = ticket.priority || 'medium';
+    const statusColor = statusColors[status] || 'bg-gray-100 text-gray-800';
+    const priorityColor = priorityColors[priority] || 'bg-gray-100 text-gray-800';
+    
+    content.innerHTML = `
+      <div class="space-y-4">
+        <!-- Ticket Information -->
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <h4 class="text-lg font-semibold text-gray-900 mb-3">Ticket Information</h4>
+          <div class="space-y-2">
+            <div>
+              <span class="text-sm font-medium text-gray-600">Ticket Number:</span>
+              <p class="text-gray-900 break-words overflow-wrap-anywhere">${escapeHtml(ticket.ticket_number || 'N/A')}</p>
+            </div>
+            <div>
+              <span class="text-sm font-medium text-gray-600">Subject:</span>
+              <p class="text-gray-900 break-words overflow-wrap-anywhere">${escapeHtml(ticket.subject || 'No Subject')}</p>
+            </div>
+            <div class="flex gap-2">
+              <div>
+                <span class="text-sm font-medium text-gray-600">Status:</span>
+                <span class="px-2 py-1 rounded text-xs font-medium ${statusColor} ml-2">${status}</span>
+              </div>
+              <div>
+                <span class="text-sm font-medium text-gray-600">Priority:</span>
+                <span class="px-2 py-1 rounded text-xs font-medium ${priorityColor} ml-2">${priority}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer Information -->
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <h4 class="text-lg font-semibold text-gray-900 mb-3">Customer Information</h4>
+          <div class="space-y-2">
+            <div>
+              <span class="text-sm font-medium text-gray-600">Email:</span>
+              <p class="text-gray-900 break-words overflow-wrap-anywhere">${escapeHtml(ticket.customer_email || ticket.email || 'N/A')}</p>
+            </div>
+            ${ticket.customer_name ? `
+              <div>
+                <span class="text-sm font-medium text-gray-600">Name:</span>
+                <p class="text-gray-900 break-words overflow-wrap-anywhere">${escapeHtml(ticket.customer_name)}</p>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+
+        <!-- Description -->
+        ${ticket.description ? `
+          <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <h4 class="text-lg font-semibold text-gray-900 mb-3">Description</h4>
+            <p class="text-gray-700 whitespace-pre-wrap break-words overflow-wrap-anywhere word-break-break-word">${escapeHtml(ticket.description)}</p>
+          </div>
+        ` : ''}
+
+        <!-- Additional Information -->
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <h4 class="text-lg font-semibold text-gray-900 mb-3">Additional Information</h4>
+          <div class="space-y-2">
+            <div>
+              <span class="text-sm font-medium text-gray-600">Created:</span>
+              <p class="text-gray-900">${formatDate(ticket.created_at)}</p>
+            </div>
+            ${ticket.updated_at && ticket.updated_at !== ticket.created_at ? `
+              <div>
+                <span class="text-sm font-medium text-gray-600">Last Updated:</span>
+                <p class="text-gray-900">${formatDate(ticket.updated_at)}</p>
+              </div>
+            ` : ''}
+            ${ticket.id ? `
+              <div>
+                <span class="text-sm font-medium text-gray-600">Ticket ID:</span>
+                <p class="text-gray-900 font-mono text-xs break-all overflow-wrap-anywhere">${escapeHtml(ticket.id)}</p>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+
+        <!-- Replies Section -->
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <h4 class="text-lg font-semibold text-gray-900 mb-3">Replies</h4>
+          <div id="ticket-replies-container" class="space-y-3">
+            <p class="text-gray-500 text-sm">Loading replies...</p>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    modal.classList.remove('hidden');
+    lockBodyScroll();
+    
+    // Load and display replies
+    loadTicketReplies(ticket.id).then(replies => {
+      const repliesContainer = document.getElementById('ticket-replies-container');
+      if (!repliesContainer) return;
+
+      if (replies.length === 0) {
+        repliesContainer.innerHTML = '<p class="text-gray-500 text-sm">No replies yet.</p>';
+        return;
+      }
+
+      repliesContainer.innerHTML = replies.map(reply => {
+        const isAdmin = reply.is_admin_reply;
+        const replierName = reply.profiles?.full_name || reply.profiles?.email || 'Admin';
+        const replyDate = formatDate(reply.created_at);
+        
+        return `
+          <div class="bg-white rounded-lg p-3 border ${isAdmin ? 'border-blue-200 bg-blue-50' : 'border-gray-200'}">
+            <div class="flex items-start justify-between mb-2 min-w-0">
+              <div class="min-w-0 flex-1">
+                <span class="text-sm font-semibold ${isAdmin ? 'text-blue-900' : 'text-gray-900'} break-words overflow-wrap-anywhere">${escapeHtml(replierName)}</span>
+                ${isAdmin ? '<span class="ml-2 px-2 py-0.5 bg-blue-200 text-blue-800 text-xs rounded whitespace-nowrap">Admin</span>' : ''}
+              </div>
+              <span class="text-xs text-gray-500 whitespace-nowrap ml-2">${replyDate}</span>
+            </div>
+            <p class="text-sm text-gray-700 whitespace-pre-wrap break-words overflow-wrap-anywhere word-break-break-word">${escapeHtml(reply.reply_text)}</p>
+          </div>
+        `;
+      }).join('');
+    });
+  }
+
+  // Close ticket details modal
+  function closeTicketModal() {
+    const modal = document.getElementById('ticket-details-modal');
+    if (modal) {
+      modal.classList.add('hidden');
+      unlockBodyScroll();
+    }
+  }
+
+  // Close modal when clicking outside
+  document.addEventListener('click', (e) => {
+    const modal = document.getElementById('ticket-details-modal');
+    if (modal && e.target === modal) {
+      closeTicketModal();
+    }
+  });
+
+  // Close modal buttons
+  document.addEventListener('DOMContentLoaded', () => {
+    const closeTicketBtn = document.getElementById('close-ticket-modal');
+    if (closeTicketBtn) {
+      closeTicketBtn.addEventListener('click', closeTicketModal);
+    }
+
+    const closeReplyBtn = document.getElementById('close-reply-modal');
+    if (closeReplyBtn) {
+      closeReplyBtn.addEventListener('click', closeReplyModal);
+    }
+
+    const cancelReplyBtn = document.getElementById('cancel-reply');
+    if (cancelReplyBtn) {
+      cancelReplyBtn.addEventListener('click', closeReplyModal);
+    }
+
+    const submitReplyBtn = document.getElementById('submit-reply');
+    if (submitReplyBtn) {
+      submitReplyBtn.addEventListener('click', submitReply);
+    }
+  });
+
+  // Close reply modal when clicking outside
+  document.addEventListener('click', (e) => {
+    const modal = document.getElementById('ticket-reply-modal');
+    if (modal && e.target === modal) {
+      closeReplyModal();
+    }
+  });
+
   // Event listeners
   document.addEventListener('DOMContentLoaded', async () => {
     await initSupabase();
     loadTickets();
+
+    // Search input listener
+    const searchInput = document.getElementById('email-search-input');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        filterTicketsByEmail(e.target.value);
+      });
+    }
   });
 
   window.addEventListener('supabase-ready', async () => {

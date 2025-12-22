@@ -222,33 +222,75 @@ import AuthGuard from '../components/AuthGuard.astro';
       
       this.orders = [];
       
-      // Get current user (from in-app auth or Supabase)
-      let currentUser = window.globalAuthManager?.getCurrentUser() || window.simpleAuthManager?.getCurrentUser();
-      console.log('Current user (app auth):', currentUser);
+      // Get current user from multiple sources (priority order)
+      let currentUser = null;
       
+      // Source 1: sessionStorage (most recent)
+      try {
+        const sessionData = sessionStorage.getItem('simple-auth-session');
+        if (sessionData && sessionData !== 'null' && sessionData !== '{}') {
+          const session = JSON.parse(sessionData);
+          if (session && session.user && session.user.email) {
+            currentUser = session.user;
+            console.log('✅ Found user in sessionStorage:', currentUser.email);
+          }
+        }
+      } catch (e) {
+        console.warn('Error reading sessionStorage:', e);
+      }
+      
+      // Source 2: localStorage (fallback)
       if (!currentUser) {
-        console.log('No current user found');
-        // Try Supabase auth as a fallback
+        try {
+          const localUserData = localStorage.getItem('simple-auth-user');
+          if (localUserData && localUserData !== 'null' && localUserData !== '{}') {
+            currentUser = JSON.parse(localUserData);
+            if (currentUser && currentUser.email) {
+              console.log('✅ Found user in localStorage:', currentUser.email);
+            } else {
+              currentUser = null;
+            }
+          }
+        } catch (e) {
+          console.warn('Error reading localStorage:', e);
+        }
+      }
+      
+      // Source 3: Auth Manager
+      if (!currentUser) {
+        const authManager = window.globalAuthManager || window.simpleAuthManager;
+        if (authManager && authManager.isUserLoggedIn && authManager.isUserLoggedIn()) {
+          currentUser = authManager.getCurrentUser();
+          if (currentUser && currentUser.email) {
+            console.log('✅ Found user in auth manager:', currentUser.email);
+          } else {
+            currentUser = null;
+          }
+        }
+      }
+      
+      // Source 4: Supabase auth (last resort)
+      if (!currentUser) {
         try {
           const { supabase } = await import('../lib/supabase');
           const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            currentUser = { email: user.email };
+          if (user && user.email) {
+            currentUser = { email: user.email, id: user.id };
+            console.log('✅ Found user in Supabase auth:', currentUser.email);
           }
         } catch (e) {
           console.warn('Supabase auth fallback failed:', e);
         }
-        if (!currentUser) return;
+      }
+      
+      if (!currentUser || !currentUser.email) {
+        console.log('❌ No user email available – cannot load orders');
+        return;
       }
 
       // Normalize to a plain email string for downstream queries/filters (lowercase for consistent matching)
-      const userEmail = (currentUser?.email || null)?.toLowerCase().trim();
-      if (!userEmail) {
-        console.log('No user email available – cannot load orders');
-        return;
-      }
-      
-      console.log(' Loading orders for user email:', userEmail);
+      const userEmail = currentUser.email.toLowerCase().trim();
+      console.log('📧 Loading orders for user email:', userEmail);
       
       // Load project requirements as orders (filter by email if available)
       if (projectRequirements) {
@@ -524,16 +566,84 @@ import AuthGuard from '../components/AuthGuard.astro';
         });
 
         // Fetch customization_forms (for other 4 products: restaurant-website, streaming-mobile-app, android-tv-app, restaurant-menu-system) - case-insensitive
-        const { data: customForms, error: customFormsError } = await supabase
+        // Try multiple email fields to ensure we get all orders
+        let customForms = [];
+        let customFormsError = null;
+        const seenFormIds = new Set();
+        
+        // Try with customer_email field
+        const { data: customFormsCustomerEmail, error: errorCustomerEmail } = await supabase
           .from('customization_forms')
           .select('*')
-          .ilike('contact_email', userEmail) // Use ilike for case-insensitive matching
+          .ilike('customer_email', userEmail)
           .order('created_at', { ascending: false });
         
-        if (customFormsError) {
-          console.warn(' Error loading customization_forms:', customFormsError);
-          // Don't throw - continue with other orders
+        if (errorCustomerEmail) {
+          console.warn(' Error querying customization_forms with customer_email:', errorCustomerEmail.message);
         } else {
+          console.log(' Found', (customFormsCustomerEmail || []).length, 'orders using "customer_email" field');
+        }
+        
+        if (!errorCustomerEmail && customFormsCustomerEmail && customFormsCustomerEmail.length > 0) {
+          customFormsCustomerEmail.forEach(form => {
+            if (!seenFormIds.has(form.id)) {
+              customForms.push(form);
+              seenFormIds.add(form.id);
+            }
+          });
+        }
+        
+        // Try with user_email field
+        const { data: customFormsUserEmail, error: errorFormsUserEmail } = await supabase
+          .from('customization_forms')
+          .select('*')
+          .ilike('user_email', userEmail)
+          .order('created_at', { ascending: false });
+        
+        if (errorFormsUserEmail) {
+          console.warn(' Error querying customization_forms with user_email:', errorFormsUserEmail.message);
+        } else {
+          console.log(' Found', (customFormsUserEmail || []).length, 'orders using "user_email" field');
+        }
+        
+        if (!errorFormsUserEmail && customFormsUserEmail && customFormsUserEmail.length > 0) {
+          customFormsUserEmail.forEach(form => {
+            if (!seenFormIds.has(form.id)) {
+              customForms.push(form);
+              seenFormIds.add(form.id);
+            }
+          });
+        }
+        
+        // Try with contact_email field (fallback)
+        const { data: customFormsContactEmail, error: errorFormsContactEmail } = await supabase
+          .from('customization_forms')
+          .select('*')
+          .ilike('contact_email', userEmail)
+          .order('created_at', { ascending: false });
+        
+        if (errorFormsContactEmail) {
+          console.warn(' Error querying customization_forms with contact_email:', errorFormsContactEmail.message);
+        } else {
+          console.log(' Found', (customFormsContactEmail || []).length, 'orders using "contact_email" field');
+        }
+        
+        if (!errorFormsContactEmail && customFormsContactEmail && customFormsContactEmail.length > 0) {
+          customFormsContactEmail.forEach(form => {
+            if (!seenFormIds.has(form.id)) {
+              customForms.push(form);
+              seenFormIds.add(form.id);
+            }
+          });
+        }
+        
+        // Set error only if all queries failed
+        if (errorCustomerEmail && errorFormsUserEmail && errorFormsContactEmail) {
+          customFormsError = errorCustomerEmail || errorFormsUserEmail || errorFormsContactEmail;
+          console.warn(' Error loading customization_forms:', customFormsError);
+        }
+        
+        if (!customFormsError) {
           console.log('📦 Processing', (customForms || []).length, 'customization_forms...');
           (customForms || []).forEach((form, index) => {
             // Check for duplicates using the form ID
@@ -548,13 +658,17 @@ import AuthGuard from '../components/AuthGuard.astro';
               id: form.id,
               project_name: form.project_name,
               product_name: form.product_name,
+              customer_email: form.customer_email,
+              user_email: form.user_email,
               contact_email: form.contact_email,
               status: form.status
             });
             
-            // Extract price from product_price field (might be string like "₹1,000")
+            // Extract price from price field (numeric) or product_price field (might be string like "₹1,000")
             let totalPrice = 0;
-            if (form.product_price) {
+            if (form.price) {
+              totalPrice = Number(form.price) || 0;
+            } else if (form.product_price) {
               const priceMatch = String(form.product_price).match(/₹?([\d,]+)/);
               if (priceMatch) {
                 totalPrice = parseInt(priceMatch[1].replace(/,/g, ''));
@@ -573,7 +687,7 @@ import AuthGuard from '../components/AuthGuard.astro';
                 contactPerson: form.contact_person,
                 restaurantName: form.restaurant_name,
                 cuisineType: form.cuisine_type,
-                email: form.contact_email,
+                email: form.customer_email || form.user_email || form.contact_email,
                 phone: form.contact_phone,
                 additionalRequirements: form.additional_requirements,
                 primaryColor: form.primary_color,
