@@ -74,10 +74,10 @@ try {
         )}
 
         <div class="flex space-x-4">
-          <a href="/login" class="flex-1 bg-gray-800 text-white text-center py-2 px-4 rounded-md hover:bg-gray-900 transition duration-150 ease-in-out">
+          <a href="/login" class="back-to-login-btn flex-1 bg-gray-800 text-white text-center py-2 px-4 rounded-md hover:bg-gray-900 transition duration-150 ease-in-out font-medium">
             Back to Login
           </a>
-          <a href="/" class="flex-1 bg-gray-600 text-white text-center py-2 px-4 rounded-md hover:bg-gray-700 transition duration-150 ease-in-out">
+          <a href="/" class="go-home-btn flex-1 bg-gray-600 text-white text-center py-2 px-4 rounded-md hover:bg-gray-700 transition duration-150 ease-in-out font-medium">
             Go Home
           </a>
         </div>
@@ -88,6 +88,46 @@ try {
     /* Ensure white background on this page regardless of parent styles */
     main { background-color: #fff !important; }
     body { background-color: #fff !important; }
+    
+    /* Ensure button text is white and visible - use very specific selectors */
+    .back-to-login-btn,
+    a.back-to-login-btn,
+    a.bg-gray-800 {
+      color: #ffffff !important;
+      background-color: #1f2937 !important; /* gray-800 */
+    }
+    
+    .go-home-btn,
+    a.go-home-btn,
+    a.bg-gray-600 {
+      color: #ffffff !important;
+      background-color: #4b5563 !important; /* gray-600 */
+    }
+    
+    .back-to-login-btn:hover,
+    .go-home-btn:hover,
+    a.back-to-login-btn:hover,
+    a.go-home-btn:hover,
+    a.bg-gray-800:hover,
+    a.bg-gray-600:hover {
+      color: #ffffff !important;
+    }
+    
+    a.bg-gray-800:hover {
+      background-color: #111827 !important; /* gray-900 */
+    }
+    
+    a.bg-gray-600:hover {
+      background-color: #374151 !important; /* gray-700 */
+    }
+    
+    /* Force white text on all button children */
+    .back-to-login-btn *,
+    .go-home-btn *,
+    a.back-to-login-btn *,
+    a.go-home-btn * {
+      color: #ffffff !important;
+    }
   </style>
 </Layout>
 
@@ -99,12 +139,104 @@ try {
   
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  // Global flag to prevent multiple redirects
+  let redirectAttempted = false;
+  
+  const redirectToDashboard = () => {
+    if (redirectAttempted) {
+      console.log('Redirect already attempted, skipping...');
+      return;
+    }
+    redirectAttempted = true;
+    console.log('Redirecting to dashboard...');
+    
+    // Store redirect intent
+    sessionStorage.setItem('auth-redirect', 'dashboard');
+    
+    // Use replace instead of href to prevent back button issues
+    window.location.replace('/dashboard');
+  };
+
+  // Handle Google user data sync
+  async function syncGoogleUser(user) {
+    try {
+      console.log('🔄 Syncing Google user data...');
+      const { data, error } = await supabase.rpc('sync_google_user', {
+        p_google_id: user.user_metadata?.provider_id || user.id,
+        p_email: user.email,
+        p_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0],
+        p_picture: user.user_metadata?.avatar_url || user.user_metadata?.picture,
+        p_provider_id: user.user_metadata?.provider_id || user.id
+      });
+
+      if (error) {
+        console.error('⚠️ Sync error (non-fatal):', error);
+        // Don't fail the auth flow if sync fails
+        return null;
+      }
+
+      console.log('✅ Google user synced:', data);
+      return data;
+    } catch (err) {
+      console.error('⚠️ Sync error (non-fatal):', err);
+      // Don't fail the auth flow if sync fails
+      return null;
+    }
+  }
+
+  const persistSession = async (session, shouldSync = true) => {
+    if (!session?.user) return;
+    
+    // Sync Google user data if it's a Google provider
+    if (shouldSync && session.user.app_metadata?.provider === 'google') {
+      await syncGoogleUser(session.user);
+    }
+    
+    const sessionData = {
+      user: session.user,
+      access_token: session.access_token,
+      refresh_token: session.refresh_token,
+      timestamp: Date.now()
+    };
+    
+    try {
+      sessionStorage.setItem('simple-auth-session', JSON.stringify(sessionData));
+      localStorage.setItem('simple-auth-session', JSON.stringify(sessionData));
+      
+      // Also store user separately for compatibility
+      localStorage.setItem('simple-auth-user', JSON.stringify(session.user));
+      
+      window.dispatchEvent(new CustomEvent('user-logged-in', { detail: session.user }));
+      console.log('✅ Session persisted successfully');
+      console.log('User email:', session.user.email);
+    } catch (err) {
+      console.error('❌ Error persisting session:', err);
+    }
+  };
+
   // Handle the OAuth callback
   async function handleAuthCallback() {
+    console.log('🔐 Starting auth callback handler...');
+    console.log('Current URL:', window.location.href);
+    console.log('Hash:', window.location.hash);
+    console.log('Search:', window.location.search);
+
     try {
-      // 1) If tokens are in the hash fragment (#access_token=...), set the session directly
+      // 1) Check for hash fragment tokens (#access_token=...)
       const hash = window.location.hash || '';
+      
+      // Check for errors in hash first
+      if (hash.includes('error=')) {
+        const hashParams = new URLSearchParams(hash.replace('#', ''));
+        const errorParam = hashParams.get('error');
+        const errorDescription = hashParams.get('error_description');
+        console.error('❌ OAuth error in hash:', errorParam, errorDescription);
+        window.location.replace(`/login?error=${encodeURIComponent(errorParam || 'oauth_error')}&description=${encodeURIComponent(errorDescription || '')}`);
+        return;
+      }
+      
       if (hash.includes('access_token')) {
+        console.log('📦 Found tokens in hash fragment');
         const params = new URLSearchParams(hash.replace('#', ''));
         const access_token = params.get('access_token');
         const refresh_token = params.get('refresh_token') || params.get('provider_refresh_token');
@@ -112,113 +244,204 @@ try {
 
         // Check if this is a password reset (recovery) flow
         if (type === 'recovery' && access_token && refresh_token) {
-          console.log('Password reset callback detected, redirecting to reset-password page');
-          // Redirect to reset-password page with tokens preserved in hash
-          window.location.href = `/reset-password${hash}`;
+          console.log('🔑 Password reset callback detected');
+          window.location.replace(`/reset-password${hash}`);
           return;
         }
 
         if (access_token && refresh_token) {
-          const { data } = await supabase.auth.setSession({ access_token, refresh_token });
+          console.log('✅ Setting session from hash tokens...');
+          try {
+            const { data, error: sessionError } = await supabase.auth.setSession({ 
+              access_token, 
+              refresh_token 
+            });
 
-          // Persist to sessionStorage so Header.astro/UI picks up Google email
-          if (data?.session?.user) {
-            sessionStorage.setItem('simple-auth-session', JSON.stringify({
-              user: data.session.user,
-              access_token: data.session.access_token,
-              timestamp: Date.now()
-            }));
-            // Notify app
-            window.dispatchEvent(new CustomEvent('user-logged-in', { detail: data.session.user }));
-          }
-
-          // Clean URL (remove hash) and go to dashboard
-          window.history.replaceState({}, document.title, '/auth/callback');
-          window.location.href = '/dashboard';
-          return;
-        }
-      }
-
-      // 2) If using PKCE (code param), exchange code for a session
-      const urlHasCode = window.location.search.includes('code=');
-      if (urlHasCode) {
-        // Check if this might be a password reset (check for type=recovery in URL)
-        const urlParams = new URLSearchParams(window.location.search);
-        const type = urlParams.get('type');
-        
-        // If it's a recovery type, redirect to reset-password after exchange
-        if (type === 'recovery') {
-          const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
-          if (error) {
-            console.error('Auth callback (PKCE recovery) error:', error);
-            window.location.href = '/reset-password?error=invalid_token';
-            return;
-          } else if (data?.session) {
-            // For password reset, redirect to reset-password page
-            // The reset-password page will handle the session
-            window.location.href = '/reset-password';
-            return;
+            if (sessionError) {
+              console.error('❌ Error setting session:', sessionError);
+            } else if (data?.session) {
+              console.log('✅ Session set successfully from hash');
+              await persistSession(data.session, true);
+              
+              // Clean URL and redirect after a brief delay to ensure sync completes
+              window.history.replaceState({}, document.title, '/auth/callback');
+              setTimeout(() => {
+                redirectToDashboard();
+              }, 500);
+              return;
+            }
+          } catch (err) {
+            console.error('❌ Exception in setSession:', err);
           }
         } else {
-          // Regular OAuth flow
-          const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
-          if (error) {
-            console.error('Auth callback (PKCE) error:', error);
-          } else if (data?.session) {
-            // Persist to sessionStorage so Header.astro/UI picks up Google email
-            sessionStorage.setItem('simple-auth-session', JSON.stringify({
-              user: data.session.user,
-              access_token: data.session.access_token,
-              timestamp: Date.now()
-            }));
-            window.dispatchEvent(new CustomEvent('user-logged-in', { detail: data.session.user }));
-
-            // Clean URL (remove query) and redirect
-            window.history.replaceState({}, document.title, '/auth/callback');
-            window.location.href = '/dashboard';
-            return;
-          }
+          console.warn('⚠️ Hash found but missing tokens');
         }
       }
 
-      // 3) Fallback: attempt to read current session
-      const { data, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error('Auth callback error:', error);
+      // 2) Check for OAuth errors first
+      const urlParams = new URLSearchParams(window.location.search);
+      const errorParam = urlParams.get('error');
+      const errorDescription = urlParams.get('error_description');
+      
+      if (errorParam) {
+        console.error('❌ OAuth error received:', errorParam, errorDescription);
+        window.location.replace(`/login?error=${encodeURIComponent(errorParam)}&description=${encodeURIComponent(errorDescription || '')}`);
         return;
       }
 
-      if (data.session?.user) {
-        // Persist Google session too
-        sessionStorage.setItem('simple-auth-session', JSON.stringify({
-          user: data.session.user,
-          access_token: data.session.access_token,
-          timestamp: Date.now()
-        }));
-        window.dispatchEvent(new CustomEvent('user-logged-in', { detail: data.session.user }));
+      // 3) Check for PKCE code in query string (?code=...)
+      const urlHasCode = window.location.search.includes('code=');
+      if (urlHasCode) {
+        console.log('📦 Found code in query string (PKCE flow)');
+        const type = urlParams.get('type');
+        const code = urlParams.get('code');
+        
+        if (!code) {
+          console.error('❌ Code parameter missing');
+        } else {
+          // If it's a recovery type, redirect to reset-password after exchange
+          if (type === 'recovery') {
+            console.log('🔑 Recovery type detected');
+            try {
+              const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+              if (error) {
+                console.error('❌ Auth callback (PKCE recovery) error:', error);
+                window.location.replace('/reset-password?error=invalid_token');
+                return;
+              } else if (data?.session) {
+                window.location.replace('/reset-password');
+                return;
+              }
+            } catch (err) {
+              console.error('❌ Error in recovery exchange:', err);
+            }
+          } else {
+            // Regular OAuth flow (Google login)
+            console.log('🔄 Exchanging code for session (PKCE)...');
+            try {
+              const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+              if (error) {
+                console.error('❌ Auth callback (PKCE) error:', error);
+                // Don't return, try fallback method
+              } else if (data?.session) {
+                console.log('✅ Session obtained from PKCE exchange');
+                await persistSession(data.session, true);
 
-        // Redirect to dashboard
-        setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 1000);
+                // Clean URL and redirect after a brief delay to ensure sync completes
+                window.history.replaceState({}, document.title, '/auth/callback');
+                setTimeout(() => {
+                  redirectToDashboard();
+                }, 500);
+                return;
+              } else {
+                console.warn('⚠️ PKCE exchange succeeded but no session returned');
+              }
+            } catch (err) {
+              console.error('❌ Exception in PKCE exchange:', err);
+            }
+          }
+        }
       }
+
+      // 4) Fallback: attempt to read current session (may already be set by Supabase)
+      console.log('🔄 Attempting to get existing session...');
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('❌ Auth callback getSession error:', error);
+        } else if (data?.session?.user) {
+          console.log('✅ Found existing session');
+          await persistSession(data.session, true);
+          setTimeout(() => {
+            redirectToDashboard();
+          }, 500);
+          return;
+        } else {
+          console.log('⚠️ No session found in getSession');
+        }
+      } catch (err) {
+        console.error('❌ Exception in getSession:', err);
+      }
+
+      // 5) Wait a bit and retry getSession (sometimes session takes a moment)
+      console.log('⏳ Waiting 1 second and retrying getSession...');
+      setTimeout(async () => {
+        if (redirectAttempted) return;
+        
+        try {
+          const { data, error } = await supabase.auth.getSession();
+          if (!error && data?.session?.user) {
+            console.log('✅ Session found on retry');
+            await persistSession(data.session, true);
+            setTimeout(() => {
+              redirectToDashboard();
+            }, 500);
+          } else {
+            console.warn('⚠️ Still no session after retry:', error?.message || 'No error but no session');
+          }
+        } catch (err) {
+          console.error('❌ Error in delayed getSession:', err);
+        }
+      }, 1000);
+
+      // 6) Second retry after 3 seconds
+      setTimeout(async () => {
+        if (redirectAttempted) return;
+        
+        console.log('⏳ Second retry (3 seconds)...');
+        try {
+          const { data, error } = await supabase.auth.getSession();
+          if (!error && data?.session?.user) {
+            console.log('✅ Session found on second retry');
+            await persistSession(data.session, true);
+            setTimeout(() => {
+              redirectToDashboard();
+            }, 500);
+          }
+        } catch (err) {
+          console.error('❌ Error in second delayed getSession:', err);
+        }
+      }, 3000);
+
+      // 7) Absolute safety timeout: redirect to login if still stuck after 8 seconds
+      setTimeout(() => {
+        if (!redirectAttempted) {
+          console.warn('⏰ Auth callback timeout (8s), redirecting to login');
+          window.location.replace('/login?error=google_auth_timeout');
+        }
+      }, 8000);
     } catch (err) {
-      console.error('Callback error:', err);
+      console.error('❌ Fatal error in callback handler:', err);
+      if (!redirectAttempted) {
+        window.location.replace('/login?error=auth_callback_error');
+      }
     }
   }
 
-  // Run the callback handler
-  handleAuthCallback();
-
-  // Listen for auth state changes
-  supabase.auth.onAuthStateChange((event, session) => {
+  // Listen for auth state changes as primary mechanism
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    console.log('🔔 Auth state changed:', event, session?.user?.email || 'no user');
+    
     if (event === 'SIGNED_IN' && session?.user) {
-      console.log('User signed in:', session.user);
+      console.log('✅ SIGNED_IN event detected');
+      await persistSession(session, true);
       
-      // Redirect to dashboard
-      setTimeout(() => {
-        window.location.href = '/dashboard';
-      }, 1000);
+      // Redirect after sync completes
+      if (!redirectAttempted) {
+        setTimeout(() => {
+          redirectToDashboard();
+        }, 800);
+      }
+    } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+      console.log('🔄 Token refreshed');
+      await persistSession(session, false); // Don't sync on token refresh
     }
   });
+
+  // Run the callback handler immediately
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', handleAuthCallback);
+  } else {
+    handleAuthCallback();
+  }
 </script>

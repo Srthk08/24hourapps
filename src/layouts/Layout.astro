@@ -749,7 +749,7 @@ const { title, description = "DevExpress - 24 Hour Delivery" } = Astro.props;
                       const data = await response.json();
                       if (!response.ok) {
                         reject({ error: data, data: null });
-                      } else {
+        } else {
                         resolve({ data, error: null });
                       }
                     } catch (error) {
@@ -1010,7 +1010,7 @@ const { title, description = "DevExpress - 24 Hour Delivery" } = Astro.props;
             initDirectClient();
           }
         }, 2000);
-      }
+        }
       
       function initDirectClient() {
         if (window.supabase && window.supabase.from) {

@@ -218,6 +218,127 @@ import Layout from '../layouts/Layout.astro';
             </div>
           </form>
         </div>
+        
+        <!-- Immediate field population script -->
+        <script is:inline>
+          (function() {
+            console.log('🚀 Immediate field population script running...');
+            
+            function setFieldsFromProfile() {
+              const nameField = document.getElementById('user-name');
+              const emailField = document.getElementById('user-email');
+              
+              if (!nameField || !emailField) {
+                setTimeout(setFieldsFromProfile, 100);
+                return;
+              }
+              
+              // Get user email from session
+              const sessionData = sessionStorage.getItem('simple-auth-session');
+              if (!sessionData) {
+                console.log('⚠️ No session data');
+                return;
+              }
+              
+              try {
+                const session = JSON.parse(sessionData);
+                const userEmail = session?.user?.email;
+                
+                if (!userEmail) {
+                  console.log('⚠️ No user email');
+                  return;
+                }
+                
+                console.log('🔍 Fetching profile for:', userEmail);
+                
+                // Wait for Supabase
+                let supabase = window.supabase || window.supabaseClient;
+                if (!supabase || !supabase.from) {
+                  // Wait a bit for Supabase to load
+                  let attempts = 0;
+                  const checkSupabase = setInterval(() => {
+                    supabase = window.supabase || window.supabaseClient;
+                    if (supabase && supabase.from) {
+                      clearInterval(checkSupabase);
+                      fetchAndSetFields(supabase, userEmail, nameField, emailField);
+                    } else if (attempts++ > 50) {
+                      clearInterval(checkSupabase);
+                      console.warn('⚠️ Supabase not ready after 5 seconds');
+                    }
+                  }, 100);
+                } else {
+                  fetchAndSetFields(supabase, userEmail, nameField, emailField);
+                }
+              } catch (e) {
+                console.error('Error in immediate script:', e);
+              }
+            }
+            
+            async function fetchAndSetFields(supabase, userEmail, nameField, emailField) {
+              try {
+                const { data: profile, error } = await supabase
+                  .from('profiles')
+                  .select('full_name, email')
+                  .eq('email', userEmail)
+                  .single();
+                
+                if (error) {
+                  console.warn('⚠️ Error fetching profile:', error.message);
+                  // Try by user ID
+                  const session = JSON.parse(sessionStorage.getItem('simple-auth-session'));
+                  if (session?.user?.id) {
+                    const { data: profileById } = await supabase
+                      .from('profiles')
+                      .select('full_name, email')
+                      .eq('id', session.user.id)
+                      .single();
+                    
+                    if (profileById) {
+                      setFieldValues(profileById, nameField, emailField);
+                    }
+                  }
+                  return;
+                }
+                
+                if (profile) {
+                  setFieldValues(profile, nameField, emailField);
+                }
+              } catch (e) {
+                console.error('Error fetching profile:', e);
+              }
+            }
+            
+            function setFieldValues(profile, nameField, emailField) {
+              // Set name
+              if (profile.full_name && nameField) {
+                nameField.value = profile.full_name;
+                nameField.setAttribute('value', profile.full_name);
+                nameField.defaultValue = profile.full_name;
+                console.log('✅ Name set via inline script:', profile.full_name);
+              }
+              
+              // Set email
+              if (profile.email && emailField) {
+                emailField.value = profile.email;
+                emailField.setAttribute('value', profile.email);
+                emailField.defaultValue = profile.email;
+                console.log('✅ Email set via inline script:', profile.email);
+              }
+            }
+            
+            // Run immediately
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', setFieldsFromProfile);
+            } else {
+              setFieldsFromProfile();
+            }
+            
+            // Also run after a delay
+            setTimeout(setFieldsFromProfile, 500);
+            setTimeout(setFieldsFromProfile, 1000);
+            setTimeout(setFieldsFromProfile, 2000);
+          })();
+        </script>
 
         <!-- Right Side: Selected Plan Details -->
         <div class="lg:w-96 bg-white rounded-xl shadow-lg p-8 border border-gray-200">
@@ -727,6 +848,8 @@ import Layout from '../layouts/Layout.astro';
 
       // PRIORITY: Try to fetch from Supabase profiles table (most reliable)
       let profileData = null;
+      
+      // First try with userId if available
       if (userId) {
         const supabase = await waitForSupabase();
         if (supabase) {
@@ -760,6 +883,68 @@ import Layout from '../layouts/Layout.astro';
           }
         } else {
           console.warn('⚠️ Supabase not available after waiting');
+        }
+      }
+      
+      // If no profile found by ID, try fetching by email
+      if (!profileData && userEmail) {
+        const supabase = await waitForSupabase();
+        if (supabase) {
+          try {
+            console.log('🔍 Fetching profile from Supabase by email:', userEmail);
+            const { data: profile, error } = await supabase
+              .from('profiles')
+              .select('full_name, email, phone')
+              .eq('email', userEmail)
+              .single();
+            
+            if (!error && profile) {
+              profileData = profile;
+              console.log('✅ Found profile in Supabase by email:', {
+                full_name: profile.full_name,
+                email: profile.email,
+                phone: profile.phone
+              });
+            } else if (error) {
+              console.log('⚠️ Error fetching profile by email:', error.message);
+            }
+          } catch (e) {
+            console.error('Error fetching profile by email:', e);
+          }
+        }
+      }
+      
+      // If still no profile, try to get current user from Supabase auth and fetch profile
+      if (!profileData && !userId) {
+        const supabase = await waitForSupabase();
+        if (supabase) {
+          try {
+            console.log('🔍 Trying to get user from Supabase auth...');
+            const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+            if (!authError && authUser) {
+              console.log('✅ Got user from Supabase auth:', authUser.email);
+              userId = authUser.id;
+              userEmail = authUser.email || userEmail;
+              
+              // Now try fetching profile with this user ID
+              const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('full_name, email, phone')
+                .eq('id', userId)
+                .single();
+              
+              if (!error && profile) {
+                profileData = profile;
+                console.log('✅ Found profile after getting auth user:', {
+                  full_name: profile.full_name,
+                  email: profile.email,
+                  phone: profile.phone
+                });
+              }
+            }
+          } catch (e) {
+            console.error('Error getting user from Supabase auth:', e);
+          }
         }
       }
 
@@ -817,104 +1002,122 @@ import Layout from '../layouts/Layout.astro';
         phone: finalData.phone
       });
 
-      // Populate form fields
+      // Populate form fields - prioritize Supabase profile data
       if (finalData) {
-        // Handle different user data structures - try multiple sources
-        const userName = finalData.full_name || 
-                        finalData.name || 
-                        finalData.user_metadata?.full_name ||
+        // Handle different user data structures - prioritize profile data from Supabase
+        // For name: profile full_name > userData full_name > userData name > email prefix
+        const userName = (profileData?.full_name && profileData.full_name.trim()) ||
+                        (finalData.full_name && finalData.full_name.trim()) || 
+                        (finalData.name && finalData.name.trim()) || 
+                        (finalData.user_metadata?.full_name && finalData.user_metadata.full_name.trim()) ||
                         (finalData.email ? finalData.email.split('@')[0] : '') || 
                         '';
         
-        const finalEmail = finalData.email || 
-                          userData?.email || 
-                          userEmail || 
+        // For email: profile email > userData email > userEmail
+        const finalEmail = (profileData?.email && profileData.email.trim()) ||
+                          (finalData.email && finalData.email.trim()) || 
+                          (userData?.email && userData.email.trim()) || 
+                          (userEmail && userEmail.trim()) || 
                           '';
         
-        const userPhone = finalData.phone || 
-                         finalData.phone_number || 
-                         finalData.user_metadata?.phone ||
+        const userPhone = (profileData?.phone && profileData.phone.trim()) ||
+                         (finalData.phone && finalData.phone.trim()) || 
+                         (finalData.phone_number && finalData.phone_number.trim()) || 
+                         (finalData.user_metadata?.phone && finalData.user_metadata.phone.trim()) ||
                          '';
 
-        // Always set the fields, even if empty (so user can see what's missing)
-        if (nameField && userName) {
-          // Multiple ways to set the value to ensure it sticks
-          nameField.value = userName;
-          nameField.setAttribute('value', userName);
-          nameField.defaultValue = userName;
-          
-          // Use Object.defineProperty to make it harder to clear
-          try {
-            Object.defineProperty(nameField, 'value', {
-              value: userName,
-              writable: true,
-              configurable: true
-            });
-          } catch (e) {
-            // If that fails, just use normal assignment
-            nameField.value = userName;
-          }
-          
-          // Verify it was set
-          const verifyName = nameField.value;
-          if (verifyName === userName) {
-            console.log('✅ Name field populated and verified:', verifyName);
+        console.log('📝 Preparing to populate fields:', {
+          userName,
+          finalEmail,
+          userPhone,
+          hasProfileData: !!profileData,
+          profileFullName: profileData?.full_name,
+          profileEmail: profileData?.email
+        });
+
+        // Always set the fields - prioritize profile data
+        if (nameField) {
+          if (userName && userName.trim()) {
+            // Multiple ways to set the value to ensure it sticks
+            const trimmedName = userName.trim();
+            nameField.value = trimmedName;
+            nameField.setAttribute('value', trimmedName);
+            nameField.defaultValue = trimmedName;
+            
+            // Force update with events
+            nameField.dispatchEvent(new Event('input', { bubbles: true }));
+            nameField.dispatchEvent(new Event('change', { bubbles: true }));
+            
+            // Verify it was set
+            const verifyName = nameField.value;
+            if (verifyName === trimmedName) {
+              console.log('✅ Name field populated and verified:', verifyName);
+            } else {
+              console.error('❌ Name field value mismatch! Set:', trimmedName, 'Got:', verifyName);
+              // Try again multiple times
+              setTimeout(() => {
+                nameField.value = trimmedName;
+                nameField.setAttribute('value', trimmedName);
+              }, 100);
+              setTimeout(() => {
+                nameField.value = trimmedName;
+                nameField.setAttribute('value', trimmedName);
+              }, 500);
+            }
           } else {
-            console.error('❌ Name field value mismatch! Set:', userName, 'Got:', verifyName);
-            // Try again
-            nameField.value = userName;
+            console.warn('⚠️ Name is empty - checking data:', { 
+              finalData, 
+              userData, 
+              profileData,
+              userName,
+              finalDataFullName: finalData.full_name,
+              userDataFullName: userData?.full_name,
+              profileDataFullName: profileData?.full_name
+            });
           }
-        } else if (nameField) {
-          console.warn('⚠️ Name is empty - checking data:', { 
-            finalData, 
-            userData, 
-            profileData,
-            userName,
-            finalDataFullName: finalData.full_name,
-            userDataFullName: userData?.full_name,
-            profileDataFullName: profileData?.full_name
-          });
         } else {
           console.error('❌ Name field not found in DOM');
         }
 
-        if (emailField && finalEmail) {
-          // Multiple ways to set the value to ensure it sticks
-          emailField.value = finalEmail;
-          emailField.setAttribute('value', finalEmail);
-          emailField.defaultValue = finalEmail;
-          
-          // Use Object.defineProperty to make it harder to clear
-          try {
-            Object.defineProperty(emailField, 'value', {
-              value: finalEmail,
-              writable: true,
-              configurable: true
-            });
-          } catch (e) {
-            // If that fails, just use normal assignment
-            emailField.value = finalEmail;
-          }
-          
-          // Verify it was set
-          const verifyEmail = emailField.value;
-          if (verifyEmail === finalEmail) {
-            console.log('✅ Email field populated and verified:', verifyEmail);
+        if (emailField) {
+          if (finalEmail && finalEmail.trim()) {
+            // Multiple ways to set the value to ensure it sticks
+            const trimmedEmail = finalEmail.trim();
+            emailField.value = trimmedEmail;
+            emailField.setAttribute('value', trimmedEmail);
+            emailField.defaultValue = trimmedEmail;
+            
+            // Force update with events
+            emailField.dispatchEvent(new Event('input', { bubbles: true }));
+            emailField.dispatchEvent(new Event('change', { bubbles: true }));
+            
+            // Verify it was set
+            const verifyEmail = emailField.value;
+            if (verifyEmail === trimmedEmail) {
+              console.log('✅ Email field populated and verified:', verifyEmail);
+            } else {
+              console.error('❌ Email field value mismatch! Set:', trimmedEmail, 'Got:', verifyEmail);
+              // Try again multiple times
+              setTimeout(() => {
+                emailField.value = trimmedEmail;
+                emailField.setAttribute('value', trimmedEmail);
+              }, 100);
+              setTimeout(() => {
+                emailField.value = trimmedEmail;
+                emailField.setAttribute('value', trimmedEmail);
+              }, 500);
+            }
           } else {
-            console.error('❌ Email field value mismatch! Set:', finalEmail, 'Got:', verifyEmail);
-            // Try again
-            emailField.value = finalEmail;
+            console.warn('⚠️ Email is empty - checking data:', { 
+              finalData, 
+              userData, 
+              profileData, 
+              userEmail,
+              finalDataEmail: finalData.email,
+              userDataEmail: userData?.email,
+              profileDataEmail: profileData?.email
+            });
           }
-        } else if (emailField) {
-          console.warn('⚠️ Email is empty - checking data:', { 
-            finalData, 
-            userData, 
-            profileData, 
-            userEmail,
-            finalDataEmail: finalData.email,
-            userDataEmail: userData?.email,
-            profileDataEmail: profileData?.email
-          });
         } else {
           console.error('❌ Email field not found in DOM');
         }
@@ -1352,6 +1555,429 @@ import Layout from '../layouts/Layout.astro';
   }
 
   // Setup handlers when DOM is ready
+  // Immediate fetch from Supabase profiles table
+  async function fetchAndPopulateFromProfile() {
+    try {
+      const nameField = document.getElementById('user-name') as HTMLInputElement;
+      const emailField = document.getElementById('user-email') as HTMLInputElement;
+      
+      if (!nameField || !emailField) {
+        console.log('⏳ Fields not ready, retrying...');
+        setTimeout(fetchAndPopulateFromProfile, 100);
+        return;
+      }
+      
+      // Get user data from multiple sources
+      let userEmail = '';
+      let userId = null;
+      
+      // Source 1: sessionStorage
+      const sessionData = sessionStorage.getItem('simple-auth-session');
+      if (sessionData) {
+        try {
+          const session = JSON.parse(sessionData);
+          if (session?.user) {
+            userEmail = session.user.email || '';
+            userId = session.user.id || null;
+            console.log('✅ Got user from sessionStorage:', { email: userEmail, id: userId });
+          }
+        } catch (e) {
+          console.warn('Error parsing session data:', e);
+        }
+      }
+      
+      // Source 2: localStorage
+      if (!userEmail) {
+        const localUserData = localStorage.getItem('simple-auth-user');
+        if (localUserData) {
+          try {
+            const user = JSON.parse(localUserData);
+            userEmail = user.email || '';
+            userId = user.id || null;
+            console.log('✅ Got user from localStorage:', { email: userEmail, id: userId });
+          } catch (e) {
+            console.warn('Error parsing local user data:', e);
+          }
+        }
+      }
+      
+      // Source 3: Auth Manager
+      if (!userEmail) {
+        const authManager = (window as any).globalAuthManager || (window as any).simpleAuthManager;
+        if (authManager && authManager.isUserLoggedIn && authManager.isUserLoggedIn()) {
+          const user = authManager.getCurrentUser();
+          if (user) {
+            userEmail = user.email || '';
+            userId = user.id || null;
+            console.log('✅ Got user from auth manager:', { email: userEmail, id: userId });
+          }
+        }
+      }
+      
+      if (!userEmail && !userId) {
+        console.warn('⚠️ No user email or ID found for profile fetch');
+        return;
+      }
+      
+      console.log('🔍 Fetching profile from Supabase for:', { email: userEmail, id: userId });
+      
+      // Wait for Supabase
+      const supabase = await waitForSupabase();
+      if (!supabase) {
+        console.warn('⚠️ Supabase not ready, retrying...');
+        setTimeout(fetchAndPopulateFromProfile, 500);
+        return;
+      }
+      
+      let profile = null;
+      let profileError = null;
+      
+      // Try fetching by email first
+      if (userEmail) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('full_name, email')
+          .eq('email', userEmail)
+          .single();
+        
+        if (!error && data) {
+          profile = data;
+          console.log('✅ Found profile by email:', profile);
+        } else {
+          profileError = error;
+          console.log('⚠️ Error fetching profile by email:', error?.message);
+        }
+      }
+      
+      // If not found by email, try by user ID
+      if (!profile && userId) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('full_name, email')
+          .eq('id', userId)
+          .single();
+        
+        if (!error && data) {
+          profile = data;
+          console.log('✅ Found profile by ID:', profile);
+        } else {
+          console.log('⚠️ Error fetching profile by ID:', error?.message);
+        }
+      }
+      
+      // If still no profile, try getting user from Supabase auth
+      if (!profile) {
+        try {
+          const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+          if (!authError && authUser) {
+            console.log('✅ Got user from Supabase auth:', authUser.email);
+            // Try fetching profile with auth user ID
+            if (authUser.id) {
+              const { data, error } = await supabase
+                .from('profiles')
+                .select('full_name, email')
+                .eq('id', authUser.id)
+                .single();
+              
+              if (!error && data) {
+                profile = data;
+                console.log('✅ Found profile after getting auth user:', profile);
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Error getting user from Supabase auth:', e);
+        }
+      }
+      
+      // Populate fields if profile found
+      if (profile) {
+        // Set name field - use multiple aggressive methods
+        if (nameField && profile.full_name && profile.full_name.trim()) {
+          const fullName = profile.full_name.trim();
+          
+          // Method 1: Direct value assignment
+          nameField.value = fullName;
+          
+          // Method 2: Set attribute
+          nameField.setAttribute('value', fullName);
+          
+          // Method 3: Set defaultValue
+          nameField.defaultValue = fullName;
+          
+          // Method 4: Use setProperty if available
+          try {
+            nameField.setProperty('value', fullName);
+          } catch (e) {
+            // Ignore if not supported
+          }
+          
+          // Method 5: Direct DOM manipulation
+          if (nameField instanceof HTMLInputElement) {
+            nameField.setAttribute('value', fullName);
+            (nameField as any)._value = fullName;
+          }
+          
+          // Method 6: Remove and re-add value attribute
+          nameField.removeAttribute('value');
+          nameField.setAttribute('value', fullName);
+          
+          // Method 7: Force update via events
+          nameField.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+          nameField.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+          nameField.dispatchEvent(new Event('blur', { bubbles: true, cancelable: true }));
+          
+          // Method 8: Use Object.defineProperty
+          try {
+            Object.defineProperty(nameField, 'value', {
+              value: fullName,
+              writable: true,
+              configurable: true,
+              enumerable: true
+            });
+          } catch (e) {
+            // Fallback to normal assignment
+            nameField.value = fullName;
+          }
+          
+          // Verify and retry if needed
+          setTimeout(() => {
+            if (nameField.value !== fullName) {
+              console.error('❌ Name field not set. Current value:', nameField.value, 'Expected:', fullName);
+              // Try one more time with all methods
+              nameField.value = fullName;
+              nameField.setAttribute('value', fullName);
+              nameField.defaultValue = fullName;
+              nameField.dispatchEvent(new Event('input', { bubbles: true }));
+            } else {
+              console.log('✅ Name field set and verified from profile:', fullName);
+            }
+          }, 50);
+          
+          // Also verify immediately
+          if (nameField.value === fullName) {
+            console.log('✅ Name field set immediately from profile:', fullName);
+          }
+        } else if (nameField) {
+          console.warn('⚠️ Profile found but no full_name:', profile);
+        }
+        
+        // Set email field - use multiple aggressive methods
+        if (emailField && profile.email && profile.email.trim()) {
+          const email = profile.email.trim();
+          
+          // Method 1: Direct value assignment
+          emailField.value = email;
+          
+          // Method 2: Set attribute
+          emailField.setAttribute('value', email);
+          
+          // Method 3: Set defaultValue
+          emailField.defaultValue = email;
+          
+          // Method 4: Use setProperty if available
+          try {
+            emailField.setProperty('value', email);
+          } catch (e) {
+            // Ignore if not supported
+          }
+          
+          // Method 5: Direct DOM manipulation
+          if (emailField instanceof HTMLInputElement) {
+            emailField.setAttribute('value', email);
+            (emailField as any)._value = email;
+          }
+          
+          // Method 6: Remove and re-add value attribute
+          emailField.removeAttribute('value');
+          emailField.setAttribute('value', email);
+          
+          // Method 7: Force update via events
+          emailField.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+          emailField.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+          emailField.dispatchEvent(new Event('blur', { bubbles: true, cancelable: true }));
+          
+          // Method 8: Use Object.defineProperty
+          try {
+            Object.defineProperty(emailField, 'value', {
+              value: email,
+              writable: true,
+              configurable: true,
+              enumerable: true
+            });
+          } catch (e) {
+            // Fallback to normal assignment
+            emailField.value = email;
+          }
+          
+          // Verify and retry if needed
+          setTimeout(() => {
+            if (emailField.value !== email) {
+              console.error('❌ Email field not set. Current value:', emailField.value, 'Expected:', email);
+              // Try one more time with all methods
+              emailField.value = email;
+              emailField.setAttribute('value', email);
+              emailField.defaultValue = email;
+              emailField.dispatchEvent(new Event('input', { bubbles: true }));
+            } else {
+              console.log('✅ Email field set and verified from profile:', email);
+            }
+          }, 50);
+          
+          // Also verify immediately
+          if (emailField.value === email) {
+            console.log('✅ Email field set immediately from profile:', email);
+          }
+        } else if (emailField) {
+          console.warn('⚠️ Profile found but no email:', profile);
+        }
+      } else {
+        console.log('ℹ️ No profile found in Supabase profiles table');
+        console.log('💡 User email searched:', userEmail);
+        console.log('💡 User ID searched:', userId);
+      }
+    } catch (error) {
+      console.error('❌ Error in fetchAndPopulateFromProfile:', error);
+    }
+  }
+  
+  // Aggressive field population function that runs continuously
+  function aggressivePopulateFields() {
+    const nameField = document.getElementById('user-name') as HTMLInputElement;
+    const emailField = document.getElementById('user-email') as HTMLInputElement;
+    
+    if (!nameField || !emailField) {
+      setTimeout(aggressivePopulateFields, 100);
+      return;
+    }
+    
+    // Get profile data
+    fetchAndPopulateFromProfile().then(() => {
+      // After fetching, verify and set again
+      setTimeout(() => {
+        const sessionData = sessionStorage.getItem('simple-auth-session');
+        if (sessionData) {
+          try {
+            const session = JSON.parse(sessionData);
+            const userEmail = session?.user?.email;
+            
+            if (userEmail) {
+              waitForSupabase().then(async (supabase) => {
+                if (supabase) {
+                  const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('full_name, email')
+                    .eq('email', userEmail)
+                    .single();
+                  
+                  if (profile) {
+                    // Force set name
+                    if (profile.full_name && nameField) {
+                      nameField.value = profile.full_name;
+                      nameField.setAttribute('value', profile.full_name);
+                      console.log('🔧 Aggressive set name:', profile.full_name);
+                    }
+                    
+                    // Force set email
+                    if (profile.email && emailField) {
+                      emailField.value = profile.email;
+                      emailField.setAttribute('value', profile.email);
+                      console.log('🔧 Aggressive set email:', profile.email);
+                    }
+                  }
+                }
+              });
+            }
+          } catch (e) {
+            console.error('Error in aggressive populate:', e);
+          }
+        }
+      }, 500);
+    });
+  }
+  
+  // Use MutationObserver to watch for field changes and restore values
+  function setupFieldWatcher() {
+    const nameField = document.getElementById('user-name') as HTMLInputElement;
+    const emailField = document.getElementById('user-email') as HTMLInputElement;
+    
+    if (!nameField || !emailField) {
+      setTimeout(setupFieldWatcher, 100);
+      return;
+    }
+    
+    let lastNameValue = '';
+    let lastEmailValue = '';
+    
+    // Watch name field
+    const nameObserver = new MutationObserver(() => {
+      if (nameField.value !== lastNameValue && lastNameValue) {
+        console.log('⚠️ Name field changed, restoring:', lastNameValue);
+        nameField.value = lastNameValue;
+        nameField.setAttribute('value', lastNameValue);
+      }
+    });
+    
+    nameObserver.observe(nameField, {
+      attributes: true,
+      attributeFilter: ['value'],
+      childList: false,
+      subtree: false
+    });
+    
+    // Watch email field
+    const emailObserver = new MutationObserver(() => {
+      if (emailField.value !== lastEmailValue && lastEmailValue) {
+        console.log('⚠️ Email field changed, restoring:', lastEmailValue);
+        emailField.value = lastEmailValue;
+        emailField.setAttribute('value', lastEmailValue);
+      }
+    });
+    
+    emailObserver.observe(emailField, {
+      attributes: true,
+      attributeFilter: ['value'],
+      childList: false,
+      subtree: false
+    });
+    
+    // Also watch for input events and restore if cleared
+    nameField.addEventListener('input', () => {
+      if (!nameField.value && lastNameValue) {
+        console.log('⚠️ Name field cleared, restoring:', lastNameValue);
+        nameField.value = lastNameValue;
+      } else if (nameField.value) {
+        lastNameValue = nameField.value;
+      }
+    });
+    
+    emailField.addEventListener('input', () => {
+      if (!emailField.value && lastEmailValue) {
+        console.log('⚠️ Email field cleared, restoring:', lastEmailValue);
+        emailField.value = lastEmailValue;
+      } else if (emailField.value) {
+        lastEmailValue = emailField.value;
+      }
+    });
+    
+    // Update last values when profile is fetched
+    fetchAndPopulateFromProfile().then(() => {
+      setTimeout(() => {
+        if (nameField.value) {
+          lastNameValue = nameField.value;
+        }
+        if (emailField.value) {
+          lastEmailValue = emailField.value;
+        }
+      }, 1000);
+    });
+  }
+  
+  // Run immediately
+  fetchAndPopulateFromProfile();
+  aggressivePopulateFields();
+  setupFieldWatcher();
+  
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       setupFileUploadHandlers();
@@ -1359,6 +1985,8 @@ import Layout from '../layouts/Layout.astro';
       autoFetchAndPopulate();
       // Quick populate immediately from session
       populateFromSession();
+      // Fetch from Supabase profiles table
+      fetchAndPopulateFromProfile();
       // Force set values immediately and repeatedly
       setTimeout(() => forceSetFieldValues(), 50);
       setTimeout(() => forceSetFieldValues(), 150);
@@ -1373,6 +2001,14 @@ import Layout from '../layouts/Layout.astro';
       setTimeout(() => forceSetFieldValues(), 1200);
       setTimeout(() => forceSetFieldValues(), 2500);
       setTimeout(() => forceSetFieldValues(), 4000);
+      // Retry profile fetch multiple times
+      setTimeout(() => fetchAndPopulateFromProfile(), 1000);
+      setTimeout(() => fetchAndPopulateFromProfile(), 2000);
+      setTimeout(() => fetchAndPopulateFromProfile(), 3000);
+      setTimeout(() => fetchAndPopulateFromProfile(), 5000);
+      // Aggressive populate
+      setTimeout(() => aggressivePopulateFields(), 1500);
+      setTimeout(() => aggressivePopulateFields(), 3500);
     });
   } else {
     setupFileUploadHandlers();
@@ -1380,6 +2016,10 @@ import Layout from '../layouts/Layout.astro';
     autoFetchAndPopulate();
     // Quick populate immediately from session
     populateFromSession();
+    // Fetch from Supabase profiles table
+    fetchAndPopulateFromProfile();
+    aggressivePopulateFields();
+    setupFieldWatcher();
     // Force set values immediately and repeatedly
     setTimeout(() => forceSetFieldValues(), 50);
     setTimeout(() => forceSetFieldValues(), 150);
@@ -1394,7 +2034,42 @@ import Layout from '../layouts/Layout.astro';
     setTimeout(() => forceSetFieldValues(), 1200);
     setTimeout(() => forceSetFieldValues(), 2500);
     setTimeout(() => forceSetFieldValues(), 4000);
+    // Retry profile fetch multiple times
+    setTimeout(() => fetchAndPopulateFromProfile(), 1000);
+    setTimeout(() => fetchAndPopulateFromProfile(), 2000);
+    setTimeout(() => fetchAndPopulateFromProfile(), 3000);
+    setTimeout(() => fetchAndPopulateFromProfile(), 5000);
+    // Aggressive populate
+    setTimeout(() => aggressivePopulateFields(), 1500);
+    setTimeout(() => aggressivePopulateFields(), 3500);
   }
+  
+  // Continuous check to ensure fields are populated (runs every 2 seconds for 20 seconds)
+  let checkCount = 0;
+  const maxChecks = 10;
+  const checkInterval = setInterval(() => {
+    checkCount++;
+    const nameField = document.getElementById('user-name') as HTMLInputElement;
+    const emailField = document.getElementById('user-email') as HTMLInputElement;
+    
+    if (nameField && emailField) {
+      const hasName = nameField.value && nameField.value.trim().length > 0;
+      const hasEmail = emailField.value && emailField.value.trim().length > 0;
+      
+      if (!hasName || !hasEmail) {
+        console.log(`🔄 Check ${checkCount}/${maxChecks}: Fields not populated, fetching from profile...`);
+        fetchAndPopulateFromProfile();
+      } else {
+        console.log(`✅ Check ${checkCount}/${maxChecks}: Fields are populated`);
+        clearInterval(checkInterval);
+      }
+    }
+    
+    if (checkCount >= maxChecks) {
+      console.log('⏹️ Stopped continuous check after', maxChecks, 'attempts');
+      clearInterval(checkInterval);
+    }
+  }, 2000);
   
   // Also try quick populate on window load
   window.addEventListener('load', () => {

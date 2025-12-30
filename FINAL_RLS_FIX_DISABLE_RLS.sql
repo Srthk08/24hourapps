@@ -38,3 +38,5 @@ GRANT ALL ON public.contact_submissions TO anon, authenticated, public;
 
 
 
+
+

@@ -174,19 +174,21 @@ const style = categoryStyles[product.category];
           if (document.documentElement) {
             document.documentElement.style.opacity = '1';
           }
-          // Show dialog when DOM is ready
-          if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-              if (window.showProductDialog) {
-                window.showProductDialog();
-              }
-            });
-          } else {
-            setTimeout(() => {
-              if (window.showProductDialog) {
-                window.showProductDialog();
-              }
-            }, 100);
+          // Show dialog when DOM is ready - BUT NOT for Android TV App or Order Menu System
+          if (productSlug !== 'android-tv-app' && productSlug !== 'order-menu-system') {
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', function() {
+                if (window.showProductDialog) {
+                  window.showProductDialog();
+                }
+              });
+            } else {
+              setTimeout(() => {
+                if (window.showProductDialog) {
+                  window.showProductDialog();
+                }
+              }, 100);
+            }
           }
           return; // Exit early - no auth check needed
         }
@@ -234,15 +236,15 @@ const style = categoryStyles[product.category];
             return;
           }
           
-          // SPECIAL HANDLING FOR ORDER MENU SYSTEM: If we have session data, trust it
+          // SPECIAL HANDLING FOR ANDROID TV APP AND ORDER MENU SYSTEM: If we have session data, trust it
           // This prevents redirect loops in production where auth manager might load slower
-          if (isOrderMenuSystem && hasValidSession) {
+          if ((isAndroidTVApp || isOrderMenuSystem) && hasValidSession) {
             // Try to parse session to verify it's valid
             try {
               const session = JSON.parse(sessionData);
               if (session && session.user && session.user.email) {
-                // Valid session data exists - allow access for OMS even if auth manager not ready
-                console.log('✅ Order Menu System - valid session found, allowing access');
+                // Valid session data exists - allow access even if auth manager not ready
+                console.log(`✅ ${isAndroidTVApp ? 'Android TV App' : 'Order Menu System'} - valid session found, allowing access`);
                 if (document.body) {
                   document.body.style.transition = 'opacity 0.3s ease-in';
                   document.body.style.opacity = '1';
@@ -267,16 +269,16 @@ const style = categoryStyles[product.category];
             }
             checkAuth.retryCount++;
             
-            // For Order Menu System, retry more times since we have session data
-            const maxRetries = isOrderMenuSystem && hasValidSession ? 20 : 10;
-            const retryDelay = checkAuth.retryCount < 10 ? 50 : 100;
+            // For Android TV App and Order Menu System, retry more times since we have session data
+            const maxRetries = (isAndroidTVApp || isOrderMenuSystem) && hasValidSession ? 30 : 15;
+            const retryDelay = checkAuth.retryCount < 15 ? 50 : 100;
             
             if (checkAuth.retryCount < maxRetries) {
               setTimeout(checkAuth, retryDelay);
             } else {
-              // Too many retries - for OMS with valid session, allow access anyway
-              if (isOrderMenuSystem && hasValidSession) {
-                console.log('✅ Order Menu System - auth manager timeout but session valid, allowing access');
+              // Too many retries - for Android TV App/OMS with valid session, allow access anyway
+              if ((isAndroidTVApp || isOrderMenuSystem) && hasValidSession) {
+                console.log(`✅ ${isAndroidTVApp ? 'Android TV App' : 'Order Menu System'} - auth manager timeout but session valid, allowing access`);
                 if (document.body) {
                   document.body.style.transition = 'opacity 0.3s ease-in';
                   document.body.style.opacity = '1';
@@ -322,10 +324,10 @@ const style = categoryStyles[product.category];
             return;
           }
           
-          // User is logged in - check if Order Menu System
-          if (isOrderMenuSystem) {
-            // Order Menu System - allow access for all logged-in users
-            console.log('✅ Order Menu System - allowing access for logged-in user');
+          // User is logged in - check if Android TV App or Order Menu System
+          if (isAndroidTVApp || isOrderMenuSystem) {
+            // Android TV App and Order Menu System - allow access for all logged-in users
+            console.log(`✅ ${isAndroidTVApp ? 'Android TV App' : 'Order Menu System'} - allowing access for logged-in user`);
             if (document.body) {
               document.body.style.transition = 'opacity 0.3s ease-in';
               document.body.style.opacity = '1';
@@ -797,13 +799,26 @@ const style = categoryStyles[product.category];
       }
     }
     
-    const isAuthenticated = isLoggedInViaManager || isLoggedInViaSession;
+    // Also check localStorage as fallback
+    const localSessionData = localStorage.getItem('simple-auth-session');
+    let isLoggedInViaLocalStorage = false;
+    if (localSessionData && localSessionData !== 'null' && localSessionData !== '{}') {
+      try {
+        const session = JSON.parse(localSessionData);
+        isLoggedInViaLocalStorage = session && session.user && session.access_token;
+      } catch (e) {
+        console.log('LocalStorage session parse error:', e);
+      }
+    }
+    
+    const isAuthenticated = isLoggedInViaManager || isLoggedInViaSession || isLoggedInViaLocalStorage;
     
     console.log('🔍 Auth check:', {
       authManager: !!authManager,
       isLoggedInViaManager,
       hasValidSession,
       isLoggedInViaSession,
+      isLoggedInViaLocalStorage,
       isAuthenticated
     });
     
@@ -898,6 +913,76 @@ const style = categoryStyles[product.category];
   // Check authentication when page loads
   document.addEventListener('DOMContentLoaded', checkAuthenticationStatus);
 
+  // CRITICAL: Immediate check to hide dialog for Android TV App - runs before DOMContentLoaded
+  (function() {
+    const currentPath = window.location.pathname || '';
+    const productSlug = currentPath.split('/').pop() || '';
+    const isAndroidTVApp = productSlug === 'android-tv-app';
+    const isOrderMenuSystem = productSlug === 'order-menu-system';
+    
+    if (isAndroidTVApp || isOrderMenuSystem) {
+      // Immediately hide dialog if it exists
+      function hideDialogImmediately() {
+        const dialog = document.getElementById('product-dialog');
+        if (dialog) {
+          dialog.classList.add('hidden');
+          dialog.style.display = 'none';
+          dialog.style.visibility = 'hidden';
+          dialog.style.opacity = '0';
+          dialog.style.pointerEvents = 'none';
+          dialog.style.zIndex = '-9999';
+          dialog.style.height = '0';
+          dialog.style.width = '0';
+          dialog.style.overflow = 'hidden';
+          dialog.style.position = 'fixed';
+          dialog.style.top = '-9999px';
+          dialog.style.left = '-9999px';
+        }
+        // CRITICAL: Ensure body and html can scroll
+        if (document.body) {
+          document.body.style.overflow = '';
+          document.body.style.overflowY = '';
+          document.body.style.position = '';
+          document.body.style.height = '';
+        }
+        if (document.documentElement) {
+          document.documentElement.style.overflow = '';
+          document.documentElement.style.overflowY = '';
+        }
+      }
+      
+      // Try immediately
+      hideDialogImmediately();
+      
+      // Also try when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', hideDialogImmediately);
+      } else {
+        hideDialogImmediately();
+      }
+      
+      // Keep checking until dialog exists and is hidden AND ensure scrolling is enabled
+      let checkCount = 0;
+      const maxChecks = 200; // Check for 2 seconds
+      const checkInterval = setInterval(function() {
+        checkCount++;
+        hideDialogImmediately();
+        // Also ensure scrolling is always enabled
+        if (document.body) {
+          document.body.style.overflow = '';
+          document.body.style.overflowY = '';
+        }
+        if (document.documentElement) {
+          document.documentElement.style.overflow = '';
+          document.documentElement.style.overflowY = '';
+        }
+        if (checkCount >= maxChecks) {
+          clearInterval(checkInterval);
+        }
+      }, 10);
+    }
+  })();
+
   // Role-based access control for product pages
   // This runs after the inline script, so we check if user is logged in
   // IMPORTANT: ALL products require authentication - no exceptions
@@ -907,6 +992,30 @@ const style = categoryStyles[product.category];
     const productSlug = currentPath.split('/').pop();
     
     console.log('Product page loaded:', productSlug);
+    
+    // CRITICAL: Immediately hide dialog for Android TV App on DOMContentLoaded
+    const isAndroidTVAppPageCheck = productSlug === 'android-tv-app';
+    const isOrderMenuSystemPageCheck = productSlug === 'order-menu-system';
+    if (isAndroidTVAppPageCheck || isOrderMenuSystemPageCheck) {
+      const dialog = document.getElementById('product-dialog');
+      if (dialog) {
+        dialog.classList.add('hidden');
+        dialog.style.display = 'none';
+        dialog.style.visibility = 'hidden';
+        dialog.style.opacity = '0';
+        dialog.style.pointerEvents = 'none';
+        dialog.style.zIndex = '-9999';
+        dialog.style.height = '0';
+        dialog.style.width = '0';
+        dialog.style.overflow = 'hidden';
+        dialog.style.position = 'fixed';
+        dialog.style.top = '-9999px';
+        dialog.style.left = '-9999px';
+      }
+      if (document.body) {
+        document.body.style.overflow = '';
+      }
+    }
     
     // List of blocked/disabled products that show dialog instead of login
     // Android TV App is now accessible - removed from blocked list
@@ -925,9 +1034,11 @@ const style = categoryStyles[product.category];
       if (document.body) {
         document.body.style.opacity = '1';
       }
-      // Show dialog
-      if (window.showProductDialog) {
-        window.showProductDialog();
+      // Show dialog - BUT NOT for Android TV App or Order Menu System
+      if (productSlug !== 'android-tv-app' && productSlug !== 'order-menu-system') {
+        if (window.showProductDialog) {
+          window.showProductDialog();
+        }
       }
       return; // Exit early - no auth check needed
     }
@@ -941,9 +1052,66 @@ const style = categoryStyles[product.category];
     // Check authentication and admin status (for all products)
     const authManager = window.globalAuthManager || window.simpleAuthManager;
     const sessionData = sessionStorage.getItem('simple-auth-session');
-    const hasValidSession = sessionData && sessionData !== 'null' && sessionData !== '{}';
+    const localSessionData = localStorage.getItem('simple-auth-session');
+    const hasValidSession = (sessionData && sessionData !== 'null' && sessionData !== '{}') || 
+                           (localSessionData && localSessionData !== 'null' && localSessionData !== '{}');
     
-    const isLoggedIn = authManager && authManager.isUserLoggedIn() && hasValidSession;
+    // Check if user is logged in via auth manager
+    const isLoggedInViaManager = authManager && authManager.isUserLoggedIn();
+    
+    // Check if user is logged in via session storage
+    let isLoggedInViaSession = false;
+    if (hasValidSession) {
+      try {
+        const session = sessionData ? JSON.parse(sessionData) : (localSessionData ? JSON.parse(localSessionData) : null);
+        isLoggedInViaSession = session && session.user && session.access_token;
+      } catch (e) {
+        console.log('Session parse error:', e);
+      }
+    }
+    
+    const isLoggedIn = isLoggedInViaManager || isLoggedInViaSession;
+    
+    // Check if this is the Order Menu System or Android TV App - allow access for all logged-in users
+    const isOrderMenuSystemPage = productSlug === 'order-menu-system';
+    const isAndroidTVAppPage = productSlug === 'android-tv-app';
+    
+    // CRITICAL: Immediately hide dialog for Android TV App - BEFORE any other checks
+    if (isAndroidTVAppPage || isOrderMenuSystemPage) {
+      function forceHideDialog() {
+        const dialog = document.getElementById('product-dialog');
+        if (dialog) {
+          dialog.classList.add('hidden');
+          dialog.style.setProperty('display', 'none', 'important');
+          dialog.style.setProperty('visibility', 'hidden', 'important');
+          dialog.style.setProperty('opacity', '0', 'important');
+          dialog.style.setProperty('pointer-events', 'none', 'important');
+          dialog.style.setProperty('z-index', '-9999', 'important');
+          dialog.style.setProperty('height', '0', 'important');
+          dialog.style.setProperty('width', '0', 'important');
+          dialog.style.setProperty('overflow', 'hidden', 'important');
+          dialog.style.setProperty('position', 'fixed', 'important');
+          dialog.style.setProperty('top', '-9999px', 'important');
+          dialog.style.setProperty('left', '-9999px', 'important');
+          dialog.setAttribute('hidden', 'true');
+          dialog.setAttribute('aria-hidden', 'true');
+        }
+        // CRITICAL: Ensure body and html can scroll
+        if (document.body) {
+          document.body.style.overflow = '';
+          document.body.style.overflowY = '';
+          document.body.style.position = '';
+          document.body.style.height = '';
+        }
+        if (document.documentElement) {
+          document.documentElement.style.overflow = '';
+          document.documentElement.style.overflowY = '';
+        }
+      }
+      forceHideDialog();
+      // Keep hiding it continuously
+      setInterval(forceHideDialog, 10);
+    }
     
     if (!isLoggedIn) {
       // User not logged in - redirect to login immediately
@@ -967,19 +1135,60 @@ const style = categoryStyles[product.category];
       return;
     }
     
-    // Check if this is the Order Menu System or Android TV App - allow access for all logged-in users
-    const isOrderMenuSystem = productSlug === 'order-menu-system';
-    const isAndroidTVApp = productSlug === 'android-tv-app';
-    
-    if (isOrderMenuSystem || isAndroidTVApp) {
-      // Order Menu System and Android TV App - allow access for all logged-in users
-      console.log(`✅ ${isAndroidTVApp ? 'Android TV App' : 'Order Menu System'} - allowing access for logged-in user`);
+    if (isOrderMenuSystemPage || isAndroidTVAppPage) {
+      // Order Menu System and Android TV App - allow access for all logged-in users - NO DIALOG
+      console.log(`✅ ${isAndroidTVAppPage ? 'Android TV App' : 'Order Menu System'} - allowing access for logged-in user - NO DIALOG`);
       if (document.body) {
         document.body.style.opacity = '1';
+        // CRITICAL: Ensure body can scroll
+        document.body.style.overflow = '';
+        document.body.style.overflowY = '';
+        document.body.style.position = '';
+        document.body.style.height = '';
       }
       if (document.documentElement) {
         document.documentElement.style.opacity = '1';
+        // CRITICAL: Ensure html can scroll
+        document.documentElement.style.overflow = '';
+        document.documentElement.style.overflowY = '';
       }
+      // CRITICAL: Ensure dialog is never shown for Android TV App (for both admin and regular users)
+      const dialog = document.getElementById('product-dialog');
+      if (dialog) {
+        dialog.classList.add('hidden');
+        dialog.style.setProperty('display', 'none', 'important');
+        dialog.style.setProperty('visibility', 'hidden', 'important');
+        dialog.style.setProperty('opacity', '0', 'important');
+        dialog.style.setProperty('pointer-events', 'none', 'important');
+        dialog.style.setProperty('z-index', '-9999', 'important');
+        dialog.style.setProperty('height', '0', 'important');
+        dialog.style.setProperty('width', '0', 'important');
+        dialog.style.setProperty('overflow', 'hidden', 'important');
+        dialog.style.setProperty('position', 'fixed', 'important');
+        dialog.style.setProperty('top', '-9999px', 'important');
+        dialog.style.setProperty('left', '-9999px', 'important');
+        dialog.setAttribute('hidden', 'true');
+        dialog.setAttribute('aria-hidden', 'true');
+      }
+      // Keep hiding it continuously AND ensure scrolling is enabled
+      setInterval(function() {
+        const d = document.getElementById('product-dialog');
+        if (d) {
+          d.classList.add('hidden');
+          d.style.setProperty('display', 'none', 'important');
+          d.style.setProperty('visibility', 'hidden', 'important');
+          d.style.setProperty('opacity', '0', 'important');
+        }
+        // Ensure body and html can always scroll
+        if (document.body) {
+          document.body.style.overflow = '';
+          document.body.style.overflowY = '';
+        }
+        if (document.documentElement) {
+          document.documentElement.style.overflow = '';
+          document.documentElement.style.overflowY = '';
+        }
+      }, 10);
       return; // Exit early - no admin check needed
     }
     
@@ -989,6 +1198,47 @@ const style = categoryStyles[product.category];
     
     if (!isAdmin) {
       // Logged in but not admin - show dialog or redirect
+      // BUT NOT for Android TV App or Order Menu System (they're allowed for all logged-in users)
+      if (isOrderMenuSystemPage || isAndroidTVAppPage) {
+        // Android TV App and Order Menu System are allowed for all logged-in users - NO DIALOG
+        console.log(`✅ ${isAndroidTVAppPage ? 'Android TV App' : 'Order Menu System'} - allowing access for logged-in user (non-admin) - NO DIALOG`);
+        if (document.body) {
+          document.body.style.opacity = '1';
+        }
+        if (document.documentElement) {
+          document.documentElement.style.opacity = '1';
+        }
+        // CRITICAL: Ensure dialog is never shown for Android TV App - USE IMPORTANT FLAGS
+        const dialog = document.getElementById('product-dialog');
+        if (dialog) {
+          dialog.classList.add('hidden');
+          dialog.style.setProperty('display', 'none', 'important');
+          dialog.style.setProperty('visibility', 'hidden', 'important');
+          dialog.style.setProperty('opacity', '0', 'important');
+          dialog.style.setProperty('pointer-events', 'none', 'important');
+          dialog.style.setProperty('z-index', '-9999', 'important');
+          dialog.style.setProperty('height', '0', 'important');
+          dialog.style.setProperty('width', '0', 'important');
+          dialog.style.setProperty('overflow', 'hidden', 'important');
+          dialog.style.setProperty('position', 'fixed', 'important');
+          dialog.style.setProperty('top', '-9999px', 'important');
+          dialog.style.setProperty('left', '-9999px', 'important');
+          dialog.setAttribute('hidden', 'true');
+          dialog.setAttribute('aria-hidden', 'true');
+        }
+        // Keep hiding it continuously
+        setInterval(function() {
+          const d = document.getElementById('product-dialog');
+          if (d) {
+            d.classList.add('hidden');
+            d.style.setProperty('display', 'none', 'important');
+            d.style.setProperty('visibility', 'hidden', 'important');
+            d.style.setProperty('opacity', '0', 'important');
+          }
+        }, 10);
+        return; // Exit early - no dialog needed
+      }
+      
       console.log('Non-admin user - showing dialog');
       // Show content for non-admin users (they'll see the dialog)
       if (document.body) {

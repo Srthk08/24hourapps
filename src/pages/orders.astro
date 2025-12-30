@@ -159,28 +159,12 @@ import AuthGuard from '../components/AuthGuard.astro';
                     <p class="text-xs sm:text-sm font-mono text-gray-800 break-all" id="order-modal-id">-</p>
                   </div>
                   <div>
-                    <p class="text-xs sm:text-sm text-gray-500 mb-1">Project</p>
-                    <p class="text-xs sm:text-sm text-gray-800 break-words" id="order-modal-desc">-</p>
-                  </div>
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <h4 class="text-xs sm:text-sm font-semibold text-gray-800 mb-2">Contact</h4>
-                      <div class="text-xs sm:text-sm text-gray-700 space-y-1 break-words">
-                        <div>Person: <span id="order-modal-contact" class="break-words">-</span></div>
-                        <div>Email: <span id="order-modal-email" class="break-all">-</span></div>
-                        <div>Phone: <span id="order-modal-phone" class="break-words">-</span></div>
-                      </div>
+                    <h4 class="text-xs sm:text-sm font-semibold text-gray-800 mb-2">Contact</h4>
+                    <div class="text-xs sm:text-sm text-gray-700 space-y-1 break-words">
+                      <div>Person: <span id="order-modal-contact" class="break-words">-</span></div>
+                      <div>Email: <span id="order-modal-email" class="break-all">-</span></div>
+                      <div>Phone: <span id="order-modal-phone" class="break-words">-</span></div>
                     </div>
-                    <div>
-                      <h4 class="text-xs sm:text-sm font-semibold text-gray-800 mb-2">Restaurant</h4>
-                      <div class="text-xs sm:text-sm text-gray-700 space-y-1 break-words">
-                        <div>Name: <span id="order-modal-restaurant" class="break-words">-</span></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 class="text-xs sm:text-sm font-semibold text-gray-800 mb-2">Additional Requirements</h4>
-                    <p class="text-xs sm:text-sm text-gray-700 break-words whitespace-pre-wrap" id="order-modal-additional">-</p>
                   </div>
                 </div>
                 <div class="p-4 border-t bg-gray-50 flex justify-end sm:justify-end">
@@ -284,12 +268,19 @@ import AuthGuard from '../components/AuthGuard.astro';
       }
       
       if (!currentUser || !currentUser.email) {
-        console.log('❌ No user email available – cannot load orders');
+        console.error('❌ No user email available – cannot load orders');
+        console.error('Current user object:', currentUser);
+        console.error('Available storage:');
+        console.error('  - sessionStorage simple-auth-session:', sessionStorage.getItem('simple-auth-session'));
+        console.error('  - localStorage simple-auth-user:', localStorage.getItem('simple-auth-user'));
+        console.error('  - window.globalAuthManager:', !!window.globalAuthManager);
+        console.error('  - window.simpleAuthManager:', !!window.simpleAuthManager);
         return;
       }
 
       // Normalize to a plain email string for downstream queries/filters (lowercase for consistent matching)
       const userEmail = currentUser.email.toLowerCase().trim();
+      console.log('✅ User email detected:', userEmail);
       console.log('📧 Loading orders for user email:', userEmail);
       
       // Load project requirements as orders (filter by email if available)
@@ -392,276 +383,202 @@ import AuthGuard from '../components/AuthGuard.astro';
       // Log breakdown by source for debugging
       const ordersBySource = {
         localStorage: this.orders.filter(o => o.orderId?.startsWith('PROJ-') || o.orderId?.startsWith('MENU-')).length,
-        supabase_order_customizations: this.orders.filter(o => o.orderId && !o.orderId.startsWith('PROJ-') && !o.orderId.startsWith('MENU-') && !o.orderId.startsWith('CART-') && !o.orderId.startsWith('CF-')).length,
-        supabase_cart_customizations: this.orders.filter(o => o.orderId?.startsWith('CART-')).length,
-        supabase_customization_forms: this.orders.filter(o => o.orderId?.startsWith('CF-')).length
+        supabase_customization_forms: this.orders.filter(o => o.orderId?.startsWith('CF-') || (!o.orderId?.startsWith('PROJ-') && !o.orderId?.startsWith('MENU-') && !o.orderId?.startsWith('CART-'))).length
       };
       console.log(' Orders breakdown by source:', ordersBySource);
     }
 
     async loadSupabaseOrders(userEmail) {
       try {
-        const { supabase } = await import('../lib/supabase');
-        console.log(' Loading Supabase orders for email:', userEmail);
+        // Wait for Supabase to be ready
+        let supabase = null;
         
-        // Fetch order_customizations (Order Menu System submissions)
-        // Try both 'email' and 'user_email' field names to handle schema variations
-        // Combine results from both queries to ensure we get all orders
-        let customizations = [];
-        let customizationsError = null;
+        // Try to get Supabase from window (from Layout.astro)
+        if (window.supabase && window.supabase.from) {
+          supabase = window.supabase;
+          console.log('✅ Using window.supabase client');
+        } else if (window.supabaseClient && window.supabaseClient.from) {
+          supabase = window.supabaseClient;
+          console.log('✅ Using window.supabaseClient');
+        } else {
+          // Wait for Supabase to be ready (max 5 seconds)
+          console.log('⏳ Waiting for Supabase to be ready...');
+          let attempts = 0;
+          const maxAttempts = 50; // 50 * 100ms = 5 seconds
+          
+          while (attempts < maxAttempts && !supabase) {
+            if (window.supabase && window.supabase.from) {
+              supabase = window.supabase;
+              console.log('✅ Supabase ready after waiting');
+              break;
+            } else if (window.supabaseClient && window.supabaseClient.from) {
+              supabase = window.supabaseClient;
+              console.log('✅ SupabaseClient ready after waiting');
+              break;
+            }
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+          }
+          
+          // If still not ready, try importing directly
+          if (!supabase) {
+            console.log('⚠️ Window Supabase not ready, trying direct import...');
+            const supabaseModule = await import('../lib/supabase');
+            supabase = supabaseModule.supabase;
+            console.log('✅ Using imported Supabase client');
+          }
+        }
+        
+        if (!supabase || !supabase.from) {
+          console.error('❌ Supabase client not available');
+          return;
+        }
+        
+        console.log('📦 Loading Supabase orders for email:', userEmail);
+        
+        // Only querying customization_forms table (order_customizations and cart_customizations don't exist)
         const seenIds = new Set(); // Track IDs to avoid duplicates
-        
-        // Try with 'email' field (case-insensitive matching)
-        const { data: customizationsEmail, error: errorEmail } = await supabase
-          .from('order_customizations')
-          .select('*')
-          .ilike('email', userEmail) // Use ilike for case-insensitive matching
-          .order('created_at', { ascending: false });
-        
-        if (!errorEmail && customizationsEmail && customizationsEmail.length > 0) {
-          customizationsEmail.forEach(cz => {
-            if (!seenIds.has(cz.id)) {
-              customizations.push(cz);
-              seenIds.add(cz.id);
-            }
-          });
-          console.log(' Found', customizationsEmail.length, 'orders using "email" field');
-        } else if (errorEmail) {
-          console.log(' Error querying with "email" field:', errorEmail.message);
-        }
-        
-        // Also try with 'user_email' field and combine results (case-insensitive)
-        const { data: customizationsUserEmail, error: errorUserEmail } = await supabase
-          .from('order_customizations')
-          .select('*')
-          .ilike('user_email', userEmail) // Use ilike for case-insensitive matching
-          .order('created_at', { ascending: false });
-        
-        if (!errorUserEmail && customizationsUserEmail && customizationsUserEmail.length > 0) {
-          customizationsUserEmail.forEach(cz => {
-            if (!seenIds.has(cz.id)) {
-              customizations.push(cz);
-              seenIds.add(cz.id);
-            }
-          });
-          console.log(' Found', customizationsUserEmail.length, 'orders using "user_email" field');
-        } else if (errorUserEmail) {
-          console.log(' Error querying with "user_email" field:', errorUserEmail.message);
-        }
-        
-        // Set error only if both queries failed
-        if (errorEmail && errorUserEmail) {
-          customizationsError = errorUserEmail || errorEmail;
-          console.error(' Both queries failed for order_customizations');
-        }
-        
-        if (customizationsError) {
-          console.warn(' Error loading order_customizations, continuing with other sources...', customizationsError);
-        }
-        
-        // Sort combined results by created_at
-        customizations.sort((a, b) => {
-          const dateA = new Date(a.created_at || 0);
-          const dateB = new Date(b.created_at || 0);
-          return dateB - dateA; // Newest first
-        });
 
-        console.log('📦 Processing', customizations.length, 'order_customizations...');
-        (customizations || []).forEach((cz, index) => {
-          console.log(`  Order ${index + 1}:`, {
-            id: cz.id,
-            project_name: cz.project_name,
-            email: cz.email || cz.user_email,
-            status: cz.status
-          });
-          
-          this.orders.push({
-            orderId: cz.id || `OC-${Date.now()}-${index}`,
-            orderDate: cz.created_at || new Date().toISOString(),
-            total: Number(cz.total_amount) || 0,
-            projectName: cz.project_name || 'Order Menu System',
-            description: 'Order Menu System customization',
-            status: cz.status || 'pending', // Read actual status from database
-            requirements: {
-              projectName: cz.project_name,
-              contactPerson: cz.contact_person,
-              restaurantName: cz.restaurant_name,
-              cuisineType: cz.cuisine_type,
-              email: cz.email || cz.user_email,
-              phone: cz.phone_number,
-              additionalRequirements: cz.additional_requirements,
-              primaryColor: cz.primary_color,
-              secondaryColor: cz.secondary_color,
-              accentColor: cz.accent_color,
-              textColor: cz.text_color
-            }
-          });
-        });
-
-        // Fetch cart_customizations (all orders, not just completed) - case-insensitive
-        const { data: carts, error: cartsError } = await supabase
-          .from('cart_customizations')
+        // Fetch customization_forms (for all products: restaurant-website, streaming-mobile-app, android-tv-app, restaurant-menu-system)
+        console.log('🔍 Querying customization_forms table for email:', userEmail);
+        
+        // First, let's test if we can query the table at all (get first 5 records for debugging)
+        const { data: testData, error: testError } = await supabase
+          .from('customization_forms')
           .select('*')
-          .ilike('user_email', userEmail) // Use ilike for case-insensitive matching
-          .in('cart_status', ['completed', 'pending', 'confirmed', 'in_progress', 'cancelled'])
-          .order('updated_at', { ascending: false });
+          .limit(5);
         
-        if (cartsError) {
-          console.error(' Error loading cart_customizations:', cartsError);
-          throw cartsError;
-        }
-        
-        console.log('📦 Processing', (carts || []).length, 'cart_customizations...');
-        (carts || []).forEach((cart, index) => {
-          // Check for duplicates using the cart ID
-          const cartId = cart.id || `CART-${Date.now()}-${index}`;
-          if (seenIds.has(cartId)) {
-            console.log(`  Skipping duplicate cart: ${cartId}`);
-            return;
+        if (testError) {
+          console.error('❌ Cannot query customization_forms table:', testError);
+        } else {
+          console.log('✅ customization_forms table is accessible. Sample records:', testData?.length || 0);
+          if (testData && testData.length > 0) {
+            console.log('📋 Sample record structure:', {
+              id: testData[0].id,
+              email_fields: {
+                customer_email: testData[0].customer_email,
+                contact_email: testData[0].contact_email
+              },
+              product_name: testData[0].product_name
+            });
           }
-          seenIds.add(cartId);
-          
-          console.log(`  Cart ${index + 1}:`, {
-            id: cart.id,
-            project_name: cart.project_name,
-            user_email: cart.user_email,
-            cart_status: cart.cart_status
-          });
-          // Map cart_status to status, or use status field if it exists
-          let orderStatus = cart.status || cart.cart_status || 'pending';
-          // Normalize cart_status values to match order status values
-          if (orderStatus === 'completed') {
-            orderStatus = 'completed';
-          } else if (orderStatus === 'cancelled') {
-            orderStatus = 'cancelled';
-          } else if (orderStatus === 'pending') {
-            orderStatus = 'pending';
-          } else if (orderStatus === 'confirmed') {
-            orderStatus = 'confirmed';
-          } else if (orderStatus === 'in_progress' || orderStatus === 'processing') {
-            orderStatus = 'in_progress';
-          }
-          
-          this.orders.push({
-            orderId: cartId,
-            orderDate: cart.updated_at || cart.created_at || new Date().toISOString(),
-            total: Number(cart.total_amount) || 0,
-            projectName: cart.project_name || 'Custom Project',
-            description: cart.project_description || 'Project purchased',
-            status: orderStatus, // Use actual status from database
-            requirements: {
-              projectName: cart.project_name,
-              contactPerson: cart.contact_person,
-              restaurantName: cart.restaurant_name,
-              cuisineType: cart.cuisine_type,
-              email: cart.user_email,
-              phone: cart.phone_number,
-              additionalRequirements: cart.additional_requirements,
-              primaryColor: cart.primary_color,
-              secondaryColor: cart.secondary_color,
-              accentColor: cart.accent_color,
-              textColor: cart.text_color
-            }
-          });
-        });
-
-        // Fetch customization_forms (for other 4 products: restaurant-website, streaming-mobile-app, android-tv-app, restaurant-menu-system) - case-insensitive
-        // Try multiple email fields to ensure we get all orders
+        }
+        
         let customForms = [];
-        let customFormsError = null;
         const seenFormIds = new Set();
         
-        // Try with customer_email field
-        const { data: customFormsCustomerEmail, error: errorCustomerEmail } = await supabase
+        // Only query fields that exist: customer_email and contact_email
+        // email and user_email columns don't exist in customization_forms table
+        
+        // Try customer_email field - use eq for exact match (case-insensitive with ilike)
+        console.log('🔍 Querying with customer_email field for:', userEmail);
+        const { data: data2, error: err2 } = await supabase
           .from('customization_forms')
           .select('*')
-          .ilike('customer_email', userEmail)
+          .ilike('customer_email', `%${userEmail}%`)
           .order('created_at', { ascending: false });
-        
-        if (errorCustomerEmail) {
-          console.warn(' Error querying customization_forms with customer_email:', errorCustomerEmail.message);
-        } else {
-          console.log(' Found', (customFormsCustomerEmail || []).length, 'orders using "customer_email" field');
+        if (!err2 && data2) {
+          console.log('📊 Query result - customer_email:', data2.length, 'records found');
+          if (data2.length > 0) {
+            console.log('📋 Sample customer_email values:', data2.slice(0, 3).map(f => f.customer_email));
+            data2.forEach(f => { 
+              if (!seenFormIds.has(f.id)) { 
+                customForms.push(f); 
+                seenFormIds.add(f.id); 
+                console.log('  ➕ Added form:', f.id, '- email:', f.customer_email);
+              } 
+            });
+            console.log('✅ Found', data2.length, 'orders using customer_email field');
+          } else {
+            console.log('ℹ️ No orders found with customer_email field matching:', userEmail);
+          }
+        } else if (err2) {
+          console.warn('⚠️ Error querying customer_email field:', err2.message);
         }
         
-        if (!errorCustomerEmail && customFormsCustomerEmail && customFormsCustomerEmail.length > 0) {
-          customFormsCustomerEmail.forEach(form => {
-            if (!seenFormIds.has(form.id)) {
-              customForms.push(form);
-              seenFormIds.add(form.id);
-            }
-          });
-        }
-        
-        // Try with user_email field
-        const { data: customFormsUserEmail, error: errorFormsUserEmail } = await supabase
+        // Try contact_email field
+        console.log('🔍 Querying with contact_email field for:', userEmail);
+        const { data: data4, error: err4 } = await supabase
           .from('customization_forms')
           .select('*')
-          .ilike('user_email', userEmail)
+          .ilike('contact_email', `%${userEmail}%`)
           .order('created_at', { ascending: false });
-        
-        if (errorFormsUserEmail) {
-          console.warn(' Error querying customization_forms with user_email:', errorFormsUserEmail.message);
-        } else {
-          console.log(' Found', (customFormsUserEmail || []).length, 'orders using "user_email" field');
+        if (!err4 && data4) {
+          console.log('📊 Query result - contact_email:', data4.length, 'records found');
+          if (data4.length > 0) {
+            console.log('📋 Sample contact_email values:', data4.slice(0, 3).map(f => f.contact_email));
+            data4.forEach(f => { 
+              if (!seenFormIds.has(f.id)) { 
+                customForms.push(f); 
+                seenFormIds.add(f.id); 
+                console.log('  ➕ Added form:', f.id, '- email:', f.contact_email);
+              } 
+            });
+            console.log('✅ Found', data4.length, 'orders using contact_email field');
+          } else {
+            console.log('ℹ️ No orders found with contact_email field matching:', userEmail);
+          }
+        } else if (err4) {
+          console.warn('⚠️ Error querying contact_email field:', err4.message);
         }
         
-        if (!errorFormsUserEmail && customFormsUserEmail && customFormsUserEmail.length > 0) {
-          customFormsUserEmail.forEach(form => {
-            if (!seenFormIds.has(form.id)) {
-              customForms.push(form);
-              seenFormIds.add(form.id);
+        console.log('📊 Total customization_forms found after all queries:', customForms.length);
+        
+        // If no orders found with email match, try fetching all records and filter client-side
+        // This helps debug if the issue is with the query or the data
+        if (customForms.length === 0) {
+          console.log('⚠️ No orders found with email queries. Trying to fetch all records for debugging...');
+          const { data: allForms, error: allError } = await supabase
+            .from('customization_forms')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(100);
+          
+          if (!allError && allForms && allForms.length > 0) {
+            console.log('📋 Found', allForms.length, 'total records in customization_forms table');
+            // Filter client-side by email (only check fields that exist)
+            const matchingForms = allForms.filter(form => {
+              const formEmail = (form.customer_email || form.contact_email || '').toLowerCase().trim();
+              return formEmail === userEmail || formEmail.includes(userEmail) || userEmail.includes(formEmail);
+            });
+            console.log('📋 After client-side filtering, found', matchingForms.length, 'matching records');
+            if (matchingForms.length > 0) {
+              customForms = matchingForms;
+              console.log('✅ Using client-side filtered results');
+            } else {
+              console.log('ℹ️ No matching records found even after fetching all records');
+              console.log('💡 User email being searched:', userEmail);
+              console.log('💡 Sample emails in table:', allForms.slice(0, 3).map(f => ({
+                customer_email: f.customer_email,
+                contact_email: f.contact_email
+              })));
             }
-          });
+          } else if (allError) {
+            console.error('❌ Error fetching all records:', allError);
+          }
         }
         
-        // Try with contact_email field (fallback)
-        const { data: customFormsContactEmail, error: errorFormsContactEmail } = await supabase
-          .from('customization_forms')
-          .select('*')
-          .ilike('contact_email', userEmail)
-          .order('created_at', { ascending: false });
-        
-        if (errorFormsContactEmail) {
-          console.warn(' Error querying customization_forms with contact_email:', errorFormsContactEmail.message);
-        } else {
-          console.log(' Found', (customFormsContactEmail || []).length, 'orders using "contact_email" field');
-        }
-        
-        if (!errorFormsContactEmail && customFormsContactEmail && customFormsContactEmail.length > 0) {
-          customFormsContactEmail.forEach(form => {
-            if (!seenFormIds.has(form.id)) {
-              customForms.push(form);
-              seenFormIds.add(form.id);
-            }
-          });
-        }
-        
-        // Set error only if all queries failed
-        if (errorCustomerEmail && errorFormsUserEmail && errorFormsContactEmail) {
-          customFormsError = errorCustomerEmail || errorFormsUserEmail || errorFormsContactEmail;
-          console.warn(' Error loading customization_forms:', customFormsError);
-        }
-        
-        if (!customFormsError) {
-          console.log('📦 Processing', (customForms || []).length, 'customization_forms...');
-          (customForms || []).forEach((form, index) => {
+        // Process all found customization forms
+        if (customForms && customForms.length > 0) {
+          console.log('📦 Processing', customForms.length, 'customization_forms...');
+          let addedCount = 0;
+          customForms.forEach((form, index) => {
             // Check for duplicates using the form ID
             const formId = form.id || `CF-${Date.now()}-${index}`;
             if (seenIds.has(formId)) {
-              console.log(`  Skipping duplicate customization form: ${formId}`);
+              console.log(`  ⚠️ Skipping duplicate customization form: ${formId}`);
               return;
             }
             seenIds.add(formId);
             
-            console.log(`  Custom Form ${index + 1}:`, {
+            console.log(`  ✅ Custom Form ${index + 1}/${customForms.length}:`, {
               id: form.id,
               project_name: form.project_name,
               product_name: form.product_name,
-              customer_email: form.customer_email,
-              user_email: form.user_email,
-              contact_email: form.contact_email,
-              status: form.status
+              email: form.customer_email || form.contact_email,
+              status: form.status,
+              price: form.price || form.product_price,
+              created_at: form.created_at
             });
             
             // Extract price from price field (numeric) or product_price field (might be string like "₹1,000")
@@ -675,21 +592,25 @@ import AuthGuard from '../components/AuthGuard.astro';
               }
             }
             
-            this.orders.push({
+            const orderData = {
               orderId: formId,
               orderDate: form.created_at || new Date().toISOString(),
               total: totalPrice,
               projectName: form.product_name || form.project_name || 'Custom Project',
               description: form.product_description || 'Professional digital solution',
               status: form.status || 'pending',
+              // Store additional_requirements at both levels for easy access
+              additionalRequirements: form.additional_requirements || '',
+              additional_requirements: form.additional_requirements || '',
               requirements: {
                 projectName: form.project_name,
-                contactPerson: form.contact_person,
+                contactPerson: form.contact_person || form.customer_name,
                 restaurantName: form.restaurant_name,
                 cuisineType: form.cuisine_type,
-                email: form.customer_email || form.user_email || form.contact_email,
-                phone: form.contact_phone,
-                additionalRequirements: form.additional_requirements,
+                email: form.customer_email || form.contact_email,
+                phone: form.contact_phone || form.phone,
+                additionalRequirements: form.additional_requirements || '',
+                additional_requirements: form.additional_requirements || '',
                 primaryColor: form.primary_color,
                 secondaryColor: form.secondary_color,
                 accentColor: form.accent_color,
@@ -697,12 +618,32 @@ import AuthGuard from '../components/AuthGuard.astro';
                 appName: form.app_name,
                 productType: form.product_type
               }
+            };
+            
+            this.orders.push(orderData);
+            addedCount++;
+            console.log(`  ➕ Added order ${addedCount}/${customForms.length}:`, {
+              orderId: orderData.orderId,
+              projectName: orderData.projectName,
+              total: '₹' + orderData.total,
+              status: orderData.status
             });
           });
+          console.log('✅ Successfully added', addedCount, 'orders from customization_forms to orders list');
+          console.log('📊 Total orders in this.orders array:', this.orders.length);
+          console.log('📋 Order IDs:', this.orders.map(o => o.orderId));
+        } else {
+          console.log('ℹ️ No customization_forms found for user email:', userEmail);
+          console.log('💡 Make sure the email in customization_forms matches:', userEmail);
+          console.log('💡 Check browser console for detailed query logs');
         }
+        
+        console.log('✅ loadSupabaseOrders completed. Total orders in this.orders:', this.orders.length);
       } catch (error) {
-        console.error('Error loading Supabase orders:', error);
-        throw error;
+        console.error('❌ Error loading Supabase orders:', error);
+        console.error('Error details:', error.message, error.stack);
+        // Don't throw - continue with other order sources
+        console.log('⚠️ Continuing with other order sources despite error');
       }
     }
     
@@ -983,13 +924,10 @@ import AuthGuard from '../components/AuthGuard.astro';
       byId('order-modal-amount').textContent = `₹${(order.total || 0).toLocaleString('en-IN')}`;
       byId('order-modal-date').textContent = this.formatDate(order.orderDate);
       byId('order-modal-id').textContent = order.orderId || '-';
-      byId('order-modal-desc').textContent = order.description || '-';
       const req = order.requirements || {};
-      byId('order-modal-contact').textContent = req.contactPerson || '-';
+      byId('order-modal-contact').textContent = req.contactPerson || req.contact_person || '-';
       byId('order-modal-email').textContent = req.email || '-';
-      byId('order-modal-phone').textContent = req.phone || '-';
-      byId('order-modal-restaurant').textContent = req.restaurantName || '-';
-      byId('order-modal-additional').textContent = req.additionalRequirements || '—';
+      byId('order-modal-phone').textContent = req.phone || req.contact_phone || '-';
 
       // Lock body scroll
       document.body.style.overflow = 'hidden';
@@ -1010,8 +948,30 @@ import AuthGuard from '../components/AuthGuard.astro';
   }
 
   // Initialize orders when page loads
+  let ordersInstance = null;
+  
+  const initializeOrders = () => {
+    if (!ordersInstance) {
+      console.log('🔄 Initializing Orders...');
+      ordersInstance = new Orders();
+    } else {
+      console.log('🔄 Reloading orders...');
+      // Reload orders if instance already exists
+      ordersInstance.loadOrders().then(() => ordersInstance.renderOrders());
+    }
+  };
+  
   document.addEventListener('DOMContentLoaded', () => {
-    new Orders();
+    // Initialize immediately
+    initializeOrders();
+    
+    // Also listen for supabase-ready event to reload orders
+    window.addEventListener('supabase-ready', () => {
+      console.log('✅ Supabase ready event received, reloading orders...');
+      setTimeout(() => {
+        initializeOrders();
+      }, 500);
+    });
     
     // Show success message if redirected from payment
     const urlParams = new URLSearchParams(window.location.search);

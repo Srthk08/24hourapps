@@ -3,7 +3,7 @@
 // Shows a popup when users click on products that are under development
 ---
 
-<div id="product-dialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+<div id="product-dialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden" data-product-dialog="true" style="display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important;">
   <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all duration-300 scale-95 opacity-0" id="dialog-content">
     <div class="p-6">
       <!-- Header -->
@@ -44,21 +44,95 @@
 <script>
   // Immediate check - run before DOMContentLoaded to prevent any dialog display
   (function() {
-    const currentPath = window.location.pathname;
-    const productSlug = currentPath.split('/').pop();
-    const isOMS = false;
-    
-    if (isOMS) {
-      // Override showProductDialog immediately to prevent any calls
-      window.showProductDialog = function() {
-        console.log('ProductDialog: OMS page detected, blocking dialog (immediate check)');
+    function checkAndBlockDialog() {
+      const currentPath = window.location.pathname;
+      const productSlug = currentPath.split('/').pop();
+      const isOMS = productSlug === 'order-menu-system';
+      const isAndroidTVApp = productSlug === 'android-tv-app';
+      
+      if (isOMS || isAndroidTVApp) {
+        // Override showProductDialog immediately to prevent any calls
+        window.showProductDialog = function() {
+          console.log(`ProductDialog: ${isAndroidTVApp ? 'Android TV App' : 'OMS'} page detected, blocking dialog (immediate check)`);
+          const dialog = document.getElementById('product-dialog');
+          if (dialog) {
+            dialog.classList.add('hidden');
+            dialog.style.display = 'none';
+          }
+          return;
+        };
+        
+        // Also hide the dialog element if it exists
         const dialog = document.getElementById('product-dialog');
         if (dialog) {
           dialog.classList.add('hidden');
+          dialog.style.display = 'none';
         }
-        return;
-      };
+        
+        // Use MutationObserver to watch for dialog being shown and hide it immediately
+        if (typeof MutationObserver !== 'undefined') {
+          const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+              if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                const target = mutation.target;
+                if (target && target.id === 'product-dialog') {
+                  if (!target.classList.contains('hidden')) {
+                    console.log(`ProductDialog: ${isAndroidTVApp ? 'Android TV App' : 'OMS'} - Dialog detected being shown, hiding immediately`);
+                    target.classList.add('hidden');
+                    target.style.display = 'none';
+                    document.body.style.overflow = '';
+                  }
+                }
+              }
+            });
+          });
+          
+          // Start observing when dialog element is available
+          if (dialog) {
+            observer.observe(dialog, {
+              attributes: true,
+              attributeFilter: ['class', 'style']
+            });
+          } else {
+            // Wait for dialog to be created
+            const checkDialog = setInterval(function() {
+              const d = document.getElementById('product-dialog');
+              if (d) {
+                observer.observe(d, {
+                  attributes: true,
+                  attributeFilter: ['class', 'style']
+                });
+                clearInterval(checkDialog);
+              }
+            }, 50);
+            
+            // Stop checking after 5 seconds
+            setTimeout(function() {
+              clearInterval(checkDialog);
+            }, 5000);
+          }
+        }
+      }
     }
+    
+    // Run immediately
+    checkAndBlockDialog();
+    
+    // Also run when DOM is ready (in case path changes)
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', checkAndBlockDialog);
+    } else {
+      checkAndBlockDialog();
+    }
+    
+    // Run on every navigation (for SPAs)
+    let lastPath = window.location.pathname;
+    setInterval(function() {
+      if (window.location.pathname !== lastPath) {
+        lastPath = window.location.pathname;
+        checkAndBlockDialog();
+      }
+    }, 100);
   })();
 
   // Dialog functionality
@@ -68,34 +142,101 @@
     const closeDialog = document.getElementById('close-dialog');
     const closeDialogBtn = document.getElementById('close-dialog-btn');
 
-    // Helper function to check if we're on OMS page
+    // Helper function to check if we're on OMS or Android TV App page
     function isOrderMenuSystemPage() {
       const currentPath = window.location.pathname;
       const productSlug = currentPath.split('/').pop();
-      return false;
+      return productSlug === 'order-menu-system';
+    }
+    
+    // Helper function to check if we're on Android TV App page
+    function isAndroidTVAppPage() {
+      const currentPath = window.location.pathname;
+      const productSlug = currentPath.split('/').pop();
+      return productSlug === 'android-tv-app';
     }
 
     // Show dialog function
     function showDialog() {
-      // ALWAYS check if we're on OMS product page - if so, never show dialog
-      if (isOrderMenuSystemPage()) {
-        console.log('ProductDialog: OMS page detected, blocking dialog display');
+      // CRITICAL: Check URL FIRST - before anything else
+      const currentPath = window.location.pathname || '';
+      const productSlug = currentPath.split('/').pop() || '';
+      const isAndroidTVApp = productSlug === 'android-tv-app';
+      const isOrderMenuSystem = productSlug === 'order-menu-system';
+      
+      // BLOCK IMMEDIATELY if Android TV App or Order Menu System - NO EXCEPTIONS
+      if (isAndroidTVApp || isOrderMenuSystem) {
+        console.log(`ProductDialog: ${isAndroidTVApp ? 'Android TV App' : 'OMS'} page detected - BLOCKING dialog (URL check)`);
+        if (dialog) {
+          dialog.classList.add('hidden');
+          dialog.style.display = 'none';
+          dialog.style.visibility = 'hidden';
+          dialog.style.opacity = '0';
+          dialog.style.pointerEvents = 'none';
+          dialog.style.zIndex = '-9999';
+          dialog.style.height = '0';
+          dialog.style.width = '0';
+          dialog.style.overflow = 'hidden';
+          dialog.style.position = 'fixed';
+          dialog.style.top = '-9999px';
+          dialog.style.left = '-9999px';
+        }
+        if (document.body) {
+          document.body.style.overflow = '';
+        }
+        return; // CRITICAL: Exit immediately - do not proceed
+      }
+      
+      // CRITICAL: Check global flag (set by inline script)
+      if (window.__productDialogBlocked === true) {
+        console.log('ProductDialog: Blocked by global flag');
+        if (dialog) {
+          dialog.classList.add('hidden');
+          dialog.style.display = 'none';
+          dialog.style.visibility = 'hidden';
+          dialog.style.opacity = '0';
+          dialog.style.pointerEvents = 'none';
+          dialog.style.zIndex = '-9999';
+        }
+        if (document.body) {
+          document.body.style.overflow = '';
+        }
+        return;
+      }
+      
+      // ALWAYS check if we're on OMS or Android TV App product page - if so, never show dialog
+      if (isOrderMenuSystemPage() || isAndroidTVAppPage()) {
+        console.log(`ProductDialog: ${isAndroidTVAppPage() ? 'Android TV App' : 'OMS'} page detected, blocking dialog display`);
         // Ensure dialog is hidden
         if (dialog) {
           dialog.classList.add('hidden');
+          dialog.style.display = 'none';
+          dialog.style.visibility = 'hidden';
+          dialog.style.opacity = '0';
+          dialog.style.pointerEvents = 'none';
+          dialog.style.zIndex = '-9999';
+        }
+        if (document.body) {
+          document.body.style.overflow = '';
         }
         return;
       }
       
       // Lock body scroll
-      document.body.style.overflow = 'hidden';
+      if (document.body) {
+        document.body.style.overflow = 'hidden';
+      }
       
-      dialog.classList.remove('hidden');
-      // Trigger animation
-      setTimeout(() => {
-        dialogContent.classList.remove('scale-95', 'opacity-0');
-        dialogContent.classList.add('scale-100', 'opacity-100');
-      }, 10);
+      if (dialog) {
+        dialog.classList.remove('hidden');
+        // Trigger animation
+        setTimeout(() => {
+          if (dialogContent) {
+            dialogContent.classList.remove('scale-95', 'opacity-0');
+            dialogContent.classList.add('scale-100', 'opacity-100');
+          }
+        }, 10);
+      }
     }
 
     // Hide dialog function
@@ -128,25 +269,74 @@
       }
     });
 
-    // Make showDialog globally available (but with OMS check built-in)
-    window.showProductDialog = showDialog;
+    // Make showDialog globally available (but with OMS and Android TV App check built-in)
+    // CRITICAL: Override with additional URL check to ensure it's always blocked
+    window.showProductDialog = function() {
+      // IMMEDIATE URL CHECK - before calling showDialog
+      const currentPath = window.location.pathname || '';
+      const productSlug = currentPath.split('/').pop() || '';
+      const isAndroidTVApp = productSlug === 'android-tv-app';
+      const isOrderMenuSystem = productSlug === 'order-menu-system';
+      
+      if (isAndroidTVApp || isOrderMenuSystem) {
+        console.log(`ProductDialog: ${isAndroidTVApp ? 'Android TV App' : 'OMS'} - BLOCKED at global function level`);
+        const dialog = document.getElementById('product-dialog');
+        if (dialog) {
+          dialog.classList.add('hidden');
+          dialog.style.display = 'none';
+          dialog.style.visibility = 'hidden';
+          dialog.style.opacity = '0';
+          dialog.style.pointerEvents = 'none';
+          dialog.style.zIndex = '-9999';
+          dialog.style.height = '0';
+          dialog.style.width = '0';
+          dialog.style.overflow = 'hidden';
+          dialog.style.position = 'fixed';
+          dialog.style.top = '-9999px';
+          dialog.style.left = '-9999px';
+        }
+        if (document.body) {
+          document.body.style.overflow = '';
+        }
+        return false;
+      }
+      
+      // Call the original showDialog function
+      return showDialog();
+    };
     
-    // Check if we're on OMS page and hide dialog if so (on page load)
-    if (isOrderMenuSystemPage()) {
-      console.log('ProductDialog: OMS page detected on load, hiding dialog');
+    // Check if we're on OMS or Android TV App page and hide dialog if so (on page load)
+    if (isOrderMenuSystemPage() || isAndroidTVAppPage()) {
+      console.log(`ProductDialog: ${isAndroidTVAppPage() ? 'Android TV App' : 'OMS'} page detected on load, hiding dialog`);
       if (dialog) {
         dialog.classList.add('hidden');
       }
     }
     
-    // Also listen for navigation changes (in case user navigates to OMS)
+    // Continuous check to ensure dialog stays hidden on Android TV App and OMS pages
+    setInterval(() => {
+      const currentPath = window.location.pathname;
+      const productSlug = currentPath.split('/').pop();
+      const isOMS = productSlug === 'order-menu-system';
+      const isAndroidTVApp = productSlug === 'android-tv-app';
+      
+      if ((isOMS || isAndroidTVApp) && dialog && !dialog.classList.contains('hidden')) {
+        console.log(`ProductDialog: ${isAndroidTVApp ? 'Android TV App' : 'OMS'} - Dialog detected visible, hiding immediately`);
+        dialog.classList.add('hidden');
+        dialog.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    }, 100);
+    
+    // Also listen for navigation changes (in case user navigates to OMS or Android TV App)
     let lastPath = window.location.pathname;
     setInterval(() => {
       if (window.location.pathname !== lastPath) {
         lastPath = window.location.pathname;
-        if (isOrderMenuSystemPage() && dialog && !dialog.classList.contains('hidden')) {
-          console.log('ProductDialog: OMS page detected after navigation, hiding dialog');
+        if ((isOrderMenuSystemPage() || isAndroidTVAppPage()) && dialog && !dialog.classList.contains('hidden')) {
+          console.log(`ProductDialog: ${isAndroidTVAppPage() ? 'Android TV App' : 'OMS'} page detected after navigation, hiding dialog`);
           dialog.classList.add('hidden');
+          dialog.style.display = 'none';
           document.body.style.overflow = '';
         }
       }
@@ -173,4 +363,216 @@
       opacity: 1;
     }
   }
+  
+  /* Force hide dialog on Android TV App and Order Menu System pages - multiple selectors for maximum compatibility */
+  #product-dialog[data-android-tv-blocked],
+  #product-dialog[data-oms-blocked],
+  body:has([data-product-dialog="true"]) #product-dialog[data-android-tv-blocked],
+  body:has([data-product-dialog="true"]) #product-dialog[data-oms-blocked] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    z-index: -9999 !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+  }
+  
+  /* CRITICAL: Hide dialog on Android TV App pages - works even without JavaScript */
+  /* This uses a more direct approach that works in all browsers */
+  #product-dialog {
+    /* Default state - will be overridden by JavaScript if needed */
+  }
+  
+  /* CRITICAL: Force hide dialog if URL contains android-tv-app - works immediately */
+  /* This CSS selector works based on the URL path */
+  body:has([data-product-dialog="true"]) #product-dialog {
+    /* Will be overridden by more specific rules below */
+  }
+  
+  /* Force hide on Android TV App - check URL pattern */
+  /* This CSS will be applied via JavaScript, but we also add it here as fallback */
+  html[data-android-tv-page="true"] #product-dialog,
+  body[data-android-tv-page="true"] #product-dialog,
+  html[data-oms-page="true"] #product-dialog,
+  body[data-oms-page="true"] #product-dialog {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    z-index: -9999 !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+    position: fixed !important;
+    top: -9999px !important;
+    left: -9999px !important;
+  }
 </style>
+
+<script is:inline>
+  // CRITICAL: Even earlier check - must run before ANY other script
+  // This runs immediately when script is parsed, before DOMContentLoaded
+  (function() {
+    'use strict';
+    
+    function isAndroidTVAppOrOMS() {
+      try {
+        const currentPath = window.location.pathname || '';
+        const productSlug = currentPath.split('/').pop() || '';
+        return productSlug === 'android-tv-app' || productSlug === 'order-menu-system';
+      } catch (e) {
+        return false;
+      }
+    }
+    
+    const isBlocked = isAndroidTVAppOrOMS();
+    
+    if (isBlocked) {
+      // CRITICAL: Override showProductDialog BEFORE any other code can call it
+      // This must happen synchronously, immediately
+      Object.defineProperty(window, 'showProductDialog', {
+        value: function() {
+          console.log('ProductDialog: Blocked - Android TV App or OMS page');
+          const dialog = document.getElementById('product-dialog');
+          if (dialog) {
+            dialog.classList.add('hidden');
+            dialog.style.display = 'none';
+            dialog.style.visibility = 'hidden';
+            dialog.style.opacity = '0';
+            dialog.style.pointerEvents = 'none';
+            dialog.style.zIndex = '-9999';
+            if (document.body) {
+              document.body.style.overflow = '';
+            }
+          }
+          return false;
+        },
+        writable: false,
+        configurable: false
+      });
+      
+      // Also set a flag that other code can check
+      window.__productDialogBlocked = true;
+      
+      // Mark HTML and body elements immediately for CSS targeting
+      const markPageElements = function() {
+        const currentPath = window.location.pathname || '';
+        const productSlug = currentPath.split('/').pop() || '';
+        if (productSlug === 'android-tv-app') {
+          if (document.documentElement) {
+            document.documentElement.setAttribute('data-android-tv-page', 'true');
+          }
+          if (document.body) {
+            document.body.setAttribute('data-android-tv-page', 'true');
+          }
+        }
+        if (productSlug === 'order-menu-system') {
+          if (document.documentElement) {
+            document.documentElement.setAttribute('data-oms-page', 'true');
+          }
+          if (document.body) {
+            document.body.setAttribute('data-oms-page', 'true');
+          }
+        }
+      };
+      
+      // Mark dialog element immediately when it's created
+      const markDialog = function() {
+        const dialog = document.getElementById('product-dialog');
+        if (dialog) {
+          const currentPath = window.location.pathname || '';
+          const productSlug = currentPath.split('/').pop() || '';
+          if (productSlug === 'android-tv-app') {
+            dialog.setAttribute('data-android-tv-blocked', 'true');
+          }
+          if (productSlug === 'order-menu-system') {
+            dialog.setAttribute('data-oms-blocked', 'true');
+          }
+          dialog.classList.add('hidden');
+          dialog.style.display = 'none';
+          dialog.style.visibility = 'hidden';
+          dialog.style.opacity = '0';
+          dialog.style.pointerEvents = 'none';
+          dialog.style.zIndex = '-9999';
+          dialog.style.height = '0';
+          dialog.style.width = '0';
+          dialog.style.overflow = 'hidden';
+          dialog.style.position = 'fixed';
+          dialog.style.top = '-9999px';
+          dialog.style.left = '-9999px';
+        }
+      };
+      
+      // Mark page elements immediately
+      markPageElements();
+      
+      // Try immediately
+      markDialog();
+      
+      // Also try when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+          markPageElements();
+          markDialog();
+        });
+      } else {
+        markPageElements();
+        markDialog();
+      }
+      
+      // Keep checking until dialog exists - very aggressive
+      let checkCount = 0;
+      const maxChecks = 500; // Check for 5 seconds (500 * 10ms)
+      const checkInterval = setInterval(function() {
+        checkCount++;
+        const dialog = document.getElementById('product-dialog');
+        if (dialog) {
+          markDialog();
+          // Also force hide it
+          if (!dialog.classList.contains('hidden')) {
+            dialog.classList.add('hidden');
+            dialog.style.display = 'none';
+          }
+        }
+        if (checkCount >= maxChecks) {
+          clearInterval(checkInterval);
+        }
+      }, 10);
+      
+      // Continuous monitor to catch any attempts to show the dialog - VERY AGGRESSIVE
+      setInterval(function() {
+        if (isAndroidTVAppOrOMS()) {
+          markPageElements(); // Ensure page elements are marked
+          const dialog = document.getElementById('product-dialog');
+          if (dialog) {
+            // Force hide with all possible methods - NO EXCEPTIONS
+            if (!dialog.classList.contains('hidden')) {
+              console.log('ProductDialog: Force hiding dialog (continuous monitor)');
+              dialog.classList.add('hidden');
+            }
+            // Apply ALL hiding methods
+            dialog.style.setProperty('display', 'none', 'important');
+            dialog.style.setProperty('visibility', 'hidden', 'important');
+            dialog.style.setProperty('opacity', '0', 'important');
+            dialog.style.setProperty('pointer-events', 'none', 'important');
+            dialog.style.setProperty('z-index', '-9999', 'important');
+            dialog.style.setProperty('height', '0', 'important');
+            dialog.style.setProperty('width', '0', 'important');
+            dialog.style.setProperty('overflow', 'hidden', 'important');
+            dialog.style.setProperty('position', 'fixed', 'important');
+            dialog.style.setProperty('top', '-9999px', 'important');
+            dialog.style.setProperty('left', '-9999px', 'important');
+            // Also set attributes
+            dialog.setAttribute('hidden', 'true');
+            dialog.setAttribute('aria-hidden', 'true');
+            if (document.body) {
+              document.body.style.overflow = '';
+            }
+          }
+        }
+      }, 10); // Check every 10ms for maximum responsiveness - VERY AGGRESSIVE
+    }
+  })();
+</script>
