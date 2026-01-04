@@ -318,14 +318,60 @@ try {
           } else {
             // Regular OAuth flow (Google login)
             console.log('🔄 Exchanging code for session (PKCE)...');
+            console.log('Full URL for exchange:', window.location.href);
+            console.log('Code parameter:', code);
+            console.log('Current origin:', window.location.origin);
+            
             try {
-              const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
-              if (error) {
-                console.error('❌ Auth callback (PKCE) error:', error);
-                // Don't return, try fallback method
-              } else if (data?.session) {
+              // Method 1: Try with full URL (recommended by Supabase)
+              let exchangeResult = await supabase.auth.exchangeCodeForSession(window.location.href);
+              
+              // Method 2: If that fails, try constructing URL manually
+              if (exchangeResult.error) {
+                console.warn('⚠️ Exchange with full URL failed:', exchangeResult.error);
+                console.log('🔄 Trying alternative method...');
+                
+                // Construct the callback URL manually
+                const callbackUrl = new URL(window.location.origin + '/auth/callback');
+                callbackUrl.searchParams.set('code', code);
+                if (type) callbackUrl.searchParams.set('type', type);
+                
+                console.log('Trying with constructed URL:', callbackUrl.toString());
+                exchangeResult = await supabase.auth.exchangeCodeForSession(callbackUrl.toString());
+              }
+              
+              // Method 3: If still fails, try with just the path and query
+              if (exchangeResult.error) {
+                console.warn('⚠️ Exchange with constructed URL failed:', exchangeResult.error);
+                const pathWithQuery = window.location.pathname + window.location.search;
+                console.log('Trying with path + query:', pathWithQuery);
+                exchangeResult = await supabase.auth.exchangeCodeForSession(pathWithQuery);
+              }
+              
+              if (exchangeResult.error) {
+                console.error('❌ Auth callback (PKCE) error after all attempts:', exchangeResult.error);
+                const errorMsg = exchangeResult.error.message || 'Unknown error';
+                const errorDesc = exchangeResult.error.description || '';
+                
+                // Detailed error logging
+                console.error('❌ Code exchange failed. Configuration checklist:');
+                console.error('1. Supabase Dashboard → Authentication → URL Configuration');
+                console.error(`   Add to "Redirect URLs": ${window.location.origin}/auth/callback`);
+                console.error('2. Supabase Dashboard → Authentication → Providers → Google');
+                console.error('   Ensure Google provider is enabled');
+                console.error('   Verify Client ID and Client Secret are correct');
+                console.error('3. Google Cloud Console → APIs & Services → Credentials');
+                console.error(`   Add to "Authorized redirect URIs": ${window.location.origin}/auth/callback`);
+                console.error('4. Make sure the redirect URI matches EXACTLY in both places');
+                console.error('5. For localhost, use: http://localhost:4321/auth/callback');
+                console.error('6. Wait a few minutes after making changes for them to propagate');
+                
+                const fullErrorMsg = `OAuth configuration error: ${errorMsg}. Please ensure the redirect URI "${window.location.origin}/auth/callback" is configured in Supabase Dashboard → Authentication → URL Configuration.`;
+                window.location.replace(`/login?error=server_error&description=${encodeURIComponent(fullErrorMsg)}`);
+                return;
+              } else if (exchangeResult.data?.session) {
                 console.log('✅ Session obtained from PKCE exchange');
-                await persistSession(data.session, true);
+                await persistSession(exchangeResult.data.session, true);
 
                 // Clean URL and redirect after a brief delay to ensure sync completes
                 window.history.replaceState({}, document.title, '/auth/callback');
@@ -338,6 +384,19 @@ try {
               }
             } catch (err) {
               console.error('❌ Exception in PKCE exchange:', err);
+              const errorMsg = err instanceof Error ? err.message : String(err);
+              console.error('Error details:', {
+                message: errorMsg,
+                stack: err instanceof Error ? err.stack : undefined,
+                url: window.location.href,
+                origin: window.location.origin
+              });
+              
+              if (errorMsg.includes('exchange') || errorMsg.includes('code') || errorMsg.includes('redirect')) {
+                const fullErrorMsg = `Unable to complete authentication: ${errorMsg}. Please check Supabase redirect URI configuration.`;
+                window.location.replace(`/login?error=server_error&description=${encodeURIComponent(fullErrorMsg)}`);
+                return;
+              }
             }
           }
         }
@@ -438,6 +497,24 @@ try {
     }
   });
 
+  // Diagnostic: Log all URL information
+  console.log('🔍 OAuth Callback Diagnostics:');
+  console.log('Full URL:', window.location.href);
+  console.log('Origin:', window.location.origin);
+  console.log('Pathname:', window.location.pathname);
+  console.log('Search:', window.location.search);
+  console.log('Hash:', window.location.hash);
+  console.log('Expected redirect URI:', `${window.location.origin}/auth/callback`);
+  
+  // Check if we have a code parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const code = urlParams.get('code');
+  if (code) {
+    console.log('✅ Code parameter found:', code.substring(0, 20) + '...');
+  } else {
+    console.warn('⚠️ No code parameter found in URL');
+  }
+  
   // Run the callback handler immediately
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', handleAuthCallback);

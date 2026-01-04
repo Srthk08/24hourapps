@@ -174,6 +174,202 @@ const processedProducts = products
 </Layout>
 
 <script>
+  // CRITICAL: Restore scroll on page load (in case it was stuck from Google OAuth)
+  (function() {
+    // Restore scroll immediately
+    if (document.body) {
+      document.body.style.overflow = '';
+      document.body.style.removeProperty('overflow');
+    }
+    if (document.documentElement) {
+      document.documentElement.style.overflow = '';
+      document.documentElement.style.removeProperty('overflow');
+    }
+    
+    // Also restore on DOM ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        if (document.body) {
+          document.body.style.overflow = '';
+          document.body.style.removeProperty('overflow');
+        }
+        if (document.documentElement) {
+          document.documentElement.style.overflow = '';
+          document.documentElement.style.removeProperty('overflow');
+        }
+      });
+    }
+  })();
+  
+  // Function to show product dialog directly - VERY AGGRESSIVE
+  // Make it globally available IMMEDIATELY (before DOMContentLoaded)
+  window.showProductDevelopmentDialog = function() {
+    console.log('🔔 showProductDevelopmentDialog called');
+    
+    // Check if we're on the products index page (where this should work)
+    const currentPath = window.location.pathname;
+    const isProductsIndexPage = currentPath === '/products' || currentPath === '/products/';
+    
+    if (!isProductsIndexPage) {
+      console.log('⚠️ Not on products index page, using fallback alert');
+      alert('This product is currently under development and will be available in a few days. We\'re working hard to bring you the best experience possible.');
+      return;
+    }
+    
+    // CRITICAL: Clear any blocking flags that might prevent the dialog from showing
+    window.__productDialogBlocked = false;
+    
+    // Wait a bit to ensure DOM is ready
+    const tryShowDialog = () => {
+      const dialog = document.getElementById('product-dialog');
+      const dialogContent = document.getElementById('dialog-content');
+      
+      if (!dialog) {
+        console.error('❌ Dialog element not found! Retrying...');
+        // Try again after a short delay (max 10 attempts)
+        if (typeof tryShowDialog.attempts === 'undefined') {
+          tryShowDialog.attempts = 0;
+        }
+        tryShowDialog.attempts++;
+        if (tryShowDialog.attempts < 10) {
+          setTimeout(tryShowDialog, 100);
+        } else {
+          console.error('❌ Dialog element not found after 10 attempts, showing alert');
+          alert('This product is currently under development and will be available in a few days. We\'re working hard to bring you the best experience possible.');
+        }
+        return;
+      }
+      
+      console.log('✅ Dialog element found, showing...');
+      
+      // CRITICAL: First ensure scroll is NOT locked (in case it was stuck from Google OAuth)
+      if (document.body) {
+        document.body.style.overflow = '';
+        document.body.style.removeProperty('overflow');
+      }
+      if (document.documentElement) {
+        document.documentElement.style.overflow = '';
+        document.documentElement.style.removeProperty('overflow');
+      }
+      
+      // Remove all blocking attributes and classes
+      dialog.removeAttribute('hidden');
+      dialog.removeAttribute('data-android-tv-blocked');
+      dialog.removeAttribute('data-oms-blocked');
+      
+      // Clear any blocking flags - CRITICAL for Google OAuth users
+      window.__productDialogBlocked = false;
+      
+      // Remove any blocking data attributes
+      dialog.removeAttribute('data-android-tv-blocked');
+      dialog.removeAttribute('data-oms-blocked');
+      dialog.removeAttribute('data-blocked');
+      
+      // CRITICAL: Disable any MutationObserver from ProductDialog component that might hide it
+      // Store reference to disconnect it if needed
+      if (window.__productDialogObserver) {
+        try {
+          window.__productDialogObserver.disconnect();
+          console.log('✅ Disconnected ProductDialog MutationObserver');
+        } catch(e) {
+          console.log('⚠️ Could not disconnect observer:', e);
+        }
+      }
+      
+      // Show dialog - override ALL inline !important styles
+      // This MUST work even for logged-in users (Google OAuth or regular)
+      dialog.classList.remove('hidden');
+      dialog.style.setProperty('display', 'flex', 'important');
+      dialog.style.setProperty('visibility', 'visible', 'important');
+      dialog.style.setProperty('opacity', '1', 'important');
+      dialog.style.setProperty('pointer-events', 'auto', 'important');
+      dialog.style.setProperty('z-index', '9999', 'important');
+      dialog.style.setProperty('position', 'fixed', 'important');
+      dialog.style.setProperty('top', '0', 'important');
+      dialog.style.setProperty('left', '0', 'important');
+      dialog.style.setProperty('right', '0', 'important');
+      dialog.style.setProperty('bottom', '0', 'important');
+      dialog.style.setProperty('width', '100%', 'important');
+      dialog.style.setProperty('height', '100%', 'important');
+      dialog.style.setProperty('background-color', 'rgba(0, 0, 0, 0.5)', 'important');
+      
+      // Force remove any inline styles that might hide it
+      dialog.style.removeProperty('height');
+      dialog.style.removeProperty('width');
+      dialog.style.removeProperty('overflow');
+      dialog.style.removeProperty('top');
+      dialog.style.removeProperty('left');
+      
+      // Re-apply correct styles
+      dialog.style.setProperty('height', '100%', 'important');
+      dialog.style.setProperty('width', '100%', 'important');
+      dialog.style.setProperty('top', '0', 'important');
+      dialog.style.setProperty('left', '0', 'important');
+      
+      // Verify dialog is actually visible BEFORE locking scroll
+      setTimeout(() => {
+        const computedStyle = window.getComputedStyle(dialog);
+        
+        // Only lock scroll if dialog is actually visible
+        if (computedStyle.display === 'flex' && computedStyle.visibility === 'visible') {
+          if (document.body) {
+            document.body.style.overflow = 'hidden';
+          }
+          if (document.documentElement) {
+            document.documentElement.style.overflow = 'hidden';
+          }
+          console.log('✅ Dialog visible, scroll locked');
+        } else {
+          console.warn('⚠️ Dialog not fully visible, keeping scroll unlocked');
+          // Restore scroll if dialog didn't show
+          if (document.body) {
+            document.body.style.overflow = '';
+          }
+          if (document.documentElement) {
+            document.documentElement.style.overflow = '';
+          }
+        }
+      }, 50);
+      
+      // Trigger animation
+      setTimeout(() => {
+        if (dialogContent) {
+          dialogContent.classList.remove('scale-95', 'opacity-0');
+          dialogContent.classList.add('scale-100', 'opacity-100');
+          dialogContent.style.setProperty('opacity', '1', 'important');
+          dialogContent.style.setProperty('transform', 'scale(1)', 'important');
+        }
+      }, 10);
+      
+      console.log('✅ Dialog should now be visible');
+      console.log('Dialog display:', window.getComputedStyle(dialog).display);
+      console.log('Dialog visibility:', window.getComputedStyle(dialog).visibility);
+      console.log('Dialog opacity:', window.getComputedStyle(dialog).opacity);
+      
+      // Safety check: If dialog still not visible after 200ms, restore scroll and show alert
+      setTimeout(() => {
+        const finalCheck = window.getComputedStyle(dialog);
+        if (finalCheck.display === 'none' || finalCheck.visibility === 'hidden' || finalCheck.opacity === '0') {
+          console.warn('⚠️ Dialog not visible after 200ms, restoring scroll');
+          // Restore scroll
+          if (document.body) {
+            document.body.style.overflow = '';
+            document.body.style.removeProperty('overflow');
+          }
+          if (document.documentElement) {
+            document.documentElement.style.overflow = '';
+            document.documentElement.style.removeProperty('overflow');
+          }
+          // Show alert as fallback
+          alert('This product is currently under development and will be available in a few days. We\'re working hard to bring you the best experience possible.');
+        }
+      }, 200);
+    };
+    
+    // Try immediately
+    tryShowDialog();
+  };
+  
   // Product filtering with performance optimization
   const filterButtons = document.querySelectorAll('.filter-btn');
   const productCards = document.querySelectorAll('.product-card');
@@ -300,12 +496,12 @@ const processedProducts = products
     }
   });
 
-  // Product click handler - ALL products require authentication
+  // Product click handler
   document.addEventListener('DOMContentLoaded', function() {
     const productButtons = document.querySelectorAll('.product-view-btn');
     
-    // List of blocked/disabled products that show dialog instead of login
-    // Android TV App is now accessible - removed from blocked list
+    // List of blocked/disabled products that show "under development" dialog
+    // These 3 products should show popup: Restaurant Menu System, Streaming Mobile App, Restaurant Website
     const blockedProducts = [
       'restaurant-menu-system',
       'streaming-mobile-app',
@@ -321,22 +517,41 @@ const processedProducts = products
         
         console.log('Product clicked:', productSlug);
         
-        // FIRST: Check if product is blocked/disabled - show dialog immediately without login
+        // FIRST: Check if product is blocked/disabled - show "under development" dialog immediately
+        // CRITICAL: This check happens BEFORE any authentication checks
+        // It should work for ALL users (logged in or not, Google OAuth or regular)
         const isBlockedProduct = blockedProducts.includes(productSlug);
         
         if (isBlockedProduct) {
-          console.log('🚫 Blocked product detected - showing dialog without login requirement');
-          if (window.showProductDialog) {
-            window.showProductDialog();
+          console.log('🚫 Blocked product detected:', productSlug, '- showing "under development" dialog');
+          console.log('ℹ️ This dialog should show for ALL users regardless of login status');
+          
+          // Always use direct function on products index page
+          // This bypasses any authentication checks and shows the dialog immediately
+          if (typeof window.showProductDevelopmentDialog === 'function') {
+            console.log('✅ Calling showProductDevelopmentDialog function');
+            window.showProductDevelopmentDialog();
+          } else if (typeof showProductDevelopmentDialog === 'function') {
+            console.log('✅ Calling local showProductDevelopmentDialog function');
+            showProductDevelopmentDialog();
           } else {
-            console.log('Dialog not available - redirecting to contact');
-            window.location.href = '/contact';
+            console.error('❌ showProductDevelopmentDialog function not found! Showing alert as fallback.');
+            alert('This product is currently under development and will be available in a few days. We\'re working hard to bring you the best experience possible.');
           }
+          // CRITICAL: Return immediately - don't proceed to authentication checks
           return;
         }
         
-        // ALL products require authentication - no exceptions
-        // Authentication check is required for ALL products including order-menu-system
+        // Android TV App - allow access without login (only product that should work)
+        const isAndroidTVApp = productSlug === 'android-tv-app';
+        
+        if (isAndroidTVApp) {
+          console.log('Android TV App - allowing access');
+          window.location.href = `/products/${productSlug}`;
+          return;
+        }
+        
+        // For any other products (like order-menu-system), check authentication
         // First check admin status
         const isAdmin = checkIfUserIsAdmin();
         console.log('Is admin:', isAdmin);
@@ -347,13 +562,73 @@ const processedProducts = products
           return;
         }
         
-        // Non-admin users - MUST be logged in to access any product
+        // Non-admin users - check if logged in
+        // IMPORTANT: Check both auth manager AND sessionStorage for Google OAuth users
         const authManager = window.globalAuthManager || window.simpleAuthManager;
-        const isLoggedIn = authManager && authManager.isUserLoggedIn();
+        let isLoggedIn = authManager && authManager.isUserLoggedIn();
+        
+        // Also check sessionStorage directly (for Google OAuth users)
+        if (!isLoggedIn) {
+          try {
+            const sessionData = sessionStorage.getItem('simple-auth-session');
+            if (sessionData && sessionData !== 'null' && sessionData !== '{}') {
+              const session = JSON.parse(sessionData);
+              if (session && session.user && (session.access_token || session.user.email)) {
+                isLoggedIn = true;
+                console.log('✅ User logged in (detected via sessionStorage):', session.user.email);
+                // Also update auth manager if it exists
+                if (authManager && !authManager.isUserLoggedIn()) {
+                  if (authManager.handleLogin) {
+                    authManager.handleLogin(session.user);
+                  } else if (authManager.checkExistingSession) {
+                    authManager.checkExistingSession();
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            console.log('Error checking sessionStorage:', e);
+          }
+        }
+        
+        // Also check localStorage as fallback
+        if (!isLoggedIn) {
+          try {
+            const localSessionData = localStorage.getItem('simple-auth-session');
+            const localUserData = localStorage.getItem('simple-auth-user');
+            if (localSessionData || localUserData) {
+              const session = localSessionData ? JSON.parse(localSessionData) : null;
+              const user = localUserData ? JSON.parse(localUserData) : null;
+              if ((session && session.user) || user) {
+                isLoggedIn = true;
+                console.log('✅ User logged in (detected via localStorage):', (session?.user?.email || user?.email));
+                // Update auth manager
+                if (authManager && !authManager.isUserLoggedIn()) {
+                  const userData = session?.user || user;
+                  if (authManager.handleLogin) {
+                    authManager.handleLogin(userData);
+                  } else if (authManager.checkExistingSession) {
+                    authManager.checkExistingSession();
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            console.log('Error checking localStorage:', e);
+          }
+        }
+        
+        // Check if this is Order Menu System - allow for logged-in users
+        const isOrderMenuSystem = productSlug === 'order-menu-system';
+        
+        if (isOrderMenuSystem && isLoggedIn) {
+          console.log('Order Menu System - allowing access for logged-in user');
+          window.location.href = `/products/${productSlug}`;
+          return;
+        }
         
         if (!isLoggedIn) {
-          // User not logged in - redirect to login page with smooth transition
-          // This is a security requirement - no product access without login
+          // User not logged in - redirect to login page
           console.log('❌ User not logged in - authentication required, redirecting to login');
           const loginUrl = `/login?redirect=/products/${productSlug}`;
           
@@ -367,26 +642,72 @@ const processedProducts = products
           return;
         }
         
-        // Check if this is the Order Menu System or Android TV App - these should work for all logged-in users
-        const isOrderMenuSystem = productSlug === 'order-menu-system';
-        const isAndroidTVApp = productSlug === 'android-tv-app';
-        
-        if (isOrderMenuSystem || isAndroidTVApp) {
-          // Order Menu System and Android TV App - allow access for all logged-in users
-          console.log(`${productName} - allowing access for logged-in user`);
-          window.location.href = `/products/${productSlug}`;
-          return;
-        }
-        
-        // Logged in but not admin - show dialog or redirect to contact (except for OMS and Android TV App)
+        // Logged in but not admin and not Order Menu System - show dialog
         console.log('Non-admin user - showing dialog');
-        if (window.showProductDialog) {
+        if (window.showProductDialog && typeof window.showProductDialog === 'function') {
           window.showProductDialog();
         } else {
-          console.log('Dialog not available - redirecting to contact');
-          window.location.href = '/contact';
+          showProductDevelopmentDialog();
         }
       });
+    });
+    
+    // Setup dialog close handlers
+    const dialog = document.getElementById('product-dialog');
+    const closeDialog = document.getElementById('close-dialog');
+    const closeDialogBtn = document.getElementById('close-dialog-btn');
+    const dialogContent = document.getElementById('dialog-content');
+    
+    function hideDialog() {
+      console.log('🔒 Hiding dialog and restoring scroll');
+      if (dialogContent) {
+        dialogContent.classList.remove('scale-100', 'opacity-100');
+        dialogContent.classList.add('scale-95', 'opacity-0');
+      }
+      setTimeout(() => {
+        if (dialog) {
+          dialog.classList.add('hidden');
+          dialog.style.setProperty('display', 'none', 'important');
+          dialog.style.setProperty('visibility', 'hidden', 'important');
+          dialog.style.setProperty('opacity', '0', 'important');
+          dialog.style.setProperty('pointer-events', 'none', 'important');
+        }
+        // CRITICAL: Unlock body scroll - restore normal scrolling
+        // This is especially important for Google OAuth users
+        if (document.body) {
+          document.body.style.overflow = '';
+          document.body.style.removeProperty('overflow');
+        }
+        if (document.documentElement) {
+          document.documentElement.style.overflow = '';
+          document.documentElement.style.removeProperty('overflow');
+        }
+        console.log('✅ Scroll restored');
+      }, 300);
+    }
+    
+    if (closeDialog) {
+      closeDialog.addEventListener('click', hideDialog);
+    }
+    
+    if (closeDialogBtn) {
+      closeDialogBtn.addEventListener('click', hideDialog);
+    }
+    
+    // Close on backdrop click
+    if (dialog) {
+      dialog.addEventListener('click', function(e) {
+        if (e.target === dialog) {
+          hideDialog();
+        }
+      });
+    }
+    
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && dialog && !dialog.classList.contains('hidden')) {
+        hideDialog();
+      }
     });
   });
 
@@ -588,4 +909,5 @@ const processedProducts = products
       });
     });
   });
+</script>
 </script>

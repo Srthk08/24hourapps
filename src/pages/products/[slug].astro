@@ -88,6 +88,50 @@ const style = categoryStyles[product.category];
     color: #7c3aed !important;
   }
   
+  /* CRITICAL: Force scroll to be enabled on Android TV App page - multiple selectors for maximum compatibility */
+  body[data-android-tv-page="true"],
+  html[data-android-tv-page="true"],
+  body[data-android-tv-scroll="enabled"],
+  html[data-android-tv-scroll="enabled"],
+  [data-android-tv-page="true"] body,
+  [data-android-tv-page="true"] html {
+    overflow: auto !important;
+    overflow-y: auto !important;
+    overflow-x: auto !important;
+    position: relative !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+  
+  /* Also target body and html directly when Android TV page class is present */
+  body:has(.android-tv-app-page),
+  html:has(.android-tv-app-page) {
+    overflow: auto !important;
+    overflow-y: auto !important;
+    overflow-x: auto !important;
+  }
+  
+  /* Universal override for Android TV App - most aggressive */
+  body.android-tv-scroll-enabled,
+  html.android-tv-scroll-enabled {
+    overflow: auto !important;
+    overflow-y: auto !important;
+    overflow-x: auto !important;
+  }
+  
+  /* ULTRA AGGRESSIVE: Force scroll on Android TV App page - override EVERYTHING including Layout styles */
+  body:has(.android-tv-app-page),
+  html:has(.android-tv-app-page),
+  .android-tv-app-page ~ body,
+  .android-tv-app-page ~ html {
+    overflow: auto !important;
+    overflow-y: auto !important;
+    overflow-x: auto !important;
+    position: relative !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+  
   .streaming-mobile-app-page {
     color: #be185d !important;
   }
@@ -143,6 +187,177 @@ const style = categoryStyles[product.category];
 </style>
 
 <Layout title={`${product.name} - DevExpress`} description={product.description}>
+    {isAndroidTVApp && (
+      <style>
+        {`body, html { overflow: auto !important; overflow-y: auto !important; overflow-x: auto !important; position: relative !important; height: auto !important; max-height: none !important; }`}
+      </style>
+    )}
+    
+    <!-- CRITICAL: Ensure scroll is always enabled for Android TV App - runs immediately -->
+    <script is:inline>
+      (function() {
+        // Check if this is Android TV App page
+        const currentPath = window.location.pathname || '';
+        const productSlug = currentPath.split('/').pop() || '';
+        const isAndroidTVApp = productSlug === 'android-tv-app';
+        
+        if (isAndroidTVApp) {
+          console.log('🔓 Android TV App detected - enabling scroll unlock');
+          
+          // Set data attribute and class for CSS targeting
+          if (document.body) {
+            document.body.setAttribute('data-android-tv-scroll', 'enabled');
+            document.body.setAttribute('data-android-tv-page', 'true');
+            document.body.classList.add('android-tv-scroll-enabled');
+          }
+          if (document.documentElement) {
+            document.documentElement.setAttribute('data-android-tv-scroll', 'enabled');
+            document.documentElement.setAttribute('data-android-tv-page', 'true');
+            document.documentElement.classList.add('android-tv-scroll-enabled');
+          }
+          
+          // Aggressively ensure scroll is enabled - run before anything else
+          const enableScroll = () => {
+            if (document.body) {
+              // Set data attribute and class
+              document.body.setAttribute('data-android-tv-scroll', 'enabled');
+              document.body.setAttribute('data-android-tv-page', 'true');
+              document.body.classList.add('android-tv-scroll-enabled');
+              // Remove all overflow locks
+              document.body.style.overflow = '';
+              document.body.style.overflowY = '';
+              document.body.style.overflowX = '';
+              document.body.style.removeProperty('overflow');
+              document.body.style.removeProperty('overflow-y');
+              document.body.style.removeProperty('overflow-x');
+              document.body.style.removeProperty('position');
+              document.body.style.removeProperty('height');
+              document.body.style.removeProperty('max-height');
+              // Force via CSS using setProperty with !important
+              try {
+                document.body.style.setProperty('overflow', 'auto', 'important');
+                document.body.style.setProperty('overflow-y', 'auto', 'important');
+              } catch(e) {
+                // Fallback if setProperty fails
+                document.body.style.cssText = document.body.style.cssText.replace(/overflow[^;]*;?/gi, '') + 'overflow: auto !important; overflow-y: auto !important;';
+              }
+            }
+            if (document.documentElement) {
+              // Set data attribute and class
+              document.documentElement.setAttribute('data-android-tv-scroll', 'enabled');
+              document.documentElement.setAttribute('data-android-tv-page', 'true');
+              document.documentElement.classList.add('android-tv-scroll-enabled');
+              // Remove all overflow locks
+              document.documentElement.style.overflow = '';
+              document.documentElement.style.overflowY = '';
+              document.documentElement.style.overflowX = '';
+              document.documentElement.style.removeProperty('overflow');
+              document.documentElement.style.removeProperty('overflow-y');
+              document.documentElement.style.removeProperty('overflow-x');
+              document.documentElement.style.removeProperty('position');
+              document.documentElement.style.removeProperty('height');
+              document.documentElement.style.removeProperty('max-height');
+              // Force via CSS using setProperty with !important
+              try {
+                document.documentElement.style.setProperty('overflow', 'auto', 'important');
+                document.documentElement.style.setProperty('overflow-y', 'auto', 'important');
+              } catch(e) {
+                // Fallback
+                document.documentElement.style.cssText = document.documentElement.style.cssText.replace(/overflow[^;]*;?/gi, '') + 'overflow: auto !important; overflow-y: auto !important;';
+              }
+            }
+            // Also check html element
+            const html = document.getElementsByTagName('html')[0];
+            if (html) {
+              html.setAttribute('data-android-tv-scroll', 'enabled');
+              html.setAttribute('data-android-tv-page', 'true');
+              html.classList.add('android-tv-scroll-enabled');
+              html.style.overflow = '';
+              html.style.overflowY = '';
+              html.style.removeProperty('overflow');
+              html.style.removeProperty('overflow-y');
+              try {
+                html.style.setProperty('overflow', 'auto', 'important');
+                html.style.setProperty('overflow-y', 'auto', 'important');
+              } catch(e) {}
+            }
+          };
+          
+          // Override any function that might lock scroll
+          const originalSetProperty = CSSStyleDeclaration.prototype.setProperty;
+          CSSStyleDeclaration.prototype.setProperty = function(property, value, priority) {
+            if (isAndroidTVApp && (property === 'overflow' || property === 'overflow-y') && value === 'hidden') {
+              console.log('🚫 Blocked overflow:hidden on Android TV App page');
+              return; // Don't set overflow hidden
+            }
+            return originalSetProperty.call(this, property, value, priority);
+          };
+          
+          // Run immediately
+          enableScroll();
+          
+          // Run on DOM ready
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+              enableScroll();
+              console.log('🔓 DOMContentLoaded - scroll enabled');
+            });
+          } else {
+            enableScroll();
+          }
+          
+          // Run on window load
+          window.addEventListener('load', () => {
+            enableScroll();
+            console.log('🔓 Window load - scroll enabled');
+          });
+          
+          // Run continuously for first 10 seconds to override any locks
+          let scrollCheckCount = 0;
+          const scrollCheckInterval = setInterval(() => {
+            enableScroll();
+            scrollCheckCount++;
+            if (scrollCheckCount >= 100) { // 10 seconds (100 * 100ms)
+              clearInterval(scrollCheckInterval);
+              console.log('✅ Stopped continuous scroll unlock after 10 seconds');
+            }
+          }, 100);
+          
+          // Also use requestAnimationFrame for smooth continuous checking
+          let rafCount = 0;
+          const rafCheck = () => {
+            if (rafCount < 300) { // ~5 seconds at 60fps
+              enableScroll();
+              rafCount++;
+              requestAnimationFrame(rafCheck);
+            }
+          };
+          requestAnimationFrame(rafCheck);
+          
+          // Also use MutationObserver to watch for style changes
+          if (typeof MutationObserver !== 'undefined') {
+            const observer = new MutationObserver((mutations) => {
+              mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                  const target = mutation.target;
+                  if (target === document.body || target === document.documentElement) {
+                    const style = window.getComputedStyle(target);
+                    if (style.overflow === 'hidden' || style.overflowY === 'hidden') {
+                      console.log('🔄 Detected overflow:hidden, restoring scroll');
+                      enableScroll();
+                    }
+                  }
+                }
+              });
+            });
+            
+            observer.observe(document.body, { attributes: true, attributeFilter: ['style'] });
+            observer.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
+          }
+        }
+      })();
+    </script>
+    
     <!-- Immediate auth check script to prevent content flash -->
     <script is:inline>
       (function() {
@@ -248,10 +463,20 @@ const style = categoryStyles[product.category];
                 if (document.body) {
                   document.body.style.transition = 'opacity 0.3s ease-in';
                   document.body.style.opacity = '1';
+                  // CRITICAL: Ensure body can scroll - remove any overflow locks
+                  document.body.style.overflow = '';
+                  document.body.style.overflowY = '';
+                  document.body.style.removeProperty('overflow');
+                  document.body.style.removeProperty('overflow-y');
                 }
                 if (document.documentElement) {
                   document.documentElement.style.transition = 'opacity 0.3s ease-in';
                   document.documentElement.style.opacity = '1';
+                  // CRITICAL: Ensure html can scroll
+                  document.documentElement.style.overflow = '';
+                  document.documentElement.style.overflowY = '';
+                  document.documentElement.style.removeProperty('overflow');
+                  document.documentElement.style.removeProperty('overflow-y');
                 }
                 return;
               }
@@ -282,10 +507,20 @@ const style = categoryStyles[product.category];
                 if (document.body) {
                   document.body.style.transition = 'opacity 0.3s ease-in';
                   document.body.style.opacity = '1';
+                  // CRITICAL: Ensure body can scroll - remove any overflow locks
+                  document.body.style.overflow = '';
+                  document.body.style.overflowY = '';
+                  document.body.style.removeProperty('overflow');
+                  document.body.style.removeProperty('overflow-y');
                 }
                 if (document.documentElement) {
                   document.documentElement.style.transition = 'opacity 0.3s ease-in';
                   document.documentElement.style.opacity = '1';
+                  // CRITICAL: Ensure html can scroll
+                  document.documentElement.style.overflow = '';
+                  document.documentElement.style.overflowY = '';
+                  document.documentElement.style.removeProperty('overflow');
+                  document.documentElement.style.removeProperty('overflow-y');
                 }
                 return;
               }
@@ -331,10 +566,20 @@ const style = categoryStyles[product.category];
             if (document.body) {
               document.body.style.transition = 'opacity 0.3s ease-in';
               document.body.style.opacity = '1';
+              // CRITICAL: Ensure body can scroll - remove any overflow locks
+              document.body.style.overflow = '';
+              document.body.style.overflowY = '';
+              document.body.style.removeProperty('overflow');
+              document.body.style.removeProperty('overflow-y');
             }
             if (document.documentElement) {
               document.documentElement.style.transition = 'opacity 0.3s ease-in';
               document.documentElement.style.opacity = '1';
+              // CRITICAL: Ensure html can scroll
+              document.documentElement.style.overflow = '';
+              document.documentElement.style.overflowY = '';
+              document.documentElement.style.removeProperty('overflow');
+              document.documentElement.style.removeProperty('overflow-y');
             }
             return;
           }
@@ -712,7 +957,7 @@ const style = categoryStyles[product.category];
         >
           {isOrderMenuSystem ? 'Order' : `Add to Cart - ₹${productPlans[0]?.price.toLocaleString()}`}
         </button>
-        {!isOrderMenuSystem && (
+        {!isOrderMenuSystem && !isAndroidTVApp && (
         <p class="text-xs text-white/70 mt-2 text-center">
           <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>

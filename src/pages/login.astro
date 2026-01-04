@@ -265,6 +265,50 @@ import Layout from '../layouts/Layout.astro';
   const successText = document.getElementById('success-text');
   const googleSigninBtn = document.getElementById('google-signin-btn');
   const resendConfirmationBtn = document.getElementById('resend-confirmation-btn');
+  
+  // Check for error parameters in URL (from OAuth callback errors)
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlError = urlParams.get('error');
+  const urlDescription = urlParams.get('description');
+  
+  if (urlError) {
+    console.error('❌ Error from URL parameters:', urlError, urlDescription);
+    let errorMsg = 'Authentication failed.';
+    
+    if (urlError === 'server_error') {
+      errorMsg = 'OAuth server error. The redirect URI may not be configured correctly in Supabase dashboard.';
+      if (urlDescription) {
+        errorMsg += ' ' + decodeURIComponent(urlDescription);
+      }
+      console.error('OAuth Configuration Issue:', {
+        message: 'Redirect URI must be configured in Supabase Dashboard',
+        steps: [
+          '1. Go to Supabase Dashboard → Authentication → URL Configuration',
+          `2. Add this URL to "Redirect URLs": ${window.location.origin}/auth/callback`,
+          '3. Ensure Google OAuth is enabled in Authentication → Providers → Google',
+          '4. Verify the redirect URI matches in Google Cloud Console'
+        ],
+        currentRedirect: `${window.location.origin}/auth/callback`
+      });
+    } else if (urlError === 'oauth_error') {
+      errorMsg = 'OAuth authentication error. Please try again.';
+      if (urlDescription) {
+        errorMsg += ' ' + decodeURIComponent(urlDescription);
+      }
+    } else {
+      errorMsg = decodeURIComponent(urlDescription || urlError);
+    }
+    
+    if (errorText) {
+      errorText.textContent = errorMsg;
+    }
+    if (errorMessage) {
+      errorMessage.classList.remove('hidden');
+    }
+    
+    // Clean URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
   // Track whether user explicitly started Google OAuth from this page
   let oauthGoogleStarted = false;
   
@@ -355,10 +399,22 @@ import Layout from '../layouts/Layout.astro';
       showStatus('Connecting to Google...', 'loading');
       
       // Use the standard Supabase redirect URI
+      // IMPORTANT: This redirect URI must be configured in Supabase Dashboard:
+      // 1. Go to Supabase Dashboard → Authentication → URL Configuration
+      // 2. Set "Site URL" to: http://localhost:4321 (or your production URL)
+      // 3. Add to "Redirect URLs": http://localhost:4321/auth/callback
+      // 4. For production, add: https://yourdomain.com/auth/callback
+      const redirectUri = `${window.location.origin}/auth/callback`;
+      console.log('🔗 Using redirect URI:', redirectUri);
+      console.log('🔗 Current origin:', window.location.origin);
+      console.log('🔗 Full redirect URI:', redirectUri);
+      
+      // Try OAuth with explicit redirect
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectUri,
+          skipBrowserRedirect: false, // Ensure browser redirect happens
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -383,6 +439,18 @@ import Layout from '../layouts/Layout.astro';
           });
         } else if (error.message.includes('access_denied')) {
           errorMessage = 'Access denied. Please try again.';
+        } else if (error.message.includes('server_error') || error.message.includes('exchange')) {
+          errorMessage = 'OAuth server error. This usually means the redirect URI is not configured in Supabase dashboard. Please contact administrator.';
+          console.error('OAuth Configuration Error:', {
+            message: 'The redirect URI must be configured in Supabase Dashboard',
+            steps: [
+              '1. Go to Supabase Dashboard → Authentication → URL Configuration',
+              `2. Add this URL to "Redirect URLs": ${window.location.origin}/auth/callback`,
+              '3. Also ensure Google OAuth is enabled in Authentication → Providers',
+              '4. Make sure the redirect URI matches in Google Cloud Console'
+            ],
+            currentRedirect: `${window.location.origin}/auth/callback`
+          });
         }
         
         showStatus(`Authentication failed: ${errorMessage}`, 'error');

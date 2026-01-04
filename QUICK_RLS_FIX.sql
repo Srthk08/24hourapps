@@ -40,3 +40,4 @@ ALTER TABLE public.contact_submissions ENABLE ROW LEVEL SECURITY;
 
 
 
+

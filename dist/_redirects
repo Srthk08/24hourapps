@@ -14,7 +14,11 @@
 # Admin routes
 /admin/*  /admin/index.html  200
 
-# Product routes
+# Product routes - specific product pages first
+/products/restaurant-menu-system  /products/restaurant-menu-system/index.html  200
+/products/android-tv-app  /products/android-tv-app/index.html  200
+/products/streaming-mobile-app  /products/streaming-mobile-app/index.html  200
+/products/restaurant-website  /products/restaurant-website/index.html  200
 /products/*  /products/index.html  200
 
 # User routes
@@ -23,6 +27,17 @@
 /cart  /cart/index.html  200
 /orders  /orders/index.html  200
 /support  /support/index.html  200
+/customize  /customize/index.html  200
+/contact  /contact/index.html  200
+/about  /about/index.html  200
+/faq  /faq/index.html  200
+/privacy  /privacy/index.html  200
+/terms  /terms/index.html  200
+/login  /login/index.html  200
+/signup  /signup/index.html  200
+
+# Root route
+/  /index.html  200
 
 # SPA (Single Page Application) routing for Astro - MUST be last
 /*    /index.html   200

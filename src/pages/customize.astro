@@ -44,7 +44,7 @@ import Layout from '../layouts/Layout.astro';
                     id="user-name" 
                     name="user_name" 
                     required
-                    autocomplete="off"
+                    autocomplete="name"
                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-gray-900 bg-white"
                     placeholder="Enter your name"
                   />
@@ -60,7 +60,7 @@ import Layout from '../layouts/Layout.astro';
                     id="user-email" 
                     name="user_email" 
                     required
-                    autocomplete="off"
+                    autocomplete="email"
                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-gray-900 bg-white"
                     placeholder="Enter your email"
                   />
@@ -224,6 +224,151 @@ import Layout from '../layouts/Layout.astro';
           (function() {
             console.log('🚀 Immediate field population script running...');
             
+            // IMMEDIATE population from session data (runs first, before Supabase)
+            function populateFromSessionImmediate() {
+              const nameField = document.getElementById('user-name');
+              const emailField = document.getElementById('user-email');
+              const phoneField = document.getElementById('user-phone');
+              
+              if (!nameField || !emailField || !phoneField) {
+                setTimeout(populateFromSessionImmediate, 50);
+                return;
+              }
+              
+              // Get data from sessionStorage immediately
+              const sessionData = sessionStorage.getItem('simple-auth-session');
+              if (!sessionData) {
+                console.log('⚠️ No session data for immediate populate');
+                return;
+              }
+              
+              try {
+                const session = JSON.parse(sessionData);
+                if (session && session.user) {
+                  const user = session.user;
+                  
+                  // Populate Name immediately - VERY AGGRESSIVE
+                  if (nameField) {
+                    const name = user.full_name || user.name || (user.email ? user.email.split('@')[0] : '') || '';
+                    if (name) {
+                      const trimmedName = name.trim();
+                      // Method 1: Direct value
+                      nameField.value = trimmedName;
+                      // Method 2: Set attribute
+                      nameField.setAttribute('value', trimmedName);
+                      // Method 3: Default value
+                      nameField.defaultValue = trimmedName;
+                      // Method 4: Remove and re-add attribute
+                      nameField.removeAttribute('value');
+                      nameField.setAttribute('value', trimmedName);
+                      // Method 5: Dispatch events
+                      nameField.dispatchEvent(new Event('input', { bubbles: true }));
+                      nameField.dispatchEvent(new Event('change', { bubbles: true }));
+                      // Method 6: Force via setProperty if available
+                      try {
+                        if (nameField.setProperty) {
+                          nameField.setProperty('value', trimmedName);
+                        }
+                      } catch(e) {}
+                      // Method 7: Direct property access
+                      if (nameField instanceof HTMLInputElement) {
+                        nameField.value = trimmedName;
+                      }
+                      console.log('✅ IMMEDIATE - Name set:', trimmedName, 'Current value:', nameField.value);
+                      
+                      // Force set multiple times to ensure it sticks
+                      setTimeout(() => {
+                        nameField.value = trimmedName;
+                        nameField.setAttribute('value', trimmedName);
+                        console.log('✅ IMMEDIATE - Name retry 1:', nameField.value);
+                      }, 10);
+                      setTimeout(() => {
+                        nameField.value = trimmedName;
+                        nameField.setAttribute('value', trimmedName);
+                        console.log('✅ IMMEDIATE - Name retry 2:', nameField.value);
+                      }, 100);
+                      setTimeout(() => {
+                        nameField.value = trimmedName;
+                        nameField.setAttribute('value', trimmedName);
+                        console.log('✅ IMMEDIATE - Name retry 3:', nameField.value);
+                      }, 500);
+                    }
+                  }
+                  
+                  // Populate Email immediately - VERY AGGRESSIVE
+                  if (emailField && user.email) {
+                    const trimmedEmail = user.email.trim();
+                    // Method 1: Direct value
+                    emailField.value = trimmedEmail;
+                    // Method 2: Set attribute
+                    emailField.setAttribute('value', trimmedEmail);
+                    // Method 3: Default value
+                    emailField.defaultValue = trimmedEmail;
+                    // Method 4: Remove and re-add attribute
+                    emailField.removeAttribute('value');
+                    emailField.setAttribute('value', trimmedEmail);
+                    // Method 5: Dispatch events
+                    emailField.dispatchEvent(new Event('input', { bubbles: true }));
+                    emailField.dispatchEvent(new Event('change', { bubbles: true }));
+                    // Method 6: Force via setProperty if available
+                    try {
+                      if (emailField.setProperty) {
+                        emailField.setProperty('value', trimmedEmail);
+                      }
+                    } catch(e) {}
+                    // Method 7: Direct property access
+                    if (emailField instanceof HTMLInputElement) {
+                      emailField.value = trimmedEmail;
+                    }
+                    console.log('✅ IMMEDIATE - Email set:', trimmedEmail, 'Current value:', emailField.value);
+                    
+                    // Force set multiple times to ensure it sticks
+                    setTimeout(() => {
+                      emailField.value = trimmedEmail;
+                      emailField.setAttribute('value', trimmedEmail);
+                      console.log('✅ IMMEDIATE - Email retry 1:', emailField.value);
+                    }, 10);
+                    setTimeout(() => {
+                      emailField.value = trimmedEmail;
+                      emailField.setAttribute('value', trimmedEmail);
+                      console.log('✅ IMMEDIATE - Email retry 2:', emailField.value);
+                    }, 100);
+                    setTimeout(() => {
+                      emailField.value = trimmedEmail;
+                      emailField.setAttribute('value', trimmedEmail);
+                      console.log('✅ IMMEDIATE - Email retry 3:', emailField.value);
+                    }, 500);
+                  }
+                  
+                  // Populate Phone immediately
+                  if (phoneField && user.phone) {
+                    phoneField.value = user.phone;
+                    phoneField.setAttribute('value', user.phone);
+                    console.log('✅ IMMEDIATE - Phone set:', user.phone);
+                  }
+                }
+              } catch (e) {
+                console.error('Error in immediate session populate:', e);
+              }
+            }
+            
+            // Run immediate population right away
+            populateFromSessionImmediate();
+            
+            // Also run when DOM is ready
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', populateFromSessionImmediate);
+            } else {
+              populateFromSessionImmediate();
+            }
+            
+            // Keep trying multiple times
+            setTimeout(populateFromSessionImmediate, 50);
+            setTimeout(populateFromSessionImmediate, 200);
+            setTimeout(populateFromSessionImmediate, 500);
+            setTimeout(populateFromSessionImmediate, 1000);
+            
+            // Also try to get better data from Supabase profile
             function setFieldsFromProfile() {
               const nameField = document.getElementById('user-name');
               const emailField = document.getElementById('user-email');
@@ -236,7 +381,6 @@ import Layout from '../layouts/Layout.astro';
               // Get user email from session
               const sessionData = sessionStorage.getItem('simple-auth-session');
               if (!sessionData) {
-                console.log('⚠️ No session data');
                 return;
               }
               
@@ -245,7 +389,6 @@ import Layout from '../layouts/Layout.astro';
                 const userEmail = session?.user?.email;
                 
                 if (!userEmail) {
-                  console.log('⚠️ No user email');
                   return;
                 }
                 
@@ -270,7 +413,7 @@ import Layout from '../layouts/Layout.astro';
                   fetchAndSetFields(supabase, userEmail, nameField, emailField);
                 }
               } catch (e) {
-                console.error('Error in immediate script:', e);
+                console.error('Error in profile fetch script:', e);
               }
             }
             
@@ -309,34 +452,399 @@ import Layout from '../layouts/Layout.astro';
             }
             
             function setFieldValues(profile, nameField, emailField) {
-              // Set name
+              // Set name (only if not already set or if profile has better data)
               if (profile.full_name && nameField) {
                 nameField.value = profile.full_name;
                 nameField.setAttribute('value', profile.full_name);
                 nameField.defaultValue = profile.full_name;
-                console.log('✅ Name set via inline script:', profile.full_name);
+                console.log('✅ Name updated from profile:', profile.full_name);
               }
               
-              // Set email
+              // Set email (only if not already set or if profile has better data)
               if (profile.email && emailField) {
                 emailField.value = profile.email;
                 emailField.setAttribute('value', profile.email);
                 emailField.defaultValue = profile.email;
-                console.log('✅ Email set via inline script:', profile.email);
+                console.log('✅ Email updated from profile:', profile.email);
+              }
+            }
+            
+            // Run profile fetch after a delay (to let immediate populate run first)
+            setTimeout(setFieldsFromProfile, 500);
+            setTimeout(setFieldsFromProfile, 1000);
+            setTimeout(setFieldsFromProfile, 2000);
+            
+            // Continuous check to ensure fields stay populated (runs every 500ms for 10 seconds)
+            let checkCount = 0;
+            const maxChecks = 20;
+            let storedName = '';
+            let storedEmail = '';
+            
+            // Store values when first set
+            const storeValues = () => {
+              const nameField = document.getElementById('user-name');
+              const emailField = document.getElementById('user-email');
+              const sessionData = sessionStorage.getItem('simple-auth-session');
+              
+              if (sessionData && nameField && emailField) {
+                try {
+                  const session = JSON.parse(sessionData);
+                  if (session && session.user) {
+                    const user = session.user;
+                    storedName = user.full_name || user.name || (user.email ? user.email.split('@')[0] : '') || '';
+                    storedEmail = user.email || '';
+                  }
+                } catch (e) {}
+              }
+            };
+            
+            // Store values immediately
+            storeValues();
+            
+            const fieldCheckInterval = setInterval(() => {
+              checkCount++;
+              const nameField = document.getElementById('user-name');
+              const emailField = document.getElementById('user-email');
+              
+              if (nameField && emailField) {
+                // Always restore name if it's empty or different
+                if (storedName && (!nameField.value || nameField.value.trim() === '' || nameField.value.trim() !== storedName.trim())) {
+                  nameField.value = storedName;
+                  nameField.setAttribute('value', storedName);
+                  nameField.defaultValue = storedName;
+                  nameField.dispatchEvent(new Event('input', { bubbles: true }));
+                  console.log('🔄 Restored name field:', storedName, 'Current:', nameField.value);
+                }
+                
+                // Always restore email if it's empty or different
+                if (storedEmail && (!emailField.value || emailField.value.trim() === '' || emailField.value.trim() !== storedEmail.trim())) {
+                  emailField.value = storedEmail;
+                  emailField.setAttribute('value', storedEmail);
+                  emailField.defaultValue = storedEmail;
+                  emailField.dispatchEvent(new Event('input', { bubbles: true }));
+                  console.log('🔄 Restored email field:', storedEmail, 'Current:', emailField.value);
+                }
+              }
+              
+              if (checkCount >= maxChecks) {
+                clearInterval(fieldCheckInterval);
+              }
+            }, 500);
+            
+            // Also use MutationObserver to watch for value changes
+            const setupValueWatcher = () => {
+              const nameField = document.getElementById('user-name');
+              const emailField = document.getElementById('user-email');
+              
+              if (!nameField || !emailField) {
+                setTimeout(setupValueWatcher, 100);
+                return;
+              }
+              
+              // Watch name field
+              const nameObserver = new MutationObserver(() => {
+                if (storedName && (!nameField.value || nameField.value.trim() === '')) {
+                  console.log('🔄 MutationObserver: Name cleared, restoring:', storedName);
+                  nameField.value = storedName;
+                  nameField.setAttribute('value', storedName);
+                }
+              });
+              
+              nameObserver.observe(nameField, {
+                attributes: true,
+                attributeFilter: ['value'],
+                childList: false,
+                subtree: false
+              });
+              
+              // Watch email field
+              const emailObserver = new MutationObserver(() => {
+                if (storedEmail && (!emailField.value || emailField.value.trim() === '')) {
+                  console.log('🔄 MutationObserver: Email cleared, restoring:', storedEmail);
+                  emailField.value = storedEmail;
+                  emailField.setAttribute('value', storedEmail);
+                }
+              });
+              
+              emailObserver.observe(emailField, {
+                attributes: true,
+                attributeFilter: ['value'],
+                childList: false,
+                subtree: false
+              });
+              
+              // Also watch input events
+              nameField.addEventListener('input', () => {
+                if (storedName && (!nameField.value || nameField.value.trim() === '')) {
+                  console.log('🔄 Input event: Name cleared, restoring:', storedName);
+                  nameField.value = storedName;
+                  nameField.setAttribute('value', storedName);
+                }
+              });
+              
+              emailField.addEventListener('input', () => {
+                if (storedEmail && (!emailField.value || emailField.value.trim() === '')) {
+                  console.log('🔄 Input event: Email cleared, restoring:', storedEmail);
+                  emailField.value = storedEmail;
+                  emailField.setAttribute('value', storedEmail);
+                }
+              });
+            };
+            
+            setTimeout(setupValueWatcher, 200);
+          })();
+        </script>
+        
+        <!-- FINAL AGGRESSIVE POPULATION - Runs after ALL other scripts -->
+        <script is:inline>
+          (function() {
+            console.log('🔥 FINAL AGGRESSIVE POPULATION starting...');
+            
+            // This function will run multiple times with increasing delays
+            function finalAggressivePopulate() {
+              const nameField = document.getElementById('user-name');
+              const emailField = document.getElementById('user-email');
+              const phoneField = document.getElementById('user-phone');
+              
+              if (!nameField || !emailField || !phoneField) {
+                console.log('⏳ Fields not ready in final populate, retrying...');
+                return false;
+              }
+              
+              // Get session data
+              const sessionData = sessionStorage.getItem('simple-auth-session');
+              if (!sessionData) {
+                console.log('⚠️ No session data in final populate');
+                return false;
+              }
+              
+              try {
+                const session = JSON.parse(sessionData);
+                if (!session || !session.user) {
+                  return false;
+                }
+                
+                const user = session.user;
+                const name = (user.full_name || user.name || '').trim();
+                const email = (user.email || '').trim();
+                const phone = (user.phone || '').trim();
+                
+                // ULTRA AGGRESSIVE: Set name field
+                if (name && nameField) {
+                  // Try EVERY possible method
+                  nameField.value = name;
+                  nameField.setAttribute('value', name);
+                  nameField.defaultValue = name;
+                  
+                  // Force via property descriptor
+                  try {
+                    Object.defineProperty(nameField, 'value', {
+                      value: name,
+                      writable: true,
+                      configurable: true,
+                      enumerable: true
+                    });
+                  } catch(e) {
+                    nameField.value = name;
+                  }
+                  
+                  // Remove and re-add
+                  nameField.removeAttribute('value');
+                  nameField.setAttribute('value', name);
+                  
+                  // Direct property
+                  if (nameField instanceof HTMLInputElement) {
+                    nameField.value = name;
+                  }
+                  
+                  // Events
+                  nameField.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+                  nameField.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+                  nameField.dispatchEvent(new Event('blur', { bubbles: true, cancelable: true }));
+                  
+                  // Force focus and blur to trigger browser updates
+                  nameField.focus();
+                  setTimeout(() => nameField.blur(), 10);
+                  
+                  console.log('🔥 FINAL - Name set:', name, 'Field value:', nameField.value, 'Attribute:', nameField.getAttribute('value'));
+                }
+                
+                // ULTRA AGGRESSIVE: Set email field
+                if (email && emailField) {
+                  // Try EVERY possible method
+                  emailField.value = email;
+                  emailField.setAttribute('value', email);
+                  emailField.defaultValue = email;
+                  
+                  // Force via property descriptor
+                  try {
+                    Object.defineProperty(emailField, 'value', {
+                      value: email,
+                      writable: true,
+                      configurable: true,
+                      enumerable: true
+                    });
+                  } catch(e) {
+                    emailField.value = email;
+                  }
+                  
+                  // Remove and re-add
+                  emailField.removeAttribute('value');
+                  emailField.setAttribute('value', email);
+                  
+                  // Direct property
+                  if (emailField instanceof HTMLInputElement) {
+                    emailField.value = email;
+                  }
+                  
+                  // Events
+                  emailField.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+                  emailField.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+                  emailField.dispatchEvent(new Event('blur', { bubbles: true, cancelable: true }));
+                  
+                  // Force focus and blur to trigger browser updates
+                  emailField.focus();
+                  setTimeout(() => emailField.blur(), 10);
+                  
+                  console.log('🔥 FINAL - Email set:', email, 'Field value:', emailField.value, 'Attribute:', emailField.getAttribute('value'));
+                }
+                
+                // Set phone
+                if (phone && phoneField) {
+                  phoneField.value = phone;
+                  phoneField.setAttribute('value', phone);
+                }
+                
+                return true;
+              } catch(e) {
+                console.error('Error in final aggressive populate:', e);
+                return false;
               }
             }
             
             // Run immediately
+            finalAggressivePopulate();
+            
+            // Run on DOMContentLoaded
             if (document.readyState === 'loading') {
-              document.addEventListener('DOMContentLoaded', setFieldsFromProfile);
+              document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(finalAggressivePopulate, 100);
+                setTimeout(finalAggressivePopulate, 500);
+                setTimeout(finalAggressivePopulate, 1000);
+              });
             } else {
-              setFieldsFromProfile();
+              setTimeout(finalAggressivePopulate, 100);
+              setTimeout(finalAggressivePopulate, 500);
+              setTimeout(finalAggressivePopulate, 1000);
             }
             
-            // Also run after a delay
-            setTimeout(setFieldsFromProfile, 500);
-            setTimeout(setFieldsFromProfile, 1000);
-            setTimeout(setFieldsFromProfile, 2000);
+            // Run on window load (after everything)
+            window.addEventListener('load', () => {
+              setTimeout(finalAggressivePopulate, 100);
+              setTimeout(finalAggressivePopulate, 500);
+              setTimeout(finalAggressivePopulate, 1000);
+              setTimeout(finalAggressivePopulate, 2000);
+            });
+            
+            // EXTREME METHOD: Replace input elements if values aren't showing
+            function extremePopulate() {
+              const nameField = document.getElementById('user-name');
+              const emailField = document.getElementById('user-email');
+              const sessionData = sessionStorage.getItem('simple-auth-session');
+              
+              if (!sessionData || !nameField || !emailField) return;
+              
+              try {
+                const session = JSON.parse(sessionData);
+                if (!session || !session.user) return;
+                
+                const user = session.user;
+                const name = (user.full_name || user.name || '').trim();
+                const email = (user.email || '').trim();
+                
+                // Check if values are actually visible
+                const nameVisible = nameField.value && nameField.value.trim() !== '';
+                const emailVisible = emailField.value && emailField.value.trim() !== '';
+                
+                // If values aren't visible but we have them, try extreme method
+                if (name && !nameVisible) {
+                  console.log('🚨 EXTREME: Name not visible, trying replacement method');
+                  
+                  // Create new input with value
+                  const newNameInput = document.createElement('input');
+                  newNameInput.type = 'text';
+                  newNameInput.id = 'user-name';
+                  newNameInput.name = 'user_name';
+                  newNameInput.required = true;
+                  newNameInput.autocomplete = 'name';
+                  newNameInput.className = nameField.className;
+                  newNameInput.placeholder = nameField.placeholder;
+                  newNameInput.value = name;
+                  newNameInput.setAttribute('value', name);
+                  
+                  // Replace the old input
+                  nameField.parentNode?.replaceChild(newNameInput, nameField);
+                  
+                  console.log('🚨 EXTREME: Replaced name field, new value:', newNameInput.value);
+                }
+                
+                if (email && !emailVisible) {
+                  console.log('🚨 EXTREME: Email not visible, trying replacement method');
+                  
+                  // Create new input with value
+                  const newEmailInput = document.createElement('input');
+                  newEmailInput.type = 'email';
+                  newEmailInput.id = 'user-email';
+                  newEmailInput.name = 'user_email';
+                  newEmailInput.required = true;
+                  newEmailInput.autocomplete = 'email';
+                  newEmailInput.className = emailField.className;
+                  newEmailInput.placeholder = emailField.placeholder;
+                  newEmailInput.value = email;
+                  newEmailInput.setAttribute('value', email);
+                  
+                  // Replace the old input
+                  emailField.parentNode?.replaceChild(newEmailInput, emailField);
+                  
+                  console.log('🚨 EXTREME: Replaced email field, new value:', newEmailInput.value);
+                }
+              } catch(e) {
+                console.error('Error in extreme populate:', e);
+              }
+            }
+            
+            // Try extreme method after a delay
+            setTimeout(extremePopulate, 2000);
+            setTimeout(extremePopulate, 3000);
+            setTimeout(extremePopulate, 5000);
+            
+            // Continuous aggressive loop - runs every 200ms for 5 seconds
+            let aggressiveCount = 0;
+            const aggressiveInterval = setInterval(() => {
+              aggressiveCount++;
+              const success = finalAggressivePopulate();
+              
+              if (aggressiveCount >= 25) { // 5 seconds
+                clearInterval(aggressiveInterval);
+                console.log('⏹️ Stopped aggressive population after 5 seconds');
+              }
+            }, 200);
+            
+            // Also use requestAnimationFrame for smooth updates
+            function rafPopulate() {
+              finalAggressivePopulate();
+              requestAnimationFrame(rafPopulate);
+            }
+            
+            // Run RAF populate for 3 seconds
+            const rafStart = Date.now();
+            function rafLoop() {
+              if (Date.now() - rafStart < 3000) {
+                finalAggressivePopulate();
+                requestAnimationFrame(rafLoop);
+              }
+            }
+            requestAnimationFrame(rafLoop);
           })();
         </script>
 

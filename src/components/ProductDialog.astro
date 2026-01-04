@@ -181,8 +181,18 @@
           dialog.style.top = '-9999px';
           dialog.style.left = '-9999px';
         }
+        // CRITICAL: Ensure scroll is enabled for Android TV App
         if (document.body) {
           document.body.style.overflow = '';
+          document.body.style.overflowY = '';
+          document.body.style.removeProperty('overflow');
+          document.body.style.removeProperty('overflow-y');
+        }
+        if (document.documentElement) {
+          document.documentElement.style.overflow = '';
+          document.documentElement.style.overflowY = '';
+          document.documentElement.style.removeProperty('overflow');
+          document.documentElement.style.removeProperty('overflow-y');
         }
         return; // CRITICAL: Exit immediately - do not proceed
       }
@@ -200,6 +210,9 @@
         }
         if (document.body) {
           document.body.style.overflow = '';
+          document.body.style.overflowY = '';
+          document.body.style.removeProperty('overflow');
+          document.body.style.removeProperty('overflow-y');
         }
         return;
       }
@@ -216,14 +229,24 @@
           dialog.style.pointerEvents = 'none';
           dialog.style.zIndex = '-9999';
         }
+        // CRITICAL: Ensure scroll is enabled for Android TV App
         if (document.body) {
           document.body.style.overflow = '';
+          document.body.style.overflowY = '';
+          document.body.style.removeProperty('overflow');
+          document.body.style.removeProperty('overflow-y');
+        }
+        if (document.documentElement) {
+          document.documentElement.style.overflow = '';
+          document.documentElement.style.overflowY = '';
+          document.documentElement.style.removeProperty('overflow');
+          document.documentElement.style.removeProperty('overflow-y');
         }
         return;
       }
       
-      // Lock body scroll
-      if (document.body) {
+      // Lock body scroll (only if not Android TV App)
+      if (document.body && !isAndroidTVApp) {
         document.body.style.overflow = 'hidden';
       }
       

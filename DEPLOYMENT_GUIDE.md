@@ -1,138 +1,218 @@
-# 🚀 Deployment Guide
+# Deployment Guide
 
-## Build Status: ✅ SUCCESSFUL
+Your project is ready for deployment! You have configuration files for both **Netlify** and **Vercel**.
 
-The project has been successfully built and is ready for deployment!
+## ✅ Build Status
+- ✅ All duplicate key warnings fixed
+- ✅ Build completed successfully
+- ✅ 33 pages generated in `dist/` folder
 
-## 📦 Build Output
+## 🚀 Deployment Options
 
-- **Build Directory:** `dist/`
-- **Deployment Package:** `deployment-package-fixed.zip` (Latest with loading fixes)
-- **Build Type:** Static Site Generation (SSG)
-- **Framework:** Astro
-- **Status:** ✅ Fixed loading issues for production deployment
+### Option 1: Deploy to Netlify (Recommended)
 
-## 🎯 Deployment Options
-
-### Option 1: Netlify (Recommended)
-1. **Upload the `deployment-package.zip`** to Netlify
-2. **Extract the contents** to the root directory
-3. **Set build command:** `npm run build`
-4. **Set publish directory:** `dist`
-5. **Environment Variables:**
-   ```
-   VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+#### Method A: Using Netlify CLI
+1. Install Netlify CLI (if not installed):
+   ```bash
+   npm install -g netlify-cli
    ```
 
-### Option 2: Vercel
-1. **Connect your GitHub repository** to Vercel
-2. **Set build command:** `npm run build`
-3. **Set output directory:** `dist`
-4. **Environment Variables:**
-   ```
-   VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+2. Login to Netlify:
+   ```bash
+   netlify login
    ```
 
-### Option 3: GitHub Pages
-1. **Upload contents of `dist/` folder** to your repository
-2. **Enable GitHub Pages** in repository settings
-3. **Set source to main branch** and `/` root directory
+3. Initialize and deploy:
+   ```bash
+   netlify init
+   netlify deploy --prod
+   ```
 
-### Option 4: Any Static Host
-1. **Upload all contents** from `dist/` folder
-2. **Ensure `index.html`** is in the root directory
-3. **Configure your web server** to serve static files
+#### Method B: Using Netlify Dashboard
+1. Go to [netlify.com](https://netlify.com) and sign up/login
+2. Click "Add new site" → "Import an existing project"
+3. Connect your Git repository (GitHub/GitLab/Bitbucket)
+4. Build settings (auto-detected from `netlify.toml`):
+   - Build command: `npm run build`
+   - Publish directory: `dist`
+5. Add environment variables (if needed):
+   - Go to Site settings → Environment variables
+   - Add your Supabase keys:
+     - `PUBLIC_SUPABASE_URL`
+     - `PUBLIC_SUPABASE_ANON_KEY`
+6. Click "Deploy site"
 
-## 🔧 Pre-Deployment Checklist
-
-### ✅ Completed
-- [x] Build completed successfully
-- [x] All pages generated (34 pages)
-- [x] Static assets optimized
-- [x] CSS and JS files minified
-- [x] Menu operator dashboard updated
-- [x] Product customizations feature implemented
-- [x] Admin panel styling applied
-- [x] **FIXED: Loading state issues in production**
-- [x] **FIXED: Demo data loads immediately**
-- [x] **FIXED: Real data loads in background**
-- [x] **FIXED: Supabase timeout handling**
-
-### ⚠️ Warnings (Non-blocking)
-- Some duplicate keys in cart.astro (cosmetic only)
-- Some duplicate keys in dashboard.astro (cosmetic only)
-- Supabase constant assignment warning (non-critical)
-
-## 📁 Key Files Generated
-
-### Main Pages
-- `/index.html` - Homepage
-- `/menu-operator/index.html` - **Updated Menu Operator Dashboard**
-- `/admin/index.html` - Admin Panel
-- `/dashboard/index.html` - User Dashboard
-- `/products/index.html` - Products Page
-
-### Menu Operator Dashboard Features
-- ✅ Product Customizations Table
-- ✅ Menu Photos Management
-- ✅ Statistics Cards
-- ✅ Admin Panel Styling
-- ✅ Refresh Button Functionality
-
-## 🌐 Environment Setup
-
-### Required Environment Variables
-```bash
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your_anon_key_here
-```
-
-### Database Setup
-1. **Run the SQL script:** `create_sample_data.sql`
-2. **Create tables:** `product_customizations` and `menu_photos`
-3. **Set up RLS policies** for menu operators
-4. **Insert sample data** for testing
-
-## 🚀 Quick Deploy Commands
-
-### For Netlify CLI
-```bash
-npm install -g netlify-cli
-netlify deploy --prod --dir=dist
-```
-
-### For Vercel CLI
-```bash
-npm install -g vercel
-vercel --prod
-```
-
-## 📊 Build Statistics
-
-- **Total Pages:** 34
-- **Build Time:** ~14 seconds
-- **Bundle Size:** Optimized for production
-- **Static Assets:** All optimized and minified
-
-## 🔍 Testing After Deployment
-
-1. **Homepage:** `/`
-2. **Menu Operator Dashboard:** `/menu-operator`
-3. **Admin Panel:** `/admin`
-4. **Products:** `/products`
-5. **Authentication:** `/login`, `/signup`
-
-## 📞 Support
-
-If you encounter any issues during deployment:
-1. Check environment variables are set correctly
-2. Ensure Supabase database is accessible
-3. Verify all static assets are uploaded
-4. Check browser console for any errors
+#### Method C: Drag & Drop
+1. Build your project: `npm run build`
+2. Go to [netlify.com](https://netlify.com)
+3. Drag and drop the `dist` folder to the deploy area
 
 ---
 
-**Build completed successfully!** 🎉
-**Ready for production deployment!** 🚀
+### Option 2: Deploy to Vercel
+
+#### Method A: Using Vercel CLI
+1. Install Vercel CLI (if not installed):
+   ```bash
+   npm install -g vercel
+   ```
+
+2. Login to Vercel:
+   ```bash
+   vercel login
+   ```
+
+3. Deploy:
+   ```bash
+   vercel --prod
+   ```
+
+#### Method B: Using Vercel Dashboard
+1. Go to [vercel.com](https://vercel.com) and sign up/login
+2. Click "Add New Project"
+3. Import your Git repository
+4. Build settings (auto-detected from `vercel.json`):
+   - Framework Preset: Astro
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+5. Add environment variables:
+   - Add your Supabase keys:
+     - `PUBLIC_SUPABASE_URL`
+     - `PUBLIC_SUPABASE_ANON_KEY`
+6. Click "Deploy"
+
+---
+
+### Option 3: Deploy to Other Platforms
+
+#### GitHub Pages
+1. Install gh-pages:
+   ```bash
+   npm install --save-dev gh-pages
+   ```
+
+2. Add to `package.json`:
+   ```json
+   "scripts": {
+     "deploy": "npm run build && gh-pages -d dist"
+   }
+   ```
+
+3. Deploy:
+   ```bash
+   npm run deploy
+   ```
+
+#### Cloudflare Pages
+1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com)
+2. Pages → Create a project
+3. Connect your Git repository
+4. Build settings:
+   - Build command: `npm run build`
+   - Build output directory: `dist`
+   - Node.js version: 18
+
+#### AWS S3 + CloudFront
+1. Build: `npm run build`
+2. Upload `dist/` folder to S3 bucket
+3. Configure CloudFront distribution
+4. Set up custom domain
+
+---
+
+## 🔐 Environment Variables
+
+Make sure to set these environment variables in your hosting platform:
+
+### Required Variables:
+- `PUBLIC_SUPABASE_URL` - Your Supabase project URL
+- `PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anonymous key
+
+### Optional Variables:
+- `PUBLIC_SITE_URL` - Your site URL (for OAuth callbacks)
+
+---
+
+## 📝 Pre-Deployment Checklist
+
+- [x] Build completed successfully
+- [x] All warnings fixed
+- [ ] Environment variables configured
+- [ ] OAuth redirect URIs updated in Supabase
+- [ ] Google OAuth redirect URI configured
+- [ ] Test the deployed site
+
+---
+
+## 🔄 Post-Deployment Steps
+
+1. **Update Supabase Redirect URLs:**
+   - Go to Supabase Dashboard → Authentication → URL Configuration
+   - Add your production URL to "Redirect URLs"
+   - Example: `https://your-site.netlify.app/auth/callback`
+
+2. **Update Google OAuth:**
+   - Go to Google Cloud Console
+   - Update authorized redirect URIs with your production URL
+   - Example: `https://your-site.netlify.app/auth/callback`
+
+3. **Test the deployment:**
+   - Test login/signup
+   - Test Google OAuth
+   - Test product pages
+   - Test cart functionality
+
+---
+
+## 🐛 Troubleshooting
+
+### Build fails
+- Check Node.js version (should be 18+)
+- Run `npm install` to ensure dependencies are installed
+- Check for TypeScript errors
+
+### OAuth not working
+- Verify redirect URIs in Supabase and Google Cloud Console
+- Check environment variables are set correctly
+- Ensure HTTPS is enabled (required for OAuth)
+
+### Pages not loading
+- Check redirect rules in `netlify.toml` or `vercel.json`
+- Verify all routes are properly configured
+- Check browser console for errors
+
+---
+
+## 📞 Need Help?
+
+If you encounter any issues during deployment, check:
+1. Build logs in your hosting platform
+2. Browser console for client-side errors
+3. Network tab for API errors
+4. Supabase logs for database errors
+
+---
+
+## ✨ Quick Deploy Commands
+
+### Netlify
+```bash
+npm run build
+netlify deploy --prod
+```
+
+### Vercel
+```bash
+npm run build
+vercel --prod
+```
+
+### Preview Locally
+```bash
+npm run build
+npm run preview
+```
+
+---
+
+**Your project is ready to deploy! 🚀**
