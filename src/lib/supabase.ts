@@ -6,23 +6,54 @@ const SUPABASE_CONFIG = {
 };
 
 const getEnvVar = (key: string): string => {
-  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[key]) {
-    return import.meta.env[key];
+  // Try PUBLIC_ prefix first (Astro standard for public env vars)
+  const publicKey = `PUBLIC_${key.replace(/^(PUBLIC_|VITE_)/, '')}`;
+  const viteKey = `VITE_${key.replace(/^(PUBLIC_|VITE_)/, '')}`;
+  
+  // Check import.meta.env (Astro/Vite)
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    if (import.meta.env[publicKey]) {
+      return import.meta.env[publicKey];
+    }
+    if (import.meta.env[viteKey]) {
+      return import.meta.env[viteKey];
+    }
+    if (import.meta.env[key]) {
+      return import.meta.env[key];
+    }
   }
   
-  if (typeof process !== 'undefined' && process.env && process.env[key]) {
-    return process.env[key];
+  // Check process.env (Node.js/server-side)
+  if (typeof process !== 'undefined' && process.env) {
+    if (process.env[publicKey]) {
+      return process.env[publicKey];
+    }
+    if (process.env[viteKey]) {
+      return process.env[viteKey];
+    }
+    if (process.env[key]) {
+      return process.env[key];
+    }
   }
   
-  if (typeof window !== 'undefined' && window.__ENV__ && window.__ENV__[key]) {
-    return window.__ENV__[key];
+  // Check window.__ENV__ (client-side fallback)
+  if (typeof window !== 'undefined' && window.__ENV__) {
+    if (window.__ENV__[publicKey]) {
+      return window.__ENV__[publicKey];
+    }
+    if (window.__ENV__[viteKey]) {
+      return window.__ENV__[viteKey];
+    }
+    if (window.__ENV__[key]) {
+      return window.__ENV__[key];
+    }
   }
   
   return '';
 };
 
-export const supabaseUrl = getEnvVar('VITE_SUPABASE_URL') || SUPABASE_CONFIG.url;
-export const supabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY') || SUPABASE_CONFIG.anonKey;
+export const supabaseUrl = getEnvVar('SUPABASE_URL') || SUPABASE_CONFIG.url;
+export const supabaseAnonKey = getEnvVar('SUPABASE_ANON_KEY') || SUPABASE_CONFIG.anonKey;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 

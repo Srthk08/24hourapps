@@ -2,10 +2,15 @@
 
 // Astro environment variables
 interface ImportMetaEnv {
-  readonly VITE_SUPABASE_URL: string;
-  readonly VITE_SUPABASE_ANON_KEY: string;
+  // Support both PUBLIC_ (Astro standard) and VITE_ (legacy) prefixes
+  readonly PUBLIC_SUPABASE_URL?: string;
+  readonly PUBLIC_SUPABASE_ANON_KEY?: string;
+  readonly VITE_SUPABASE_URL?: string;
+  readonly VITE_SUPABASE_ANON_KEY?: string;
   readonly DEV: boolean;
   readonly PROD: boolean;
+  readonly SITE?: string;
+  readonly BASE?: string;
 }
 
 interface ImportMeta {

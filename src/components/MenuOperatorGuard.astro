@@ -12,21 +12,31 @@
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRndW9weXhtbGZ4Y2FsaGZpdG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMTk3NDQsImV4cCI6MjA3OTc5NTc0NH0.GUtJWVu8i6NWoleXI_Fd-ePM4vOFQtulyk1kqZgPgRM'
   };
 
-  // Get environment variables with fallbacks
+  // Get environment variables with fallbacks (supports both PUBLIC_ and VITE_ prefixes)
   const getEnvVar = (key: string): string => {
+    // Try PUBLIC_ prefix first (Astro standard)
+    const publicKey = `PUBLIC_${key.replace(/^(PUBLIC_|VITE_)/, '')}`;
+    const viteKey = `VITE_${key.replace(/^(PUBLIC_|VITE_)/, '')}`;
+    
     // Try to get from import.meta.env (Astro) - this is the primary method
-    if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[key]) {
-      return import.meta.env[key];
+    if (typeof import.meta !== 'undefined' && import.meta.env) {
+      if (import.meta.env[publicKey]) return import.meta.env[publicKey];
+      if (import.meta.env[viteKey]) return import.meta.env[viteKey];
+      if (import.meta.env[key]) return import.meta.env[key];
     }
     
     // Try to get from process.env (Node.js) - for server-side
-    if (typeof process !== 'undefined' && process.env && process.env[key]) {
-      return process.env[key];
+    if (typeof process !== 'undefined' && process.env) {
+      if (process.env[publicKey]) return process.env[publicKey];
+      if (process.env[viteKey]) return process.env[viteKey];
+      if (process.env[key]) return process.env[key];
     }
     
     // Try to get from window (browser) - for client-side fallback
-    if (typeof window !== 'undefined' && window.__ENV__ && window.__ENV__[key]) {
-      return window.__ENV__[key];
+    if (typeof window !== 'undefined' && window.__ENV__) {
+      if (window.__ENV__[publicKey]) return window.__ENV__[publicKey];
+      if (window.__ENV__[viteKey]) return window.__ENV__[viteKey];
+      if (window.__ENV__[key]) return window.__ENV__[key];
     }
     
     // Return empty string if not found
@@ -34,8 +44,8 @@
   };
 
   // Use environment variables if available, otherwise use hardcoded config
-  const supabaseUrl = getEnvVar('VITE_SUPABASE_URL') || SUPABASE_CONFIG.url;
-  const supabaseKey = getEnvVar('VITE_SUPABASE_ANON_KEY') || SUPABASE_CONFIG.anonKey;
+  const supabaseUrl = getEnvVar('SUPABASE_URL') || SUPABASE_CONFIG.url;
+  const supabaseKey = getEnvVar('SUPABASE_ANON_KEY') || SUPABASE_CONFIG.anonKey;
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   // Check if user has menu operator access
